@@ -25,6 +25,9 @@ const DEFAULT_PATH = '/json-to-csv';
 export function useRouter() {
   const getCleanPath = () => {
     let path = window.location.pathname;
+    if (path.startsWith('/QuickFormat-Hub')) {
+      path = path.slice('/QuickFormat-Hub'.length) || '/';
+    }
     if (window.location.hash) {
       const hashPath = window.location.hash.replace(/^#/, '');
       if (VALID_PATHS.includes(hashPath)) {
@@ -73,8 +76,10 @@ export function useRouter() {
 
   const navigate = useCallback((path) => {
     if (!VALID_PATHS.includes(path)) return;
+    const isGitHubPages = window.location.pathname.startsWith('/QuickFormat-Hub');
+    const fullPath = isGitHubPages ? `/QuickFormat-Hub${path}` : path;
     try {
-      window.history.pushState(null, '', path);
+      window.history.pushState(null, '', fullPath);
     } catch {
       window.location.hash = path;
     }
