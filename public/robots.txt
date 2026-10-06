@@ -1,0 +1,6 @@
+# QuickFormat Hub Robots.txt
+User-agent: *
+Allow: /
+
+# Host & Sitemap
+Sitemap: https://quickformathub.com/sitemap.xml
