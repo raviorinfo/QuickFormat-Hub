@@ -21,7 +21,7 @@ export function TermsOfServicePage() {
       {/* Intro Box */}
       <div className="p-6 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
         <p>
-          Welcome to <strong>QuickFormat Hub</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;). By accessing, navigating, or utilizing our suite of 100% in-browser utilities, formatters, and developer tools located at <strong>quickformathub.com</strong>, you acknowledge and agree to be bound by these Terms of Service. If you disagree with any portion of these terms, please discontinue using the website immediately.
+          Welcome to <strong>QuickFormat Hub</strong> (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;). By accessing, navigating, or utilizing our suite of 100% in-browser utilities, formatters, and developer tools located at <strong>quickformat.arvaancorelogic.com</strong>, you acknowledge and agree to be bound by these Terms of Service. If you disagree with any portion of these terms, please discontinue using the website immediately.
         </p>
       </div>
 

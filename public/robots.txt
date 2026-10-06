@@ -3,4 +3,5 @@ User-agent: *
 Allow: /
 
 # Host & Sitemap
-Sitemap: https://quickformathub.com/sitemap.xml
+Host: quickformat.arvaancorelogic.com
+Sitemap: https://quickformat.arvaancorelogic.com/sitemap.xml
