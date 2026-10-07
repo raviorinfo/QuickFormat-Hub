@@ -17,12 +17,15 @@ import {
   Layers,
   ArrowRight,
   Zap,
-  EyeOff
+  EyeOff,
+  Globe
 } from 'lucide-react';
 import { sanitizeText, unmaskText, SAMPLE_DIRTY_LOG } from '../../utils/piiSanitizer';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
 import { ToggleSwitch } from '../common/ToggleSwitch';
 import { PresetChips } from '../common/PresetChips';
 
@@ -110,47 +113,40 @@ export function PiiRedactorTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Hero Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-500 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Zero-Leakage Privacy Guard • Local AI Sanitizer</span>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={ShieldAlert}
+        category="Security & AI Governance"
+        badge="Zero-Leakage Privacy Engine"
+        title="AI Prompt & Log Sanitizer (PII Redactor)"
+        description="Redact API keys, bearer tokens, IP addresses, emails, credit cards, and customer identifiers before sending logs to LLMs. Reverse-unmask AI responses in your local browser."
+        actions={
+          <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/60 dark:border-white/[0.08]">
+            <button
+              onClick={() => setActiveTab('sanitize')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'sanitize'
+                  ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>1. Mask Secrets</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('unmask')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'unmask'
+                  ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Unlock className="w-3.5 h-3.5" />
+              <span>2. Reverse Unmask</span>
+            </button>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            AI Prompt & Log Sanitizer (PII Redactor)
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Redact API tokens, credentials, IP addresses, emails, and credit cards before sharing logs with ChatGPT or Claude. Reverse unmask responses locally.
-          </p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-850 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-800">
-          <button
-            onClick={() => setActiveTab('sanitize')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'sanitize'
-                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>1. Mask Secrets</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('unmask')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'unmask'
-                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Unlock className="w-3.5 h-3.5" />
-            <span>2. Reverse Unmask AI Reply</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Preset Chips Bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
@@ -163,17 +159,49 @@ export function PiiRedactorTool() {
 
         <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Zero transmission to AI vendors</span>
+          <span>Local memory only • Zero transmission to LLM vendors</span>
         </div>
+      </div>
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={Key}
+          label="API Tokens Masked"
+          value={`${stats.apiKeys} Tokens`}
+          subtext="Secrets & Bearer keys"
+          color="rose"
+        />
+        <StatCard
+          icon={Mail}
+          label="Emails & Contacts"
+          value={`${stats.emails + stats.phones} Entities`}
+          subtext="Email addresses & phones"
+          color="sky"
+        />
+        <StatCard
+          icon={Globe}
+          label="Network Addresses"
+          value={`${stats.ips} IPs`}
+          subtext="IPv4 & IPv6 addresses"
+          color="purple"
+        />
+        <StatCard
+          icon={CreditCard}
+          label="Financial & UUIDs"
+          value={`${stats.creditCards + stats.uuids} Tokens`}
+          subtext="Cards & unique UUIDs"
+          color="amber"
+        />
       </div>
 
       {activeTab === 'sanitize' ? (
         <div className="space-y-4 animate-fade-in">
-          {/* Stats & Toggles Strip */}
-          <div className="p-4 glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-3 shadow-sm">
+          {/* Options Strip */}
+          <div className="p-4 glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-3 shadow-xl">
             <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200">Redacted Tokens:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">Redacted Tokens:</span>
                 <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold border border-emerald-500/20">
                   {totalRedacted} items masked
                 </span>
@@ -189,7 +217,7 @@ export function PiiRedactorTool() {
             </div>
 
             {/* Filter Toggle Switches */}
-            <div className="flex items-center flex-wrap gap-5 text-xs pt-3 border-t border-slate-200/60 dark:border-slate-800/60">
+            <div className="flex items-center flex-wrap gap-5 text-xs pt-3 border-t border-slate-200/60 dark:border-white/[0.06]">
               <ToggleSwitch
                 label={`API Keys (${stats.apiKeys})`}
                 checked={maskApiKeys}
@@ -226,7 +254,7 @@ export function PiiRedactorTool() {
           {/* Dual Textareas */}
           <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
             {/* Left: Raw text */}
-            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
               <WindowHeader
                 title="Confidential Baseline Input"
                 badge="Raw"
@@ -243,7 +271,7 @@ export function PiiRedactorTool() {
                     setActivePreset(null);
                     toast.success('Sample log loaded');
                   }}
-                  className="px-2 py-1 text-xs text-brand-500 hover:text-brand-400 font-semibold rounded hover:bg-brand-500/10 transition-colors"
+                  className="px-2 py-1 text-xs text-sky-500 hover:text-sky-400 font-semibold rounded hover:bg-sky-500/10 transition-colors"
                 >
                   Reset
                 </button>
@@ -259,20 +287,22 @@ export function PiiRedactorTool() {
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </WindowHeader>
-              <textarea
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  setActivePreset(null);
-                }}
-                placeholder="Paste confidential production logs, queries, or tickets here..."
-                rows={16}
-                className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[380px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  value={inputText}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    setActivePreset(null);
+                  }}
+                  placeholder="Paste confidential production logs, queries, or tickets here..."
+                  rows={16}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[380px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
 
             {/* Right: Sanitized output */}
-            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
               <WindowHeader
                 title="Sanitized AI-Safe Output"
                 badge="Safe for AI"
@@ -289,29 +319,31 @@ export function PiiRedactorTool() {
                   variant="subtle"
                 />
               </WindowHeader>
-              <textarea
-                id="sanitized-output-textarea"
-                readOnly
-                value={sanitized}
-                rows={16}
-                className={`w-full p-4 font-mono bg-slate-50/70 dark:bg-[#060911]/80 text-emerald-600 dark:text-emerald-400 focus:outline-none resize-none leading-relaxed min-h-[380px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  id="sanitized-output-textarea"
+                  readOnly
+                  value={sanitized}
+                  rows={16}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-emerald-600 dark:text-emerald-400 focus:outline-none resize-none leading-relaxed min-h-[380px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
           </div>
         </div>
       ) : (
         /* UNMASK TAB */
         <div className="space-y-4 animate-fade-in">
-          <div className="p-4 glass-panel border border-brand-500/30 rounded-2xl text-xs text-slate-700 dark:text-slate-300 leading-relaxed shadow-sm">
-            <span className="font-bold text-brand-600 dark:text-brand-400 block mb-1 text-sm flex items-center gap-1.5">
-              <Zap className="w-4 h-4" />
+          <div className="p-4 glass-panel border border-sky-500/30 rounded-2xl text-xs text-slate-700 dark:text-slate-300 leading-relaxed shadow-xl">
+            <span className="font-bold text-sky-600 dark:text-sky-400 block mb-1 text-sm flex items-center gap-1.5 font-mono">
+              <Zap className="w-4 h-4 text-sky-500" />
               Reverse AI Unmasker
             </span>
-            Paste the response you received from ChatGPT or Claude into the left box below. Our local engine will automatically replace tokens like <code className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded font-mono font-bold text-brand-500">[REDACTED_API_KEY_1]</code> back with your original confidential values!
+            Paste the response you received from ChatGPT or Claude into the left box below. Our local engine will automatically replace placeholders like <code className="px-1.5 py-0.5 bg-slate-200 dark:bg-white/[0.08] rounded font-mono font-bold text-sky-500">[REDACTED_API_KEY_1]</code> back with your original confidential values!
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
               <WindowHeader
                 title="AI Answer With Placeholders"
                 badge="Masked"
@@ -326,21 +358,23 @@ export function PiiRedactorTool() {
                       'The issue in PaymentGatewayController for user [REDACTED_EMAIL_1] is caused by an expired token [REDACTED_API_KEY_2]. Recommend regenerating the credential.'
                     );
                   }}
-                  className="px-2 py-1 text-xs text-brand-500 hover:text-brand-400 font-semibold rounded hover:bg-brand-500/10 transition-colors"
+                  className="px-2 py-1 text-xs text-sky-500 hover:text-sky-400 font-semibold rounded hover:bg-sky-500/10 transition-colors"
                 >
                   Insert Sample Reply
                 </button>
               </WindowHeader>
-              <textarea
-                value={aiResponseText}
-                onChange={(e) => setAiResponseText(e.target.value)}
-                placeholder="Paste AI response containing [REDACTED_...] tokens..."
-                rows={14}
-                className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  value={aiResponseText}
+                  onChange={(e) => setAiResponseText(e.target.value)}
+                  placeholder="Paste AI response containing [REDACTED_...] tokens..."
+                  rows={14}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[340px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
 
-            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
               <WindowHeader
                 title="Restored Confidential Response"
                 badge="Unmasked"
@@ -357,13 +391,15 @@ export function PiiRedactorTool() {
                   variant="primary"
                 />
               </WindowHeader>
-              <textarea
-                id="unmasked-output-textarea"
-                readOnly
-                value={unmaskedResult}
-                rows={14}
-                className={`w-full p-4 font-mono bg-slate-50/70 dark:bg-[#060911]/80 text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  id="unmasked-output-textarea"
+                  readOnly
+                  value={unmaskedResult}
+                  rows={14}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[340px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
           </div>
         </div>

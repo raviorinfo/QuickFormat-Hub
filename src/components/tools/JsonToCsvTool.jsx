@@ -18,14 +18,19 @@ import {
   Sparkles,
   CheckCircle2,
   SlidersHorizontal,
-  FileCode
+  FileCode,
+  Database,
+  Hash,
+  Binary
 } from 'lucide-react';
 import { parseJsonInput, jsonToCsv, SAMPLE_JSON } from '../../utils/jsonToCsv';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { ToggleSwitch } from '../common/ToggleSwitch';
 import { PresetChips } from '../common/PresetChips';
+import { StatCard } from '../common/StatCard';
 import { triggerConfetti } from '../../utils/confetti';
 
 const PRESETS = [
@@ -52,7 +57,7 @@ const PRESETS = [
   },
   {
     id: 'webhook',
-    label: 'Stripe Webhook',
+    label: 'Payment Webhook',
     description: 'Nested payment intent webhook event records',
     data: JSON.stringify([
       { id: "evt_3N8xYz", type: "payment_intent.succeeded", created: 1698240000, data: { amount: 8900, currency: "usd", customer: "cus_Ow12x", status: "succeeded" } },
@@ -116,7 +121,7 @@ export function JsonToCsvTool() {
       const parsed = JSON.parse(jsonInput);
       setJsonInput(JSON.stringify(parsed, null, 2));
       toast.success('JSON formatted & prettified');
-    } catch (err) {
+    } catch {
       toast.error('Cannot format invalid JSON');
     }
   };
@@ -127,7 +132,7 @@ export function JsonToCsvTool() {
       const parsed = JSON.parse(jsonInput);
       setJsonInput(JSON.stringify(parsed));
       toast.success('JSON minified');
-    } catch (err) {
+    } catch {
       toast.error('Cannot minify invalid JSON');
     }
   };
@@ -168,7 +173,7 @@ export function JsonToCsvTool() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     triggerConfetti();
-    toast.success(`Downloaded .${ext} spreadsheet!`);
+    toast.success(`Exported .${ext} spreadsheet!`);
   };
 
   // Handle Preset Selection
@@ -226,57 +231,57 @@ export function JsonToCsvTool() {
     return processedTableRows.slice(start, start + pageSize);
   }, [processedTableRows, currentPage]);
 
+  const outputSizeBytes = useMemo(() => {
+    if (!parsedData?.csv) return '0 B';
+    const bytes = new Blob([parsedData.csv]).size;
+    if (bytes < 1024) return `${bytes} B`;
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }, [parsedData]);
+
   const fontSizeClass =
     fontSize === 'small' ? 'text-xs' : fontSize === 'large' ? 'text-base' : 'text-xs sm:text-sm';
 
   return (
     <div className={`space-y-6 ${isZenMode ? 'fixed inset-0 z-50 p-6 bg-slate-950 overflow-y-auto' : ''}`}>
-      {/* Tool Header & Hero Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-500 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Client-Side Data Pipeline • V8 In-Memory Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            JSON to CSV & Excel Converter
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Flatten nested JSON structures, configure custom delimiters, preview in an interactive data grid, and export zero-latency spreadsheets.
-          </p>
-        </div>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={FileSpreadsheet}
+        category="Data Pipeline"
+        badge="RFC 4180"
+        title="JSON to CSV & Excel Converter"
+        description="Flatten nested JSON objects into tabular rows with custom delimiters, interactive data sorting, in-memory preview, and zero-latency exports."
+        actions={
+          <>
+            <CopyButton
+              text={() => parsedData?.csv || ''}
+              label="Copy CSV"
+              copiedLabel="CSV Copied!"
+              targetElementId="csv-output-card"
+            />
 
-        {/* Global Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={() => parsedData?.csv || ''}
-            label="Copy CSV"
-            copiedLabel="Copied CSV!"
-            targetElementId="csv-output-card"
-          />
+            <button
+              onClick={() => handleDownloadCsv('tsv')}
+              disabled={!parsedData}
+              id="btn-download-excel"
+              className="btn-secondary disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Download TSV format optimized for Microsoft Excel"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Excel (.tsv)</span>
+            </button>
 
-          <button
-            onClick={() => handleDownloadCsv('csv')}
-            disabled={!parsedData}
-            id="btn-download-csv"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/25 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download CSV</span>
-          </button>
-
-          <button
-            onClick={() => handleDownloadCsv('tsv')}
-            disabled={!parsedData}
-            id="btn-download-excel"
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
-            title="Download TSV format optimized for Microsoft Excel"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Excel (.tsv)</span>
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={() => handleDownloadCsv('csv')}
+              disabled={!parsedData}
+              id="btn-download-csv"
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download CSV</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Preset Chips Bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
@@ -288,15 +293,47 @@ export function JsonToCsvTool() {
         />
 
         <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Zero network latency</span>
         </div>
+      </div>
+
+      {/* Executive KPI Stat Metric Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard
+          icon={Database}
+          label="Total Rows"
+          value={parsedData ? parsedData.rowCount.toLocaleString() : '0'}
+          subtext={parsedData ? `${processedTableRows.length} matches` : 'Awaiting JSON'}
+          color="sky"
+        />
+        <StatCard
+          icon={Hash}
+          label="Columns / Keys"
+          value={parsedData ? parsedData.colCount.toString() : '0'}
+          subtext={flatten ? 'Nested objects flattened' : 'Direct keys only'}
+          color="purple"
+        />
+        <StatCard
+          icon={Binary}
+          label="Export Size"
+          value={outputSizeBytes}
+          subtext={parsedData ? `Delimited by '${delimiter}'` : '0 Bytes'}
+          color="emerald"
+        />
+        <StatCard
+          icon={Sparkles}
+          label="Engine Status"
+          value={parsedData ? 'Clean Table' : errorMessage ? 'Syntax Error' : 'Ready'}
+          subtext="V8 In-Memory Engine"
+          color={errorMessage ? 'rose' : 'amber'}
+        />
       </div>
 
       {/* Main Dual-Pane Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* LEFT PANE: Input JSON Editor */}
-        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-slate-800/80 focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
+        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-white/[0.08] focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           {/* Window Header */}
           <WindowHeader
             title="JSON Source"
@@ -310,7 +347,7 @@ export function JsonToCsvTool() {
           >
             <button
               onClick={handlePrettify}
-              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors text-xs font-semibold flex items-center gap-1"
+              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-semibold flex items-center gap-1"
               title="Prettify JSON"
             >
               <Wand2 className="w-3.5 h-3.5" />
@@ -319,7 +356,7 @@ export function JsonToCsvTool() {
 
             <button
               onClick={handleMinify}
-              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors text-xs font-semibold flex items-center gap-1"
+              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-semibold flex items-center gap-1"
               title="Minify JSON"
             >
               <Minimize2 className="w-3.5 h-3.5" />
@@ -327,7 +364,7 @@ export function JsonToCsvTool() {
             </button>
 
             <label
-              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-semibold flex items-center gap-1 cursor-pointer"
               title="Upload JSON"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -341,7 +378,7 @@ export function JsonToCsvTool() {
                 setActivePreset(null);
                 toast.success('Sample dataset loaded');
               }}
-              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors text-xs font-medium"
+              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-medium"
               title="Reload Sample Data"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -360,8 +397,8 @@ export function JsonToCsvTool() {
             </button>
           </WindowHeader>
 
-          {/* JSON Textarea */}
-          <div className="relative">
+          {/* JSON Textarea with code viewport */}
+          <div className="relative p-2">
             <textarea
               id="json-input-textarea"
               value={jsonInput}
@@ -371,7 +408,7 @@ export function JsonToCsvTool() {
               }}
               placeholder="Paste JSON array or object here..."
               rows={16}
-              className={`w-full p-4 font-mono ${fontSizeClass} bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y selection:bg-brand-500/30 leading-relaxed min-h-[380px]`}
+              className={`w-full p-4 font-mono ${fontSizeClass} code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y selection:bg-sky-500/30 leading-relaxed min-h-[380px] border border-transparent focus:border-sky-500/40`}
               spellCheck={false}
             />
           </div>
@@ -388,7 +425,7 @@ export function JsonToCsvTool() {
           )}
 
           {/* Modern Options Bar with Switch Toggles */}
-          <div className="p-3.5 bg-slate-50/80 dark:bg-[#0b1120]/80 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="p-3.5 bg-slate-50/80 dark:bg-[#0b1120]/80 border-t border-slate-200/80 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4 text-xs">
             <ToggleSwitch
               label="Flatten Nested"
               checked={flatten}
@@ -401,7 +438,7 @@ export function JsonToCsvTool() {
               <select
                 value={delimiter}
                 onChange={(e) => setDelimiter(e.target.value)}
-                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs font-mono font-semibold focus:outline-none focus:border-brand-500 shadow-xs cursor-pointer"
+                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/[0.1] rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs font-mono font-semibold focus:outline-none focus:border-sky-500 shadow-xs cursor-pointer"
               >
                 <option value=",">Comma (,)</option>
                 <option value=";">Semicolon (;)</option>
@@ -429,7 +466,7 @@ export function JsonToCsvTool() {
         {/* RIGHT PANE: Output Table & CSV */}
         <div
           id="csv-output-card"
-          className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane min-h-[480px] border border-slate-200/80 dark:border-slate-800/80"
+          className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane min-h-[480px] border border-slate-200/80 dark:border-white/[0.08]"
         >
           {/* Window Header */}
           <WindowHeader
@@ -439,12 +476,12 @@ export function JsonToCsvTool() {
             onFontSizeChange={setFontSize}
           >
             {/* View Mode Switcher */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-850 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/60 dark:border-white/[0.08]">
               <button
                 onClick={() => setActiveTab('table')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   activeTab === 'table'
-                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -456,7 +493,7 @@ export function JsonToCsvTool() {
                 onClick={() => setActiveTab('csv')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   activeTab === 'csv'
-                    ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -500,7 +537,7 @@ export function JsonToCsvTool() {
                         setSearchQuery(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 shadow-xs"
+                      className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 shadow-xs"
                     />
                   </div>
                   <span className="text-[11px] text-slate-400 font-mono">
@@ -509,9 +546,9 @@ export function JsonToCsvTool() {
                 </div>
 
                 {/* Studio Table Scroll Area with Sticky Sortable Headers */}
-                <div className="flex-1 overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800/80 max-h-[340px]">
+                <div className="flex-1 overflow-x-auto rounded-xl border border-slate-200/80 dark:border-white/[0.08] max-h-[340px]">
                   <table className="w-full text-left text-xs">
-                    <thead className="sticky top-0 bg-slate-100/95 dark:bg-[#0e1628]/95 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 z-10 select-none">
+                    <thead className="sticky top-0 bg-slate-100/95 dark:bg-[#0e1628]/95 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-white/[0.08] z-10 select-none">
                       <tr>
                         <th className="px-3 py-2.5 text-slate-400 font-mono text-[11px] w-12 text-center">
                           #
@@ -522,19 +559,18 @@ export function JsonToCsvTool() {
                             <th
                               key={hdr}
                               onClick={() => handleSort(hdr)}
-                              className="px-3.5 py-2.5 whitespace-nowrap font-mono text-[11px] cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-colors"
-                              title={`Sort by ${hdr}`}
+                              className="px-3.5 py-2.5 cursor-pointer hover:text-sky-500 hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap"
                             >
                               <div className="flex items-center gap-1.5">
                                 <span>{hdr}</span>
                                 {isSorted ? (
                                   sortDirection === 'asc' ? (
-                                    <ArrowUp className="w-3 h-3 text-brand-500" />
+                                    <ArrowUp className="w-3 h-3 text-sky-500" />
                                   ) : (
-                                    <ArrowDown className="w-3 h-3 text-brand-500" />
+                                    <ArrowDown className="w-3 h-3 text-sky-500" />
                                   )
                                 ) : (
-                                  <ArrowUpDown className="w-3 h-3 opacity-30 hover:opacity-100" />
+                                  <ArrowUpDown className="w-3 h-3 text-slate-400 opacity-40 hover:opacity-100" />
                                 )}
                               </div>
                             </th>
@@ -542,7 +578,7 @@ export function JsonToCsvTool() {
                         })}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/[0.04] font-mono">
                       {paginatedRows.map((row, rIdx) => {
                         const globalIdx = (currentPage - 1) * pageSize + rIdx + 1;
                         return (
@@ -574,7 +610,7 @@ export function JsonToCsvTool() {
                 </div>
 
                 {/* Table Footer & Pagination */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/[0.06] text-xs">
                   <div className="text-slate-400 font-mono text-[11px]">
                     Page {currentPage} of {totalPages}
                   </div>
@@ -583,14 +619,14 @@ export function JsonToCsvTool() {
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-500 transition-colors"
+                      className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-sky-500 transition-colors"
                     >
                       Prev
                     </button>
                     <button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-500 transition-colors"
+                      className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:border-sky-500 transition-colors"
                     >
                       Next
                     </button>
@@ -600,12 +636,12 @@ export function JsonToCsvTool() {
             )}
 
             {parsedData && activeTab === 'csv' && (
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col p-1">
                 <textarea
                   readOnly
                   value={parsedData.csv}
                   rows={14}
-                  className={`w-full flex-1 p-3 font-mono ${fontSizeClass} bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[380px]`}
+                  className={`w-full flex-1 p-3 font-mono ${fontSizeClass} code-viewport bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[380px]`}
                 />
               </div>
             )}

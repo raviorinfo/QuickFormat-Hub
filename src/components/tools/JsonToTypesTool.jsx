@@ -10,7 +10,10 @@ import {
   Wand2,
   Code2,
   CheckCircle2,
-  Cpu
+  Cpu,
+  Braces,
+  Binary,
+  Database
 } from 'lucide-react';
 import {
   generateTypeScript,
@@ -20,6 +23,7 @@ import {
   SAMPLE_SCHEMA_JSON,
 } from '../../utils/jsonTypeGenerator';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -58,7 +62,7 @@ const SCHEMA_PRESETS = [
   },
   {
     id: 'stripe_event',
-    label: 'Stripe Webhook',
+    label: 'Payment Webhook',
     description: 'Charge succeeded & metadata',
     rootName: 'PaymentIntentEvent',
     json: JSON.stringify({
@@ -138,44 +142,45 @@ export function JsonToTypesTool() {
     }
   }, [jsonInput]);
 
-  // Generate Code
+  // Code generation
   const generatedCode = useMemo(() => {
-    if (!parsedJson) {
-      return '// Enter valid JSON on the left to generate strongly typed models.';
-    }
+    if (!parsedJson) return '// Invalid JSON: please provide valid JSON input to generate types.';
 
     try {
+      const sanitizedName = (rootName || 'RootSchema').replace(/[^a-zA-Z0-9_]/g, '');
+
       switch (targetLang) {
         case 'ts':
-          return generateTypeScript(parsedJson, rootName);
+          return generateTypeScript(parsedJson, sanitizedName);
         case 'zod':
-          return generateZod(parsedJson, rootName);
+          return generateZod(parsedJson, sanitizedName);
         case 'pydantic':
-          return generatePydantic(parsedJson, rootName);
+          return generatePydantic(parsedJson, sanitizedName);
         case 'sql':
-          return generateSql(parsedJson, rootName.toLowerCase());
+          return generateSql(parsedJson, sanitizedName);
         default:
-          return generateTypeScript(parsedJson, rootName);
+          return generateTypeScript(parsedJson, sanitizedName);
       }
-    } catch (e) {
-      return `// Error generating schema: ${e.message}`;
+    } catch (err) {
+      return `// Code generation error: ${err.message}`;
     }
   }, [parsedJson, targetLang, rootName]);
 
   const handleDownloadCode = () => {
-    const extMap = { ts: 'ts', zod: 'ts', pydantic: 'py', sql: 'sql' };
-    const ext = extMap[targetLang] || 'ts';
+    if (!generatedCode) return;
+    const extensions = { ts: 'ts', zod: 'ts', pydantic: 'py', sql: 'sql' };
+    const ext = extensions[targetLang] || 'ts';
     const blob = new Blob([generatedCode], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${rootName}_schema.${ext}`);
+    link.setAttribute('download', `${rootName.toLowerCase() || 'schema'}.${ext}`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     fireConfetti();
-    toast.success(`Downloaded .${ext} file!`);
+    toast.success(`Exported .${ext} schema file!`);
   };
 
   const handleSelectPreset = (preset) => {
@@ -187,6 +192,11 @@ export function JsonToTypesTool() {
 
   const detectedFieldsCount = useMemo(() => {
     if (!parsedJson || typeof parsedJson !== 'object') return 0;
+    if (Array.isArray(parsedJson)) {
+      return parsedJson.length > 0 && typeof parsedJson[0] === 'object'
+        ? Object.keys(parsedJson[0]).length
+        : 1;
+    }
     return Object.keys(parsedJson).length;
   }, [parsedJson]);
 
@@ -197,81 +207,85 @@ export function JsonToTypesTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Layers className="w-4 h-4" />
-            <span>Multi-Language Type Generator</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            JSON to TypeScript, Zod, Pydantic & SQL
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Turn JSON payloads into TypeScript interfaces, Zod runtime validators, Python Pydantic v2 models, and SQL tables.
-          </p>
-        </div>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={Layers}
+        category="Dev & Schema Engineering"
+        badge="TypeScript • Zod • Python • SQL"
+        title="JSON to TypeScript, Zod, Pydantic & SQL"
+        description="Transform raw JSON payloads into production-grade TypeScript interfaces, Zod schema runtime validators, Python Pydantic v2 models, and PostgreSQL DDL tables."
+        actions={
+          <>
+            <CopyButton
+              text={generatedCode}
+              label="Copy Code"
+              copiedLabel="Code Copied!"
+              targetElementId="json-types-output"
+              variant="default"
+            />
 
-        {/* Global Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={generatedCode}
-            label="Copy Code"
-            copiedLabel="Code Copied!"
-            targetElementId="json-types-output"
-            variant="default"
-          />
+            <button
+              onClick={handleDownloadCode}
+              className="btn-primary"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Schema</span>
+            </button>
+          </>
+        }
+      />
 
-          <button
-            onClick={handleDownloadCode}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Schema</span>
-          </button>
+      {/* Preset Chips */}
+      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+        <PresetChips
+          presets={SCHEMA_PRESETS}
+          activeId={activePreset}
+          onSelect={handleSelectPreset}
+          label="Schema Templates"
+        />
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <span>Strict recursive type inference</span>
         </div>
       </div>
 
-      {/* Preset Chips */}
-      <PresetChips
-        presets={SCHEMA_PRESETS}
-        activeId={activePreset}
-        onSelect={handleSelectPreset}
-        title="Schema Templates"
-      />
-
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={Braces}
           label="Root Interface"
           value={rootName || 'Unnamed'}
-          badge="PascalCase"
-          color="brand"
+          subtext="PascalCase model symbol"
+          color="sky"
         />
         <StatCard
+          icon={Code2}
           label="Target Format"
-          value={targetLang === 'ts' ? 'TypeScript Interface' : targetLang === 'zod' ? 'Zod Validator' : targetLang === 'pydantic' ? 'Pydantic BaseModel' : 'PostgreSQL DDL'}
-          badge={targetLang.toUpperCase()}
+          value={targetLang === 'ts' ? 'TypeScript' : targetLang === 'zod' ? 'Zod Runtime' : targetLang === 'pydantic' ? 'Pydantic v2' : 'PostgreSQL DDL'}
+          subtext={targetLang.toUpperCase()}
           color="emerald"
         />
         <StatCard
+          icon={Layers}
           label="Top-Level Fields"
-          value={`${detectedFieldsCount} Attributes`}
-          badge={parsedJson ? 'Valid JSON' : 'Syntax Error'}
+          value={`${detectedFieldsCount} Fields`}
+          subtext={parsedJson ? 'Valid JSON payload' : 'Syntax error'}
           color={parsedJson ? 'purple' : 'rose'}
         />
         <StatCard
+          icon={FileCode}
           label="Generated Code"
           value={`${outputLinesCount} Lines`}
-          badge="AST Rendered"
-          color="slate"
+          subtext="Compiled AST format"
+          color="amber"
         />
       </div>
 
       {/* Main Dual Workspace */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
         {/* LEFT: JSON input */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           <WindowHeader
             title="Input JSON Payload"
             badge="JSON"
@@ -289,7 +303,7 @@ export function JsonToTypesTool() {
                 setActivePreset('ecommerce');
                 toast.success('Sample JSON loaded');
               }}
-              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 transition-colors"
+              className="text-xs text-sky-500 hover:text-sky-400 font-medium px-2 py-1 rounded-lg hover:bg-sky-500/10 transition-colors"
             >
               Reset
             </button>
@@ -304,21 +318,23 @@ export function JsonToTypesTool() {
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </WindowHeader>
-          <textarea
-            value={jsonInput}
-            onChange={(e) => {
-              setJsonInput(e.target.value);
-              setActivePreset(null);
-            }}
-            placeholder="Paste JSON object here..."
-            rows={18}
-            className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] ${fontSizeClass}`}
-            spellCheck={false}
-          />
+          <div className="p-2">
+            <textarea
+              value={jsonInput}
+              onChange={(e) => {
+                setJsonInput(e.target.value);
+                setActivePreset(null);
+              }}
+              placeholder="Paste JSON object here..."
+              rows={18}
+              className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] border border-transparent ${fontSizeClass}`}
+              spellCheck={false}
+            />
+          </div>
         </div>
 
         {/* RIGHT: Generated Schema Tabs */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane min-h-[480px]">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane min-h-[480px]">
           <WindowHeader
             title="Generated Schema & Models"
             badge={targetLang.toUpperCase()}
@@ -328,12 +344,12 @@ export function JsonToTypesTool() {
             onFontSizeChange={setFontSize}
           >
             {/* Language Tabs */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-2">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs mr-2 border border-slate-200/60 dark:border-white/[0.08]">
               <button
                 onClick={() => setTargetLang('ts')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'ts'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -343,7 +359,7 @@ export function JsonToTypesTool() {
                 onClick={() => setTargetLang('zod')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'zod'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -353,7 +369,7 @@ export function JsonToTypesTool() {
                 onClick={() => setTargetLang('pydantic')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'pydantic'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -363,7 +379,7 @@ export function JsonToTypesTool() {
                 onClick={() => setTargetLang('sql')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'sql'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -373,24 +389,24 @@ export function JsonToTypesTool() {
 
             {/* Model Name Input */}
             <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400 text-[10px] uppercase font-bold">Name:</span>
+              <span className="text-slate-400 text-[10px] uppercase font-bold font-mono">Name:</span>
               <input
                 type="text"
                 value={rootName}
                 onChange={(e) => setRootName(e.target.value)}
-                className="w-24 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-24 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/[0.1] font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-sky-500"
               />
             </div>
           </WindowHeader>
 
           {/* Generated Code Area */}
-          <div className="p-4 flex-1 flex flex-col">
+          <div className="p-2 flex-1 flex flex-col">
             <textarea
               id="json-types-output"
               readOnly
               value={generatedCode}
               rows={18}
-              className={`w-full flex-1 p-4 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              className={`w-full flex-1 p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
               spellCheck={false}
             />
           </div>
@@ -399,4 +415,3 @@ export function JsonToTypesTool() {
     </div>
   );
 }
-

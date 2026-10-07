@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { parseUrlString, rebuildUrl, SAMPLE_URL } from '../../utils/urlUtils';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -108,38 +109,31 @@ export function UrlParserTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Hero Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-500 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>URL Deconstructor & Query Builder • RFC 3986 Standard</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            URL & Query Parameter Parser
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Deconstruct complex URLs into component protocol, hostname, path, and interactive query parameters. Edit values on the fly with live reassembly.
-          </p>
-        </div>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={Link2}
+        category="Dev & Networking"
+        badge="RFC 3986"
+        title="URL & Query Parameter Parser"
+        description="Deconstruct complex endpoints into protocol, domain, routing paths, and interactive query parameters. Edit values with live bidirectional URL reassembly."
+        actions={
+          <>
+            <CopyButton
+              text={getParamsJson}
+              label="Export JSON"
+              copiedLabel="JSON Copied!"
+              variant="default"
+            />
 
-        {/* Global Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={getParamsJson}
-            label="Export JSON"
-            copiedLabel="JSON Copied!"
-            variant="default"
-          />
-
-          <CopyButton
-            text={rawUrl}
-            label="Copy Clean URL"
-            copiedLabel="URL Copied!"
-            variant="primary"
-          />
-        </div>
-      </div>
+            <CopyButton
+              text={rawUrl}
+              label="Copy Clean URL"
+              copiedLabel="URL Copied!"
+              variant="primary"
+            />
+          </>
+        }
+      />
 
       {/* Preset Chips Bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
@@ -157,7 +151,7 @@ export function UrlParserTool() {
       </div>
 
       {/* Main Input Field */}
-      <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
+      <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
         <WindowHeader
           title="Raw Endpoint URL Input"
           badge="HTTP/S"
@@ -169,7 +163,7 @@ export function UrlParserTool() {
               setActivePreset(null);
               toast.success('Sample URL loaded');
             }}
-            className="px-2 py-1 text-xs text-brand-500 hover:text-brand-400 font-semibold rounded hover:bg-brand-500/10 transition-colors"
+            className="px-2 py-1 text-xs text-sky-500 hover:text-sky-400 font-semibold rounded hover:bg-sky-500/10 transition-colors"
           >
             Sample
           </button>
@@ -194,7 +188,7 @@ export function UrlParserTool() {
             }}
             placeholder="Paste URL (e.g. https://example.com/api?user=123)..."
             rows={3}
-            className="w-full p-3 font-mono text-xs sm:text-sm bg-slate-50/70 dark:bg-[#060911]/80 border border-slate-200/80 dark:border-slate-800/80 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed"
+            className="w-full p-3 font-mono code-viewport text-xs sm:text-sm bg-slate-50 dark:bg-[#050811] border border-slate-200/80 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed"
           />
         </div>
       </div>
@@ -213,21 +207,21 @@ export function UrlParserTool() {
             icon={Server}
             label="Hostname"
             value={parsed.hostname}
-            subtext="Target domain / IP"
+            subtext="Target domain / host"
             color="purple"
           />
           <StatCard
             icon={FolderTree}
             label="Pathname"
             value={parsed.pathname || '/'}
-            subtext="Resource routing route"
+            subtext="Routing route path"
             color="amber"
           />
           <StatCard
             icon={Sliders}
             label="Query Tokens"
             value={`${parsed.params.length} Params`}
-            subtext={parsed.hash ? `Hash: ${parsed.hash}` : 'No anchor tag'}
+            subtext={parsed.hash ? `Hash: ${parsed.hash}` : 'Clean endpoint'}
             color="emerald"
           />
         </div>
@@ -235,14 +229,14 @@ export function UrlParserTool() {
 
       {/* Interactive Query Parameters Table */}
       {parsed && parsed.success && (
-        <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane animate-fade-in">
+        <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane animate-fade-in">
           <WindowHeader
             title="Interactive Query Parameter Inspector"
             badge={`${parsed.params.length} Parameters`}
           >
             <button
               onClick={handleAddParam}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-sm transition-all hover:-translate-y-0.5"
+              className="btn-primary"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Parameter</span>
@@ -252,7 +246,7 @@ export function UrlParserTool() {
           <div className="p-4 space-y-3">
             {parsed.params.length === 0 ? (
               <div className="text-center py-8 text-slate-400 space-y-2">
-                <Tag className="w-8 h-8 mx-auto opacity-40" />
+                <Tag className="w-8 h-8 mx-auto opacity-40 text-sky-500" />
                 <p className="text-xs font-semibold">No query parameters in this URL.</p>
                 <p className="text-[11px] text-slate-500">Click "Add Parameter" above to append new key-value tokens.</p>
               </div>
@@ -262,7 +256,7 @@ export function UrlParserTool() {
                 return (
                   <div
                     key={param.id}
-                    className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50/70 dark:bg-[#060911]/60 border border-slate-200/60 dark:border-slate-800/80 transition-all hover:border-brand-500/30"
+                    className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50/70 dark:bg-[#050811]/70 border border-slate-200/60 dark:border-white/[0.06] transition-all hover:border-sky-500/40"
                   >
                     <span className="text-[11px] font-mono text-slate-400 w-6 text-center shrink-0">
                       #{index + 1}
@@ -275,14 +269,14 @@ export function UrlParserTool() {
                         value={param.key}
                         placeholder="Parameter Key"
                         onChange={(e) => handleParamChange(param.id, 'key', e.target.value)}
-                        className={`w-full px-3 py-1.5 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:border-brand-500 ${
+                        className={`w-full px-3 py-1.5 rounded-lg text-xs font-mono font-bold border focus:outline-none focus:border-sky-500 ${
                           isUtm
                             ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                            : 'bg-white dark:bg-slate-850 text-sky-600 dark:text-sky-400 border-slate-200 dark:border-slate-700'
+                            : 'bg-white dark:bg-white/[0.04] text-sky-600 dark:text-sky-400 border-slate-200 dark:border-white/[0.1]'
                         }`}
                       />
                       {isUtm && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase text-amber-500">
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase text-amber-500 font-mono">
                           UTM
                         </span>
                       )}
@@ -296,7 +290,7 @@ export function UrlParserTool() {
                       value={param.value}
                       placeholder="Parameter Value"
                       onChange={(e) => handleParamChange(param.id, 'value', e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-brand-500"
+                      className="flex-1 px-3 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.1] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500"
                     />
 
                     {/* 1-Click Copy Value Button */}
@@ -305,7 +299,7 @@ export function UrlParserTool() {
                         navigator.clipboard.writeText(param.value);
                         toast.success(`Copied "${param.key}"`);
                       }}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors"
                       title="Copy Value"
                     >
                       <Copy className="w-3.5 h-3.5" />

@@ -11,7 +11,8 @@ import {
   Layers,
   ArrowRight,
   Globe,
-  Send
+  Send,
+  Binary
 } from 'lucide-react';
 import {
   parseCurl,
@@ -22,6 +23,7 @@ import {
   SAMPLE_CURL,
 } from '../../utils/curlParser';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -118,7 +120,7 @@ export function CurlConverterTool() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     fireConfetti();
-    toast.success(`Downloaded .${ext} file!`);
+    toast.success(`Exported .${ext} script!`);
   };
 
   const handleSelectPreset = (preset) => {
@@ -144,81 +146,85 @@ export function CurlConverterTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Terminal className="w-4 h-4" />
-            <span>cURL to Multi-Language Transpiler</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            cURL to Multi-Language Code Converter
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Convert browser network requests into modern JavaScript Fetch, Axios, Python Requests, and Go code.
-          </p>
-        </div>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={Terminal}
+        category="Dev & Networking"
+        badge="POSIX cURL Transpiler"
+        title="cURL to Multi-Language Code Converter"
+        description="Convert browser network inspection requests and command-line cURL commands into modern JavaScript Fetch, Axios, Python Requests, and Go code."
+        actions={
+          <>
+            <CopyButton
+              text={generatedCode}
+              label="Copy Code"
+              copiedLabel="Code Copied!"
+              targetElementId="curl-generated-code"
+              variant="default"
+            />
 
-        {/* Global Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={generatedCode}
-            label="Copy Code"
-            copiedLabel="Code Copied!"
-            targetElementId="curl-generated-code"
-            variant="default"
-          />
+            <button
+              onClick={handleDownloadCode}
+              className="btn-primary"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Script</span>
+            </button>
+          </>
+        }
+      />
 
-          <button
-            onClick={handleDownloadCode}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Script</span>
-          </button>
+      {/* Preset Chips */}
+      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+        <PresetChips
+          presets={CURL_PRESETS}
+          activeId={activePreset}
+          onSelect={handleSelectPreset}
+          label="Sample Requests"
+        />
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <span>Supports headers, auth & JSON payloads</span>
         </div>
       </div>
 
-      {/* Preset Chips */}
-      <PresetChips
-        presets={CURL_PRESETS}
-        activeId={activePreset}
-        onSelect={handleSelectPreset}
-        title="Sample Requests"
-      />
-
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={Send}
           label="HTTP Method"
           value={parsed && parsed.method ? parsed.method : 'GET'}
-          badge="Verb"
-          color="brand"
+          subtext="HTTP Verb"
+          color="sky"
         />
         <StatCard
+          icon={Globe}
           label="Target Host"
           value={hostName}
-          badge="Destination"
+          subtext="Destination server"
           color="emerald"
         />
         <StatCard
+          icon={Layers}
           label="Request Headers"
           value={`${headersCount} Headers`}
-          badge="Detected"
+          subtext="Parsed header tokens"
           color="purple"
         />
         <StatCard
+          icon={FileCode}
           label="Target Runtime"
-          value={langTab === 'fetch' ? 'Browser & Node Fetch' : langTab === 'axios' ? 'Axios Client' : langTab === 'python' ? 'Python Requests' : 'Go net/http'}
-          badge={langTab.toUpperCase()}
-          color="slate"
+          value={langTab === 'fetch' ? 'Browser / Fetch' : langTab === 'axios' ? 'Axios Client' : langTab === 'python' ? 'Python Requests' : 'Go net/http'}
+          subtext={langTab.toUpperCase()}
+          color="amber"
         />
       </div>
 
       {/* Main Dual Workspace */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
         {/* LEFT: Raw cURL input */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           <WindowHeader
             title="cURL Command Input"
             badge="Shell"
@@ -235,7 +241,7 @@ export function CurlConverterTool() {
                 setActivePreset(null);
                 toast.success('Sample cURL loaded');
               }}
-              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 transition-colors"
+              className="text-xs text-sky-500 hover:text-sky-400 font-medium px-2 py-1 rounded-lg hover:bg-sky-500/10 transition-colors"
             >
               Reset
             </button>
@@ -250,21 +256,23 @@ export function CurlConverterTool() {
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </WindowHeader>
-          <textarea
-            value={curlInput}
-            onChange={(e) => {
-              setCurlInput(e.target.value);
-              setActivePreset(null);
-            }}
-            placeholder="Paste cURL command here (e.g. curl -X POST 'https://api.example.com'...)..."
-            rows={18}
-            className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] ${fontSizeClass}`}
-            spellCheck={false}
-          />
+          <div className="p-2">
+            <textarea
+              value={curlInput}
+              onChange={(e) => {
+                setCurlInput(e.target.value);
+                setActivePreset(null);
+              }}
+              placeholder="Paste cURL command here (e.g. curl -X POST 'https://api.example.com'...)..."
+              rows={18}
+              className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] border border-transparent ${fontSizeClass}`}
+              spellCheck={false}
+            />
+          </div>
         </div>
 
         {/* RIGHT: Generated Code Tabs */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane min-h-[480px]">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane min-h-[480px]">
           <WindowHeader
             title="Generated Client Code"
             badge={langTab.toUpperCase()}
@@ -274,12 +282,12 @@ export function CurlConverterTool() {
             onFontSizeChange={setFontSize}
           >
             {/* Language Tabs */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-1">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs mr-1 border border-slate-200/60 dark:border-white/[0.08]">
               <button
                 onClick={() => setLangTab('fetch')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'fetch'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -289,7 +297,7 @@ export function CurlConverterTool() {
                 onClick={() => setLangTab('axios')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'axios'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -299,7 +307,7 @@ export function CurlConverterTool() {
                 onClick={() => setLangTab('python')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'python'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -309,7 +317,7 @@ export function CurlConverterTool() {
                 onClick={() => setLangTab('go')}
                 className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'go'
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -319,13 +327,13 @@ export function CurlConverterTool() {
           </WindowHeader>
 
           {/* Generated Code Area */}
-          <div className="p-4 flex-1 flex flex-col">
+          <div className="p-2 flex-1 flex flex-col">
             <textarea
               id="curl-generated-code"
               readOnly
               value={generatedCode}
               rows={18}
-              className={`w-full flex-1 p-4 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              className={`w-full flex-1 p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
               spellCheck={false}
             />
           </div>
@@ -334,4 +342,3 @@ export function CurlConverterTool() {
     </div>
   );
 }
-

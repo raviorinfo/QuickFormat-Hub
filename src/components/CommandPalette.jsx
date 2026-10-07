@@ -109,14 +109,17 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onOpenHistory }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+    <div 
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/75 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-xl rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[520px] animate-slide-up"
+        className="w-full max-w-xl rounded-2xl glass-panel bg-white/95 dark:bg-[#0b1120]/95 border border-slate-200/90 dark:border-white/[0.12] shadow-2xl overflow-hidden flex flex-col max-h-[520px] animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <Search className="w-5 h-5 text-brand-500 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02]">
+          <Search className="w-5 h-5 text-sky-500 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -125,13 +128,13 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onOpenHistory }) {
             placeholder="Type a tool name or action (e.g. 'jwt', 'curl', 'theme')..."
             className="w-full bg-transparent text-sm sm:text-base font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
           />
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
+          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-white/[0.08] text-slate-500 border border-slate-200 dark:border-white/[0.1]">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="p-2 overflow-y-auto flex-1 divide-y divide-slate-100 dark:divide-slate-800/40">
+        <div className="p-2 overflow-y-auto flex-1 divide-y divide-slate-100 dark:divide-white/[0.04]">
           {filteredItems.length === 0 ? (
             <div className="p-8 text-center text-slate-400 text-xs">
               No matching tools or commands found for "{query}".
@@ -147,16 +150,16 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onOpenHistory }) {
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-colors ${
                     isSelected
-                      ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-850'
+                      ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                         isSelected
-                          ? 'bg-brand-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                          ? 'bg-sky-500 text-white shadow-xs'
+                          : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -168,10 +171,10 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onOpenHistory }) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-white/[0.06] text-slate-500 border border-slate-200/60 dark:border-white/[0.08]">
                       {item.category}
                     </span>
-                    {isSelected && <CornerDownLeft className="w-3.5 h-3.5 text-brand-500" />}
+                    {isSelected && <CornerDownLeft className="w-3.5 h-3.5 text-sky-500" />}
                   </div>
                 </button>
               );
@@ -180,7 +183,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onOpenHistory }) {
         </div>
 
         {/* Footer shortcuts */}
-        <div className="px-4 py-2 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#060911]/90 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 font-mono">
           <span>Navigate with ↑ and ↓</span>
           <span>Press Enter ↵ to open</span>
         </div>

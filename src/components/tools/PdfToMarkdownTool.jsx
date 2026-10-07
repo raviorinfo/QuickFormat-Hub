@@ -25,6 +25,7 @@ import {
 } from '../../utils/pdfExtractor';
 import { createSamplePdfBytes } from '../../utils/samplePdf';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -144,9 +145,9 @@ export function PdfToMarkdownTool() {
       setTotalPages(doc.numPages);
       setCurrentPage(1);
       setFileName(file.name);
-      toast.success(`PDF loaded (${doc.numPages} pages)`);
-    } catch (err) {
-      toast.error('Failed to load PDF file. Please ensure it is a valid PDF.');
+      toast.success(`Loaded "${file.name}" (${doc.numPages} pages)`);
+    } catch {
+      toast.error('Failed to load PDF file.');
     }
     e.target.value = '';
   };
@@ -173,75 +174,72 @@ export function PdfToMarkdownTool() {
   const wordCount = extractedMarkdown ? extractedMarkdown.split(/\s+/).filter(Boolean).length : 0;
 
   return (
-    <div className={`space-y-6 ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl overflow-y-auto' : ''}`}>
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <BookOpen className="w-4 h-4" />
-            <span>Client-Side PDF Rasterizer & AST Parser</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            PDF Reader & Markdown Extractor
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Read and navigate PDF files locally while extracting structured GitHub-flavored Markdown.
-          </p>
-        </div>
+    <div className={`space-y-6 ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl overflow-y-auto' : ''}`}>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={BookOpen}
+        category="Docs & Extraction"
+        badge="PDF.js • WebAssembly"
+        title="PDF Reader & Markdown Extractor"
+        description="Inspect and navigate multi-page PDF documents locally while extracting structured GitHub-flavored Markdown tables, headers, and paragraphs."
+        actions={
+          <>
+            <CopyButton
+              text={extractedMarkdown}
+              label="Copy Markdown"
+              copiedLabel="Markdown Copied!"
+              targetElementId="markdown-extracted-view"
+              variant="default"
+            />
 
-        {/* Global Export Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={extractedMarkdown}
-            label="Copy Markdown"
-            copiedLabel="Markdown Copied!"
-            targetElementId="markdown-extracted-view"
-            variant="default"
-          />
-
-          <button
-            onClick={handleDownloadMarkdown}
-            id="btn-download-pdf-md"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Markdown (.md)</span>
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={handleDownloadMarkdown}
+              id="btn-download-pdf-md"
+              className="btn-primary"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export Markdown (.md)</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={BookOpen}
           label="Total Pages"
           value={`${totalPages} Pages`}
-          badge={`Page ${currentPage} of ${totalPages}`}
-          color="brand"
+          subtext={`Current page ${currentPage}`}
+          color="sky"
         />
         <StatCard
+          icon={ZoomIn}
           label="Canvas Zoom"
           value={`${Math.round(zoomScale * 100)}% Scale`}
-          badge="Vector Rasterized"
+          subtext="Vector rasterization"
           color="emerald"
         />
         <StatCard
+          icon={Layers}
           label="Extraction Scope"
-          value={extractScope === 'all' ? 'Complete Document' : `Page ${currentPage} Only`}
-          badge="AST Mode"
+          value={extractScope === 'all' ? 'Entire Doc' : `Page ${currentPage}`}
+          subtext="Wasm parser mode"
           color="purple"
         />
         <StatCard
+          icon={FileText}
           label="Extracted Words"
-          value={`${wordCount} Words`}
-          badge={`${extractedMarkdown.length} Characters`}
-          color="slate"
+          value={`${wordCount.toLocaleString()} Words`}
+          subtext={`${extractedMarkdown.length.toLocaleString()} chars`}
+          color="amber"
         />
       </div>
 
       {/* Main Dual Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* LEFT PANE: Visual PDF Reader Canvas */}
-        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-slate-800/80">
+        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-white/[0.08]">
           <WindowHeader
             title={fileName || 'PDF Document'}
             badge="PDF"
@@ -251,7 +249,7 @@ export function PdfToMarkdownTool() {
             {/* Navigation & Zoom in header */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Page Navigator */}
-              <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs">
+              <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs border border-slate-200/60 dark:border-white/[0.08]">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage <= 1}
@@ -273,34 +271,34 @@ export function PdfToMarkdownTool() {
                 </button>
               </div>
 
-              {/* Zoom Buttons */}
-              <div className="flex items-center gap-0.5 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs">
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs border border-slate-200/60 dark:border-white/[0.08]">
                 <button
                   onClick={() => setZoomScale((z) => Math.max(0.6, z - 0.15))}
                   className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   title="Zoom Out"
                 >
-                  <ZoomOut className="w-3 h-3" />
+                  <ZoomOut className="w-3.5 h-3.5" />
                 </button>
-                <span className="px-1 font-mono text-[10px] text-slate-500">
-                  {Math.round(zoomScale * 100)}%
-                </span>
                 <button
-                  onClick={() => setZoomScale((z) => Math.min(2.0, z + 0.15))}
+                  onClick={() => setZoomScale((z) => Math.min(2.5, z + 0.15))}
                   className="p-1 rounded hover:bg-white dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   title="Zoom In"
                 >
-                  <ZoomIn className="w-3 h-3" />
+                  <ZoomIn className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Upload PDF */}
-              <label className="px-2 py-1 rounded-lg text-slate-600 dark:text-slate-300 hover:text-brand-500 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1 cursor-pointer">
+              <label
+                className="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500 hover:text-white transition-colors text-xs font-semibold flex items-center gap-1 cursor-pointer border border-sky-500/20"
+                title="Upload custom PDF"
+              >
                 <Upload className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Open</span>
+                <span className="hidden sm:inline">Upload</span>
                 <input
                   type="file"
-                  accept="application/pdf,.pdf"
+                  accept="application/pdf"
                   onChange={handlePdfUpload}
                   className="hidden"
                 />
@@ -308,47 +306,43 @@ export function PdfToMarkdownTool() {
             </div>
           </WindowHeader>
 
-          {/* Canvas Viewport */}
-          <div className="p-4 bg-slate-100/70 dark:bg-slate-950/80 flex items-center justify-center overflow-auto max-h-[600px] min-h-[480px]">
-            <canvas
-              ref={canvasRef}
-              className="rounded-lg shadow-2xl border border-slate-300 dark:border-slate-800 max-w-full bg-white transition-transform"
-            />
+          {/* Canvas Render viewport */}
+          <div className="p-4 flex-1 flex items-center justify-center overflow-auto max-h-[600px] bg-slate-200/40 dark:bg-[#050811]/90">
+            <div className="shadow-2xl rounded-lg overflow-hidden border border-slate-300 dark:border-white/[0.1] bg-white">
+              <canvas ref={canvasRef} className="block max-w-full" />
+            </div>
           </div>
         </div>
 
-        {/* RIGHT PANE: Extracted Markdown Editor / Preview */}
-        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-slate-800/80 min-h-[520px]">
+        {/* RIGHT PANE: Extracted Markdown */}
+        <div className="flex flex-col rounded-2xl glass-panel shadow-xl overflow-hidden editor-pane border border-slate-200/80 dark:border-white/[0.08]">
           <WindowHeader
             title="Extracted Markdown"
-            badge={activeTab === 'preview' ? 'HTML' : 'MD'}
+            badge="Markdown"
             charsCount={extractedMarkdown.length}
             linesCount={extractedMarkdown ? extractedMarkdown.split('\n').length : 0}
             fontSize={fontSize}
             onFontSizeChange={setFontSize}
-            isZenMode={isZenMode}
-            onToggleZen={() => setIsZenMode(!isZenMode)}
           >
-            {/* View Mode Toggle & Scope */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg">
+              {/* Tab Switcher */}
+              <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs border border-slate-200/60 dark:border-white/[0.08]">
                 <button
                   onClick={() => setActiveTab('preview')}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold transition-colors ${
                     activeTab === 'preview'
-                      ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
+                      ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Eye className="w-3 h-3" />
                   <span>Preview</span>
                 </button>
-
                 <button
                   onClick={() => setActiveTab('source')}
-                  className={`flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold transition-colors ${
                     activeTab === 'source'
-                      ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
+                      ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
@@ -361,7 +355,7 @@ export function PdfToMarkdownTool() {
               <select
                 value={extractScope}
                 onChange={(e) => setExtractScope(e.target.value)}
-                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-0.5 text-slate-800 dark:text-slate-200 text-[11px] focus:outline-none focus:border-brand-500"
+                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/[0.1] rounded-lg px-2 py-0.5 text-slate-800 dark:text-slate-200 text-[11px] focus:outline-none focus:border-sky-500"
               >
                 <option value="all">Full Doc</option>
                 <option value="page">This Page</option>
@@ -384,7 +378,7 @@ export function PdfToMarkdownTool() {
           >
             {isExtracting ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-400">
-                <RefreshCw className="w-8 h-8 animate-spin text-brand-500 mb-2" />
+                <RefreshCw className="w-8 h-8 animate-spin text-sky-500 mb-2" />
                 <p className="text-sm font-medium">Extracting typographic Markdown...</p>
               </div>
             ) : activeTab === 'preview' ? (
@@ -393,13 +387,15 @@ export function PdfToMarkdownTool() {
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             ) : (
-              <textarea
-                value={extractedMarkdown}
-                onChange={(e) => setExtractedMarkdown(e.target.value)}
-                rows={20}
-                className={`w-full flex-1 p-3 font-mono ${fontSizeClass} bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[460px]`}
-                placeholder="Extracted Markdown will appear here..."
-              />
+              <div className="p-1 flex-1 flex flex-col">
+                <textarea
+                  value={extractedMarkdown}
+                  onChange={(e) => setExtractedMarkdown(e.target.value)}
+                  rows={20}
+                  className={`w-full flex-1 p-3 font-mono code-viewport bg-slate-50 dark:bg-[#050811] ${fontSizeClass} border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[460px]`}
+                  placeholder="Extracted Markdown will appear here..."
+                />
+              </div>
             )}
           </div>
         </div>

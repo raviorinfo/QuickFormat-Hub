@@ -10,10 +10,14 @@ import {
   Sparkles,
   Table,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Binary,
+  Database,
+  Hash
 } from 'lucide-react';
 import { csvToJson, SAMPLE_CSV } from '../../utils/csvToJson';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -103,46 +107,38 @@ export function CsvToJsonTool() {
         parseBooleans,
         unflatten,
         outputFormat,
+        indentation,
       });
-
-      // Format with chosen indentation
-      let formattedJson = res.json;
-      if (indentation === 0) {
-        try {
-          formattedJson = JSON.stringify(JSON.parse(res.json));
-        } catch {}
-      } else if (indentation === 4) {
-        try {
-          formattedJson = JSON.stringify(JSON.parse(res.json), null, 4);
-        } catch {}
-      }
-
-      setResult({ ...res, json: formattedJson });
-    } catch (err) {
+      setResult(res);
+    } catch {
       setResult(null);
     }
-  }, [csvInput, delimiter, hasHeader, parseNumbers, parseBooleans, unflatten, outputFormat, indentation]);
+  }, [
+    csvInput,
+    delimiter,
+    hasHeader,
+    parseNumbers,
+    parseBooleans,
+    unflatten,
+    outputFormat,
+    indentation,
+  ]);
 
-  // Download JSON
   const handleDownloadJson = () => {
-    if (!result || !result.json) {
-      toast.error('No JSON to download');
-      return;
-    }
+    if (!result || !result.json) return;
     const blob = new Blob([result.json], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `quickformat_data_${Date.now()}.json`);
+    link.setAttribute('download', `quickformat_converted_${Date.now()}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     fireConfetti();
-    toast.success('Downloaded .json file!');
+    toast.success('Exported .json file!');
   };
 
-  // File Upload
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -173,83 +169,87 @@ export function CsvToJsonTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Layers className="w-4 h-4" />
-            <span>Spreadsheet Reverser</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            CSV & TSV to JSON Converter
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Parse delimited CSV and TSV spreadsheets into structured JSON arrays and nested object hierarchies.
-          </p>
-        </div>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={FileCode}
+        category="Data Pipeline"
+        badge="In-Browser V8"
+        title="CSV & TSV to JSON Converter"
+        description="Parse delimited CSV, TSV, and tabular text files into structured JSON arrays and nested object hierarchies with zero network roundtrips."
+        actions={
+          <>
+            <CopyButton
+              text={result ? result.json : ''}
+              label="Copy JSON"
+              copiedLabel="JSON Copied!"
+              targetElementId="csv-json-output"
+              variant="default"
+            />
 
-        {/* Global Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton
-            text={result ? result.json : ''}
-            label="Copy JSON"
-            copiedLabel="JSON Copied!"
-            targetElementId="csv-json-output"
-            variant="default"
-          />
+            <button
+              onClick={handleDownloadJson}
+              disabled={!result}
+              id="btn-download-json"
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download JSON</span>
+            </button>
+          </>
+        }
+      />
 
-          <button
-            onClick={handleDownloadJson}
-            disabled={!result}
-            id="btn-download-json"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download JSON</span>
-          </button>
+      {/* Preset Chips Bar */}
+      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+        <PresetChips
+          presets={CSV_PRESETS}
+          activeId={activePreset}
+          onSelect={handleSelectPreset}
+          label="Sample Spreadsheets"
+        />
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+          <span>Auto-detects delimiters</span>
         </div>
       </div>
 
-      {/* Preset Chips Bar */}
-      <PresetChips
-        presets={CSV_PRESETS}
-        activeId={activePreset}
-        onSelect={handleSelectPreset}
-        title="Sample Spreadsheets"
-      />
-
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={Database}
           label="Input Rows"
-          value={inputLines}
-          badge="Raw Lines"
+          value={inputLines.toLocaleString()}
+          subtext="Raw spreadsheet lines"
           color="slate"
         />
         <StatCard
+          icon={Hash}
           label="Parsed Records"
-          value={result ? result.rowCount : 0}
-          badge={hasHeader ? 'Header Filtered' : 'Direct'}
-          color="brand"
+          value={result ? result.rowCount.toLocaleString() : '0'}
+          subtext={hasHeader ? 'Header filtered' : 'Direct rows'}
+          color="sky"
         />
         <StatCard
+          icon={Table}
           label="Active Delimiter"
           value={delimiter === 'auto' ? 'Auto Detect' : delimiter === ',' ? 'Comma (,)' : delimiter === ';' ? 'Semicolon (;)' : delimiter === '\t' ? 'Tab (\\t)' : delimiter}
-          badge="RFC 4180"
+          subtext="RFC 4180 parsing"
           color="emerald"
         />
         <StatCard
+          icon={Binary}
           label="Output Size"
           value={result && result.json ? `${(new Blob([result.json]).size / 1024).toFixed(1)} KB` : '0 KB'}
-          badge="UTF-8 JSON"
+          subtext="UTF-8 JSON string"
           color="purple"
         />
       </div>
 
       {/* Main Dual-Pane Workspace */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
         {/* LEFT PANE: Input CSV Editor */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           <WindowHeader
             title="Input CSV / TSV"
             badge="Delimited"
@@ -261,7 +261,7 @@ export function CsvToJsonTool() {
             onToggleZen={() => setIsZenMode(!isZenMode)}
           >
             <label
-              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1 cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-medium flex items-center gap-1 cursor-pointer"
               title="Upload CSV/TSV file"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -280,7 +280,7 @@ export function CsvToJsonTool() {
                 setActivePreset(null);
                 toast.success('Sample CSV loaded');
               }}
-              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1"
+              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-sky-500 hover:bg-slate-200/60 dark:hover:bg-white/[0.08] transition-colors text-xs font-medium flex items-center gap-1"
               title="Reset to Default Sample"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -301,28 +301,30 @@ export function CsvToJsonTool() {
           </WindowHeader>
 
           {/* Textarea */}
-          <textarea
-            id="csv-input-textarea"
-            value={csvInput}
-            onChange={(e) => {
-              setCsvInput(e.target.value);
-              setActivePreset(null);
-            }}
-            placeholder="Paste CSV or TSV data here..."
-            rows={16}
-            className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y leading-relaxed min-h-[380px] ${fontSizeClass}`}
-            spellCheck={false}
-          />
+          <div className="p-2">
+            <textarea
+              id="csv-input-textarea"
+              value={csvInput}
+              onChange={(e) => {
+                setCsvInput(e.target.value);
+                setActivePreset(null);
+              }}
+              placeholder="Paste CSV or TSV data here..."
+              rows={16}
+              className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y leading-relaxed min-h-[380px] border border-transparent ${fontSizeClass}`}
+              spellCheck={false}
+            />
+          </div>
 
           {/* Options Footer Bar with modern ToggleSwitches */}
-          <div className="p-4 bg-slate-50/80 dark:bg-slate-850/80 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="p-4 bg-slate-50/80 dark:bg-[#0b1120]/80 border-t border-slate-200/80 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4 text-xs">
             {/* Delimiter Selection */}
             <div className="flex items-center gap-2">
               <span className="text-slate-500 font-medium">Delimiter:</span>
               <select
                 value={delimiter}
                 onChange={(e) => setDelimiter(e.target.value)}
-                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/[0.1] rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-sky-500"
               >
                 <option value="auto">Auto Detect</option>
                 <option value=",">Comma (,)</option>
@@ -337,24 +339,27 @@ export function CsvToJsonTool() {
               <ToggleSwitch
                 checked={hasHeader}
                 onChange={setHasHeader}
-                label="First Row Header"
+                label="Header Row"
+                size="sm"
               />
               <ToggleSwitch
                 checked={unflatten}
                 onChange={setUnflatten}
-                label="Unflatten Dots (a.b)"
+                label="Unflatten (a.b)"
+                size="sm"
               />
               <ToggleSwitch
                 checked={parseNumbers}
                 onChange={setParseNumbers}
                 label="Parse Numbers"
+                size="sm"
               />
             </div>
           </div>
         </div>
 
         {/* RIGHT PANE: Formatted Output JSON */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane min-h-[480px]">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane min-h-[480px]">
           <WindowHeader
             title="Generated JSON Tree"
             badge="JSON"
@@ -364,12 +369,12 @@ export function CsvToJsonTool() {
             onFontSizeChange={setFontSize}
           >
             {/* Formatting & Indent Toggle */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-1">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs mr-1 border border-slate-200/60 dark:border-white/[0.08]">
               <button
                 onClick={() => setIndentation(2)}
                 className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 2
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -379,7 +384,7 @@ export function CsvToJsonTool() {
                 onClick={() => setIndentation(4)}
                 className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 4
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -389,7 +394,7 @@ export function CsvToJsonTool() {
                 onClick={() => setIndentation(0)}
                 className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 0
-                    ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
@@ -406,11 +411,11 @@ export function CsvToJsonTool() {
                 readOnly
                 value={result.json}
                 rows={16}
-                className={`w-full flex-1 p-3 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[380px] ${fontSizeClass}`}
+                className={`w-full flex-1 p-3 font-mono code-viewport bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[380px] ${fontSizeClass}`}
               />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-400">
-                <FileCode className="w-12 h-12 mb-3 stroke-[1.25]" />
+                <FileCode className="w-12 h-12 mb-3 stroke-[1.25] text-sky-500/60 animate-pulse" />
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                   Ready to convert CSV
                 </p>
@@ -425,4 +430,3 @@ export function CsvToJsonTool() {
     </div>
   );
 }
-

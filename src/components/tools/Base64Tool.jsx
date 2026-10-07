@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { textToBase64, base64ToText, SAMPLE_BASE64_TEXT } from '../../utils/base64Utils';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -135,80 +136,84 @@ export function Base64Tool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Binary className="w-4 h-4" />
-            <span>Serialization & Data URI Utility</span>
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={Binary}
+        category="Encoding & Binary"
+        badge="RFC 4648"
+        title="Base64 Text & Image Encoder / Decoder"
+        description="Encode and decode UTF-8 text strings, or convert PNG, JPEG, SVG, and files into instant Base64 Data URLs with zero cloud exposure."
+        actions={
+          <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/60 dark:border-white/[0.08]">
+            <button
+              onClick={() => setActiveMode('text')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeMode === 'text'
+                  ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Text Mode
+            </button>
+            <button
+              onClick={() => setActiveMode('file')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeMode === 'file'
+                  ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Image & File Mode
+            </button>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Base64 Text & Image Encoder / Decoder
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Encode and decode UTF-8 text, or convert images and assets into instant Base64 Data URLs.
-          </p>
-        </div>
-
-        {/* Mode Switcher */}
-        <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveMode('text')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeMode === 'text'
-                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Text Mode
-          </button>
-          <button
-            onClick={() => setActiveMode('file')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeMode === 'file'
-                ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Image & File Mode
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Preset Chips */}
       {activeMode === 'text' && (
-        <PresetChips
-          presets={BASE64_PRESETS}
-          activeId={activePreset}
-          onSelect={handleSelectPreset}
-          title="Common Payloads"
-        />
+        <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+          <PresetChips
+            presets={BASE64_PRESETS}
+            activeId={activePreset}
+            onSelect={handleSelectPreset}
+            label="Common Payloads"
+          />
+
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+            <span>RFC 4648 Compliant</span>
+          </div>
+        </div>
       )}
 
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={FileText}
           label="Input Size"
           value={activeMode === 'text' ? `${textInput.length} chars` : fileData ? `${(fileData.size / 1024).toFixed(1)} KB` : '0 KB'}
-          badge={activeMode === 'text' ? (direction === 'encode' ? 'UTF-8 String' : 'Base64 String') : 'Binary Stream'}
+          subtext={activeMode === 'text' ? (direction === 'encode' ? 'UTF-8 String' : 'Base64 Stream') : 'Binary File'}
           color="slate"
         />
         <StatCard
+          icon={Binary}
           label="Output Size"
           value={activeMode === 'text' ? `${textOutput.length} chars` : fileData ? `${(fileData.base64.length / 1024).toFixed(1)} KB` : '0 KB'}
-          badge={activeMode === 'text' ? (direction === 'encode' ? 'ASCII Base64' : 'Plain Text') : 'Data URI'}
-          color="brand"
+          subtext={activeMode === 'text' ? (direction === 'encode' ? 'ASCII Base64' : 'Plain Text') : 'Data URI'}
+          color="sky"
         />
         <StatCard
+          icon={ArrowRightLeft}
           label="Size Overhead"
           value={direction === 'encode' ? '+33.3%' : '-25.0%'}
-          badge="RFC 4648 Ratio"
+          subtext="RFC 4648 bit ratio"
           color="emerald"
         />
         <StatCard
+          icon={ShieldCheck}
           label="Encoding Standard"
           value={urlSafe ? 'URL-Safe RFC 4648' : 'Standard Base64'}
-          badge={urlSafe ? '- and _' : '+ and /'}
+          subtext={urlSafe ? '- and _ substitution' : '+ and / standard'}
           color="purple"
         />
       </div>
@@ -217,16 +222,16 @@ export function Base64Tool() {
         /* TEXT ENCODER / DECODER WORKSPACE */
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex items-center justify-between flex-wrap gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <div className="flex items-center justify-between flex-wrap gap-4 p-4 glass-panel border border-slate-200/80 dark:border-white/[0.08] rounded-2xl">
             {/* Direction Segmented Switch */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-slate-500">Operation:</span>
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/60 dark:border-white/[0.08]">
                 <button
                   onClick={() => setDirection('encode')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     direction === 'encode'
-                      ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                      ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
@@ -234,9 +239,9 @@ export function Base64Tool() {
                 </button>
                 <button
                   onClick={() => setDirection('decode')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     direction === 'decode'
-                      ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
+                      ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
@@ -250,6 +255,7 @@ export function Base64Tool() {
                 checked={urlSafe}
                 onChange={setUrlSafe}
                 label="URL-Safe Base64"
+                size="sm"
               />
 
               <CopyButton
@@ -263,9 +269,9 @@ export function Base64Tool() {
           </div>
 
           {/* Dual Textareas */}
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
             {/* Left: Input */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
               <WindowHeader
                 title={direction === 'encode' ? 'Plain Text Input (UTF-8)' : 'Base64 Input'}
                 badge={direction.toUpperCase()}
@@ -287,20 +293,22 @@ export function Base64Tool() {
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </WindowHeader>
-              <textarea
-                value={textInput}
-                onChange={(e) => {
-                  setTextInput(e.target.value);
-                  setActivePreset(null);
-                }}
-                placeholder="Type or paste content here..."
-                rows={14}
-                className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  value={textInput}
+                  onChange={(e) => {
+                    setTextInput(e.target.value);
+                    setActivePreset(null);
+                  }}
+                  placeholder="Type or paste content here..."
+                  rows={14}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[340px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
 
             {/* Right: Output */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
               <WindowHeader
                 title={direction === 'encode' ? 'Base64 Output' : 'Decoded Text Output'}
                 badge="Result"
@@ -309,13 +317,15 @@ export function Base64Tool() {
                 fontSize={fontSize}
                 onFontSizeChange={setFontSize}
               />
-              <textarea
-                id="base64-text-output"
-                readOnly
-                value={textOutput}
-                rows={14}
-                className={`w-full p-4 font-mono bg-slate-50 dark:bg-slate-950/80 text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
-              />
+              <div className="p-2">
+                <textarea
+                  id="base64-text-output"
+                  readOnly
+                  value={textOutput}
+                  rows={14}
+                  className={`w-full p-4 font-mono code-viewport bg-slate-50 dark:bg-[#050811] text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[340px] border border-transparent ${fontSizeClass}`}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -323,13 +333,13 @@ export function Base64Tool() {
         /* IMAGE / FILE TO BASE64 DATA URL */
         <div className="space-y-6">
           {/* Upload Drop Zone */}
-          <div className="p-8 border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-brand-500 rounded-2xl text-center bg-white dark:bg-slate-900/60 transition-colors">
-            <FileImage className="w-12 h-12 text-brand-500 mx-auto mb-3" />
+          <div className="p-8 border-2 border-dashed border-slate-300 dark:border-white/[0.1] hover:border-sky-500 rounded-2xl text-center glass-panel transition-colors">
+            <FileImage className="w-12 h-12 text-sky-500 mx-auto mb-3" />
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
               Drag and drop an image or file here
             </p>
             <p className="text-xs text-slate-500 mt-1">PNG, JPEG, WebP, SVG, GIF, or PDF (Max 15MB)</p>
-            <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white cursor-pointer transition-colors shadow-sm">
+            <label className="mt-4 btn-primary cursor-pointer">
               <Upload className="w-3.5 h-3.5" />
               <span>Select File</span>
               <input type="file" onChange={handleFileUpload} className="hidden" />
@@ -338,16 +348,16 @@ export function Base64Tool() {
 
           {/* Result Card */}
           {fileData && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+            <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] p-6 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200 dark:border-white/[0.08]">
                 {fileData.type.startsWith('image/') ? (
                   <img
                     src={fileData.dataUrl}
                     alt="Preview"
-                    className="w-32 h-32 object-contain rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2"
+                    className="w-32 h-32 object-contain rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#050811] p-2"
                   />
                 ) : (
-                  <div className="w-32 h-32 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#050811] flex items-center justify-center">
                     <Binary className="w-12 h-12 text-slate-400" />
                   </div>
                 )}
@@ -362,19 +372,19 @@ export function Base64Tool() {
                   <div className="pt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => copyToClipboard(fileData.dataUrl, 'Data URL')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white transition-colors"
+                      className="btn-primary"
                     >
                       Copy Data URL
                     </button>
                     <button
                       onClick={() => copyToClipboard(`<img src="${fileData.dataUrl}" alt="${fileData.name}" />`, 'HTML Tag')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors"
+                      className="btn-secondary"
                     >
                       Copy &lt;img&gt; Tag
                     </button>
                     <button
                       onClick={() => copyToClipboard(`background-image: url("${fileData.dataUrl}");`, 'CSS')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors"
+                      className="btn-secondary"
                     >
                       Copy CSS
                     </button>
@@ -384,14 +394,14 @@ export function Base64Tool() {
 
               {/* Data URL snippet */}
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-mono">
                   Data URL Preview
                 </span>
                 <textarea
                   readOnly
                   value={fileData.dataUrl}
                   rows={4}
-                  className="w-full p-3 font-mono text-xs bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none"
+                  className="w-full p-3 font-mono code-viewport text-xs bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none"
                 />
               </div>
             </div>
@@ -401,4 +411,3 @@ export function Base64Tool() {
     </div>
   );
 }
-

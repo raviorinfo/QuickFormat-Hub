@@ -9,10 +9,13 @@ import {
   Activity,
   Layers,
   ArrowRight,
-  Globe
+  Globe,
+  Timer,
+  CalendarDays
 } from 'lucide-react';
 import { parseCronExpression, CRON_PRESETS } from '../../utils/cronParser';
 import { useToast } from '../../context/ToastContext';
+import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
 import { StatCard } from '../common/StatCard';
@@ -55,71 +58,75 @@ export function CronSchedulerTool() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Clock className="w-4 h-4" />
-            <span>Automated Task Schedule Predictor</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Cron Expression Visualizer & Translator
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Translate 5-part cron syntax into plain English and preview upcoming execution timestamps.
-          </p>
-        </div>
-
-        {/* Copy Button */}
-        <CopyButton
-          text={cronInput}
-          label="Copy Cron Expression"
-          copiedLabel="Cron Copied!"
-          variant="primary"
-        />
-      </div>
-
-      {/* Preset Chips */}
-      <PresetChips
-        presets={STUDIO_CRON_PRESETS}
-        activeId={activePreset}
-        onSelect={handleSelectPreset}
-        title="Production Schedules"
+      {/* Studio Tool Hero Header */}
+      <ToolHeroHeader
+        icon={Clock}
+        category="Dev & Automation"
+        badge="POSIX Standard"
+        title="Cron Expression Visualizer & Translator"
+        description="Translate 5-part cron syntax into clear human language, dissect field parameters, and preview deterministic upcoming execution timestamps in real-time."
+        actions={
+          <CopyButton
+            text={cronInput}
+            label="Copy Cron Expression"
+            copiedLabel="Cron Copied!"
+            variant="primary"
+          />
+        }
       />
 
+      {/* Preset Chips */}
+      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+        <PresetChips
+          presets={STUDIO_CRON_PRESETS}
+          activeId={activePreset}
+          onSelect={handleSelectPreset}
+          label="Production Schedules"
+        />
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Globe className="w-3.5 h-3.5 text-sky-500" />
+          <span>{Intl.DateTimeFormat().resolvedOptions().timeZone || 'Browser Timezone'}</span>
+        </div>
+      </div>
+
       {/* Executive KPI Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
+          icon={Timer}
           label="Schedule Status"
           value={parsed.valid ? 'Syntax Valid' : 'Syntax Error'}
-          badge={parsed.valid ? 'UNIX 5-Field' : 'Invalid'}
+          subtext={parsed.valid ? 'UNIX 5-Field standard' : 'Check field inputs'}
           color={parsed.valid ? 'emerald' : 'rose'}
         />
         <StatCard
+          icon={Activity}
           label="Next Execution"
           value={nextRunRelative}
-          badge="Countdown"
-          color="brand"
+          subtext="Deterministic countdown"
+          color="sky"
         />
         <StatCard
+          icon={CalendarDays}
           label="Recurrence Depth"
-          value={parsed.valid && parsed.nextRuns ? `${parsed.nextRuns.length} Predicted` : '0 Runs'}
-          badge="Future Runs"
+          value={parsed.valid && parsed.nextRuns ? `${parsed.nextRuns.length} Runs` : '0 Runs'}
+          subtext="Computed in memory"
           color="purple"
         />
         <StatCard
+          icon={Globe}
           label="Active Timezone"
           value={Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local UTC'}
-          badge="Browser Context"
+          subtext="Client system context"
           color="amber"
         />
       </div>
 
       {/* Main Expression Input & Human Translation Banner */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+      <div className="rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
         <WindowHeader
           title="Cron Expression Editor"
-          badge="UNIX Syntax"
+          badge="5-Field UNIX"
         />
 
         <div className="p-6 space-y-5">
@@ -133,23 +140,27 @@ export function CronSchedulerTool() {
                   setActivePreset(null);
                 }}
                 placeholder="* * * * *"
-                className="w-full px-5 py-3.5 font-mono text-lg font-bold bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 text-center tracking-widest transition-all"
+                className="w-full px-5 py-4 font-mono text-xl font-extrabold code-viewport bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.1] rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 text-center tracking-widest transition-all shadow-inner"
               />
             </div>
 
             {/* Plain English Translation Pill */}
-            <div className={`w-full lg:flex-1 p-4 rounded-xl border flex items-center gap-3 transition-colors ${
+            <div className={`w-full lg:flex-1 p-4 rounded-xl border flex items-center gap-3.5 transition-all shadow-xs ${
               parsed.valid
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-950 dark:text-emerald-100'
-                : 'bg-rose-500/10 border-rose-500/20 text-rose-950 dark:text-rose-100'
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-950 dark:text-emerald-100'
+                : 'bg-rose-500/10 border-rose-500/25 text-rose-950 dark:text-rose-100'
             }`}>
               {parsed.valid ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
               ) : (
-                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
               )}
               <div className="min-w-0">
-                <span className={`text-[10px] font-bold block uppercase tracking-wider ${
+                <span className={`text-[10px] font-bold block uppercase tracking-wider font-mono ${
                   parsed.valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                 }`}>
                   {parsed.valid ? 'Plain English Translation' : 'Validation Error'}
@@ -166,60 +177,65 @@ export function CronSchedulerTool() {
       {/* Field Anatomy Breakdown Cards */}
       {parsed.valid && parsed.parts && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+          <div className="glass-panel p-4 rounded-xl border border-slate-200/80 dark:border-white/[0.08] text-center transition-all hover:border-sky-500/40 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-sky-600" />
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">1. Minute (0-59)</span>
-            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.min}</span>
+            <span className="font-mono text-xl font-extrabold text-sky-500">{parsed.parts.min}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+          <div className="glass-panel p-4 rounded-xl border border-slate-200/80 dark:border-white/[0.08] text-center transition-all hover:border-sky-500/40 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 to-purple-600" />
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">2. Hour (0-23)</span>
-            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.hour}</span>
+            <span className="font-mono text-xl font-extrabold text-purple-500">{parsed.parts.hour}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+          <div className="glass-panel p-4 rounded-xl border border-slate-200/80 dark:border-white/[0.08] text-center transition-all hover:border-sky-500/40 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">3. Day of Mo (1-31)</span>
-            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.dom}</span>
+            <span className="font-mono text-xl font-extrabold text-amber-500">{parsed.parts.dom}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+          <div className="glass-panel p-4 rounded-xl border border-slate-200/80 dark:border-white/[0.08] text-center transition-all hover:border-sky-500/40 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">4. Month (1-12)</span>
-            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.mon}</span>
+            <span className="font-mono text-xl font-extrabold text-emerald-500">{parsed.parts.mon}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center col-span-2 sm:col-span-1 transition-all hover:border-brand-500/40">
+          <div className="glass-panel p-4 rounded-xl border border-slate-200/80 dark:border-white/[0.08] text-center col-span-2 sm:col-span-1 transition-all hover:border-sky-500/40 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-400 to-rose-600" />
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">5. Day of Wk (0-6)</span>
-            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.dow}</span>
+            <span className="font-mono text-xl font-extrabold text-rose-500">{parsed.parts.dow}</span>
           </div>
         </div>
       )}
 
       {/* Calculated Next Run Occurrences Timeline */}
       {parsed.valid && parsed.nextRuns && parsed.nextRuns.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="rounded-2xl glass-panel border border-slate-200/80 dark:border-white/[0.08] shadow-xl overflow-hidden editor-pane">
           <WindowHeader
             title="Scheduled Execution Timeline"
             badge="Next 6 Occurrences"
           />
 
-          <div className="p-6 divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs">
+          <div className="p-4 sm:p-6 divide-y divide-slate-100 dark:divide-white/[0.04] font-mono text-xs">
             {parsed.nextRuns.map((date, idx) => (
-              <div key={idx} className="py-3 flex items-center justify-between flex-wrap gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-850/50 px-3 rounded-lg transition-colors">
+              <div key={idx} className="py-3.5 flex items-center justify-between flex-wrap gap-3 hover:bg-slate-50/70 dark:hover:bg-white/[0.03] px-3.5 rounded-xl transition-colors">
                 <div className="flex items-center gap-3">
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
                     idx === 0
-                      ? 'bg-brand-500 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30'
+                      : 'bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400'
                   }`}>
                     {idx + 1}
                   </span>
                   <span className="text-slate-800 dark:text-slate-200 font-semibold">
                     {date.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                   </span>
-                  <span className="text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded">
+                  <span className="text-sky-600 dark:text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-500/20">
                     {date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   {idx === 0 && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                       Immediate Next
                     </span>
                   )}
@@ -236,4 +252,3 @@ export function CronSchedulerTool() {
     </div>
   );
 }
-
