@@ -103,22 +103,22 @@ export function SriGeneratorTool() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Tool Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            Subresource Integrity (SRI) Hash & Tag Generator
+            <span>Subresource Integrity (SRI) Hash & Tag Generator</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Generate tamper-proof sha384-, sha256-, and sha512- integrity hashes and ready-to-use HTML CDN tags.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
           <button
             type="button"
             data-sample-trigger="true"
@@ -128,9 +128,9 @@ export function SriGeneratorTool() {
               setTagType('script');
               toast.success('Loaded Alpine.js sample bundle');
             }}
-            className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5"
+            className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3 h-3 text-amber-400" />
             <span>Sample Bundle</span>
           </button>
         </div>

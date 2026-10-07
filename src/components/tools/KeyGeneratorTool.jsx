@@ -107,22 +107,22 @@ export function KeyGeneratorTool() {
       : JSON.stringify(keyData.privateJwk, null, 2));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Tool Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-500 flex items-center justify-center">
-              <Key className="w-5 h-5" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-purple-500/15 text-purple-500 flex items-center justify-center shrink-0">
+              <Key className="w-3.5 h-3.5" />
             </div>
-            RSA & ECC Key Pair Generator & Converter
+            <span>RSA & ECC Key Pair Generator & Converter</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Generate cryptographically secure RSA and Elliptic Curve key pairs in-browser using WebCrypto. Export to PEM or JWK.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
           {/* Algorithm Selector */}
           <select
             value={keyType}
@@ -130,7 +130,7 @@ export function KeyGeneratorTool() {
               setKeyType(e.target.value);
               handleGenerate(e.target.value);
             }}
-            className="p-1.5 px-3 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
+            className="p-1 px-2.5 rounded-lg bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none"
           >
             <option value="RSA-2048">RSA 2048-bit (Standard)</option>
             <option value="RSA-4096">RSA 4096-bit (High Security)</option>

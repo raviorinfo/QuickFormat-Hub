@@ -299,10 +299,10 @@ export function Header({
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3 lg:gap-6">
+          <div className="flex items-center justify-between h-14 gap-2.5 lg:gap-5">
             
             {/* 1. Brand Logo & Title */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
               <a
                 href="/json-to-csv"
                 onClick={(e) => {
@@ -311,19 +311,19 @@ export function Header({
                   setActiveDropdown(null);
                   onNavigate('/json-to-csv');
                 }}
-                className="flex items-center gap-2.5 group focus:outline-none cursor-pointer select-none"
+                className="flex items-center gap-2 group focus:outline-none cursor-pointer select-none"
               >
                 <div className="relative">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-sky-500 to-cyan-400 p-0.5 flex items-center justify-center shadow-lg shadow-sky-500/25 group-hover:shadow-sky-500/50 group-hover:scale-105 transition-all duration-300">
-                    <div className="w-full h-full bg-[#060911]/30 backdrop-blur-xs rounded-[10px] flex items-center justify-center">
-                      <Zap className="w-4 h-4 text-white animate-pulse" />
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 via-sky-500 to-cyan-400 p-0.5 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:shadow-sky-500/40 group-hover:scale-105 transition-all duration-200">
+                    <div className="w-full h-full bg-[#060911]/30 backdrop-blur-xs rounded-[6px] flex items-center justify-center">
+                      <Zap className="w-3.5 h-3.5 text-white animate-pulse" />
                     </div>
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#060911]" />
                 </div>
                 <div className="text-left">
                   <div className="flex items-center gap-1.5 leading-tight">
-                    <span className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
                       QuickFormat <span className="gradient-text">Hub</span>
                     </span>
                   </div>
@@ -347,9 +347,9 @@ export function Header({
                     <button
                       type="button"
                       onClick={() => toggleDropdown(cat.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         isOpen
-                          ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-xs'
+                          ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-2xs'
                           : isCurrentCategory
                           ? 'text-sky-600 dark:text-sky-400 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
                           : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/[0.04]'
@@ -441,7 +441,7 @@ export function Header({
                 <button
                   type="button"
                   onClick={() => toggleDropdown('Pinned')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeDropdown === 'Pinned'
                       ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                       : 'text-slate-600 dark:text-slate-300 hover:text-amber-500 hover:bg-slate-100/70 dark:hover:bg-white/[0.04]'
@@ -450,14 +450,14 @@ export function Header({
                 >
                   <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                   <span>Favorites</span>
-                  <span className="text-[10px] font-mono px-1 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                  <span className="text-[9px] font-mono px-1 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">
                     {pinnedPaths.length}
                   </span>
                 </button>
 
                 {/* Pinned Utilities Popover */}
                 {activeDropdown === 'Pinned' && (
-                  <div className="absolute left-0 top-full mt-2 w-72 p-2.5 rounded-2xl bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl z-50 animate-slide-up">
+                  <div className="absolute left-0 top-full mt-2 w-72 p-2 rounded-2xl bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl z-50 animate-slide-up">
                     <div className="flex items-center justify-between px-2.5 py-1.5 mb-1 border-b border-slate-100 dark:border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-amber-500">
                       <span>Pinned Utilities</span>
                       <span className="font-mono text-slate-400">Alt+1..5</span>
@@ -523,23 +523,23 @@ export function Header({
                   setActiveDropdown(null);
                   onOpenCommandPalette();
                 }}
-                className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] text-xs text-slate-500 dark:text-slate-400 hover:border-sky-500/50 hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 transition-all shadow-xs group cursor-pointer"
+                className="w-full flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] text-xs text-slate-500 dark:text-slate-400 hover:border-sky-500/50 hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 transition-all shadow-2xs group cursor-pointer"
               >
                 <Search className="w-3.5 h-3.5 text-sky-500 group-hover:scale-110 transition-transform shrink-0" />
                 <span className="flex-1 text-left font-normal truncate">Search {ALL_TOOLS.length} tools...</span>
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-xs shrink-0">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-2xs shrink-0">
                   <Command className="w-2.5 h-2.5 inline" />K
                 </span>
               </button>
             </div>
 
             {/* 4. Streamlined Actions & Controls Deck */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               {/* Load Sample Data Button */}
               <button
                 type="button"
                 onClick={handleLoadSample}
-                className={`hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   sampleLoaded
                     ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
                     : 'bg-slate-100/80 dark:bg-white/[0.04] hover:bg-sky-500 hover:text-white hover:border-sky-500 border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-300'

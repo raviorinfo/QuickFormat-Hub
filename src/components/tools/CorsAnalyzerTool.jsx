@@ -100,27 +100,27 @@ export function CorsAnalyzerTool() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Tool Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-500 flex items-center justify-center">
-              <Globe className="w-5 h-5" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-sky-500/15 text-sky-500 flex items-center justify-center shrink-0">
+              <Globe className="w-3.5 h-3.5" />
             </div>
-            CORS Policy Builder & Vulnerability Auditor
+            <span>CORS Policy Builder & Vulnerability Auditor</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Build bulletproof CORS rules, audit OWASP credential leaks, simulate preflight requests, and export server snippets.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
           <button
             type="button"
             data-sample-trigger="true"
             onClick={loadSecureSample}
-            className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5"
+            className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>Secure Preset</span>
@@ -128,16 +128,16 @@ export function CorsAnalyzerTool() {
           <button
             type="button"
             onClick={loadVulnerableSample}
-            className="btn-secondary py-1.5 px-3 text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1.5"
+            className="btn-secondary py-1 px-2.5 text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1.5"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Test Vulnerable Config</span>
+            <span>Test Vulnerable</span>
           </button>
         </div>
       </div>
 
       {/* Main Grid: Policy Controls & Live Simulator */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left Column: CORS Policy Builder Form */}
         <div className="lg:col-span-5 space-y-4">

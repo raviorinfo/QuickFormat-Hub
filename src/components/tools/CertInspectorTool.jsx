@@ -87,25 +87,25 @@ export function CertInspectorTool() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Tool Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 sm:pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
-            X.509 Certificate & CSR Inspector
+            <span>X.509 Certificate & CSR Inspector</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Decode SSL/TLS certificates, expiration countdown, SANs, key sizes, and CSR requests 100% in-browser.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5 cursor-pointer">
-            <Upload className="w-3.5 h-3.5 text-slate-400" />
-            <span>Upload Cert (.pem/.crt)</span>
+        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+          <label className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5 cursor-pointer">
+            <Upload className="w-3 h-3 text-slate-400" />
+            <span>Upload (.pem/.crt)</span>
             <input
               type="file"
               accept=".pem,.crt,.cer,.csr,.txt"
@@ -120,9 +120,9 @@ export function CertInspectorTool() {
               setPemInput(SAMPLE_CERT);
               toast.success('Loaded sample X.509 certificate');
             }}
-            className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5"
+            className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3 h-3 text-amber-400" />
             <span>Sample Cert</span>
           </button>
           <button
@@ -131,7 +131,7 @@ export function CertInspectorTool() {
               setPemInput(SAMPLE_CSR);
               toast.success('Loaded sample CSR');
             }}
-            className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5"
+            className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5"
           >
             <FileText className="w-3.5 h-3.5 text-sky-400" />
             <span>Sample CSR</span>

@@ -194,7 +194,7 @@ function QuickFormatApp() {
       {!isLegalRoute && <AdSlot type="top-banner" />}
 
       {/* Main Workspace */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 relative z-10">
         {isLegalRoute ? (
           <Suspense fallback={<ToolSkeletonLoader />}>
             {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}

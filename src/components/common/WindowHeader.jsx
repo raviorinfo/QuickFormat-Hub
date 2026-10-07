@@ -13,23 +13,23 @@ export function WindowHeader({
   children,
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/90 dark:bg-[#070b14]/90 border-b border-slate-200/90 dark:border-white/10 backdrop-blur-xl select-none relative z-10">
+    <div className="flex items-center justify-between px-3 sm:px-3.5 py-1.5 bg-slate-50/90 dark:bg-[#070b14]/90 border-b border-slate-200/90 dark:border-white/[0.08] backdrop-blur-xl select-none relative z-10">
       {/* Left: Window status & Title */}
-      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
         {/* Subtle Traffic Light Window Dots */}
         <div className="flex items-center gap-1.5 shrink-0 opacity-80 hover:opacity-100 transition-opacity">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 shadow-[0_0_6px_rgba(244,63,94,0.4)] block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 shadow-[0_0_6px_rgba(245,158,11,0.4)] block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 shadow-[0_0_6px_rgba(16,185,129,0.4)] block"></span>
+          <span className="w-2 h-2 rounded-full bg-rose-500/80 shadow-[0_0_4px_rgba(244,63,94,0.4)] block"></span>
+          <span className="w-2 h-2 rounded-full bg-amber-500/80 shadow-[0_0_4px_rgba(245,158,11,0.4)] block"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500/80 shadow-[0_0_4px_rgba(16,185,129,0.4)] block"></span>
         </div>
 
         {/* Title & Format Pill */}
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] sm:text-xs font-bold tracking-wider text-slate-800 dark:text-slate-200 uppercase truncate">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-[10px] sm:text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200 uppercase truncate">
             {title}
           </span>
           {badge && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/25 shadow-xs shrink-0">
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/25 shadow-2xs shrink-0">
               {badge}
             </span>
           )}
@@ -37,7 +37,7 @@ export function WindowHeader({
 
         {/* Counts (Chars / Lines) */}
         {(charsCount !== null || linesCount !== null) && (
-          <div className="hidden lg:flex items-center gap-1.5 text-[10px] font-mono text-slate-400 dark:text-slate-500 bg-white dark:bg-white/5 px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/10 shrink-0">
+          <div className="hidden lg:flex items-center gap-1 text-[9px] font-mono text-slate-400 dark:text-slate-500 bg-white dark:bg-white/5 px-1.5 py-0.2 rounded border border-slate-200 dark:border-white/10 shrink-0">
             {linesCount !== null && <span>{linesCount.toLocaleString()} L</span>}
             {linesCount !== null && charsCount !== null && <span className="opacity-30">•</span>}
             {charsCount !== null && <span>{charsCount.toLocaleString()} C</span>}

@@ -77,24 +77,24 @@ export function StatCard({
   return (
     <div
       onClick={copyable ? handleCopy : undefined}
-      className={`glass-panel p-4 rounded-2xl relative overflow-hidden transition-all duration-300 group border border-slate-200/80 dark:border-white/10 ${
-        copyable ? 'cursor-pointer hover:border-slate-400 dark:hover:border-sky-500/50 hover:-translate-y-1 shadow-sm hover:shadow-xl dark:hover:shadow-[0_12px_30px_rgba(0,0,0,0.8)]' : ''
+      className={`glass-panel p-3 rounded-xl relative overflow-hidden transition-all duration-200 group border border-slate-200/80 dark:border-white/[0.08] ${
+        copyable ? 'cursor-pointer hover:border-slate-400 dark:hover:border-sky-500/50 hover:-translate-y-0.5 shadow-2xs hover:shadow-lg dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.7)]' : ''
       } ${className}`}
     >
       {/* Top Luminous Accent Line */}
       <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${theme.topBorder} opacity-80 group-hover:opacity-100 transition-opacity`} />
 
       {/* Subtle Ambient Bottom Corner Glow */}
-      <div className={`absolute -bottom-8 -right-8 w-24 h-24 rounded-full ${theme.cornerGlow} blur-xl pointer-events-none group-hover:scale-150 transition-transform duration-500`} />
+      <div className={`absolute -bottom-6 -right-6 w-20 h-20 rounded-full ${theme.cornerGlow} blur-lg pointer-events-none group-hover:scale-125 transition-transform duration-300`} />
 
-      <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between gap-1.5 mb-1.5 relative z-10">
+        <div className="flex items-center gap-1.5 min-w-0">
           {Icon && (
-            <div className={`w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 ${theme.badgeBg}`}>
-              <Icon className={`w-3.5 h-3.5 ${theme.badgeText}`} />
+            <div className={`w-5 h-5 rounded-md flex items-center justify-center border shrink-0 ${theme.badgeBg}`}>
+              <Icon className={`w-3 h-3 ${theme.badgeText}`} />
             </div>
           )}
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono truncate">
             {label}
           </span>
         </div>
@@ -103,31 +103,31 @@ export function StatCard({
         {copyable && (
           <div className="text-slate-400 opacity-40 group-hover:opacity-100 transition-opacity shrink-0">
             {copied ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 animate-scale-bounce">
-                <Check className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 animate-scale-bounce">
+                <Check className="w-3 h-3" />
                 <span className="hidden sm:inline">Copied</span>
               </span>
             ) : (
-              <Copy className="w-3.5 h-3.5 group-hover:text-brand-500 transition-colors" />
+              <Copy className="w-3 h-3 group-hover:text-brand-500 transition-colors" />
             )}
           </div>
         )}
       </div>
 
       {/* Main Value */}
-      <div className="flex items-baseline gap-2 relative z-10">
-        <span className="font-mono text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight truncate block">
+      <div className="flex items-baseline gap-1.5 relative z-10">
+        <span className="font-mono text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate block">
           {value !== null && value !== undefined && value !== '' ? value : '—'}
         </span>
         {badge && (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0">
+          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0">
             {badge}
           </span>
         )}
       </div>
 
       {subtext && (
-        <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-1 truncate relative z-10">
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5 truncate relative z-10">
           {subtext}
         </span>
       )}

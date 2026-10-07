@@ -17,70 +17,64 @@ import {
   ShieldCheck,
   Scale,
   Mail,
-  Info
+  Info,
+  ListTree,
+  Globe,
+  Key,
+  Tag,
+  Fingerprint,
+  Database,
+  Zap
 } from 'lucide-react';
+import { ALL_TOOLS } from '../utils/toolsList';
 
 export function Footer({ onNavigate }) {
-  const dataTools = [
-    { path: '/json-to-csv', label: 'JSON to CSV / Excel' },
-    { path: '/csv-to-json', label: 'CSV to JSON' },
-    { path: '/json-to-types', label: 'JSON to TypeScript/SQL' },
-    { path: '/base64-tool', label: 'Base64 & Image URL' },
-  ];
-
-  const securityAndDocTools = [
-    { path: '/pii-redactor', label: 'AI Prompt Sanitizer (PII)' },
-    { path: '/jwt-inspector', label: 'Offline JWT Inspector' },
-    { path: '/markdown-editor', label: 'Markdown to HTML & PDF' },
-    { path: '/pdf-to-markdown', label: 'PDF Reader & Markdown' },
-    { path: '/text-diff', label: 'Text & Code Diff' },
-  ];
-
-  const devTools = [
-    { path: '/curl-converter', label: 'cURL to Fetch / Python' },
-    { path: '/url-parser', label: 'URL & Query Parser' },
-    { path: '/cron-scheduler', label: 'Cron Visualizer' },
-    { path: '/regex-tester', label: 'Regex Tester & Library' },
-  ];
+  const dataTools = ALL_TOOLS.filter((t) => t.category === 'Data');
+  const securityTools = ALL_TOOLS.filter((t) => t.category === 'Security');
+  const docTools = ALL_TOOLS.filter((t) => t.category === 'Docs');
+  const devTools = ALL_TOOLS.filter((t) => t.category === 'Dev');
 
   const legalAndTrust = [
     { path: '/privacy-policy', label: 'Privacy Policy' },
     { path: '/terms-of-service', label: 'Terms of Service' },
     { path: '/about', label: 'About Us & Mission' },
-    { path: '/contact', label: 'Contact Us & Support' },
+    { path: '/contact', label: 'Contact Support' },
   ];
 
   return (
-    <footer className="mt-16 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-[#060911]/90 text-slate-600 dark:text-slate-400 text-sm transition-colors duration-200 no-print">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-          {/* Brand & Mission */}
-          <div className="md:col-span-1 sm:col-span-2 space-y-3">
-            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-base">
+    <footer className="mt-10 border-t border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#060911]/90 text-slate-600 dark:text-slate-400 text-xs transition-colors duration-200 no-print">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 sm:gap-8">
+          {/* Brand & Mission Column */}
+          <div className="col-span-2 space-y-2.5">
+            <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shrink-0">
+                <Zap className="w-3 h-3" />
+              </div>
               <span>QuickFormat Hub</span>
-              <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">
-                v3.0 Pro Suite
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                {ALL_TOOLS.length} UTILITIES
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-              Ultra-fast, zero-overhead browser utility suite. Every conversion, diff check, token decode, and PII redaction runs exclusively inside your local browser JavaScript engine with zero server telemetry.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
+              Professional, air-gapped web utility suite. All transformations, cryptographic operations, parsing, and redactions execute exclusively inside your local browser memory with zero network uploads.
             </p>
-            <div className="flex flex-col gap-1.5 pt-2 text-xs text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> End-to-End Client Memory Isolation
+            <div className="flex flex-col gap-1 pt-1 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Zero Telemetry • 100% In-Browser
               </span>
-              <span className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-brand-400 shrink-0" /> Zero Network Latency (Offline Ready)
+              <span className="flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+                <Cpu className="w-3.5 h-3.5 shrink-0" /> 0ms Compute Latency (V8/Wasm Engine)
               </span>
             </div>
           </div>
 
-          {/* Data Tools */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Data & Formats
+          {/* 1. Data Tools Column */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200 font-mono">
+              Data Suite ({dataTools.length})
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-1.5 text-[11px]">
               {dataTools.map((tool) => (
                 <li key={tool.path}>
                   <a
@@ -89,7 +83,7 @@ export function Footer({ onNavigate }) {
                       e.preventDefault();
                       onNavigate(tool.path);
                     }}
-                    className="hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+                    className="hover:text-sky-500 dark:hover:text-sky-400 transition-colors block truncate"
                   >
                     {tool.label}
                   </a>
@@ -98,13 +92,13 @@ export function Footer({ onNavigate }) {
             </ul>
           </div>
 
-          {/* Docs & Security */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Docs & Security
+          {/* 2. Security Suite Column */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200 font-mono">
+              Security ({securityTools.length})
             </h4>
-            <ul className="space-y-2 text-xs">
-              {securityAndDocTools.map((tool) => (
+            <ul className="space-y-1.5 text-[11px]">
+              {securityTools.map((tool) => (
                 <li key={tool.path}>
                   <a
                     href={tool.path}
@@ -112,7 +106,7 @@ export function Footer({ onNavigate }) {
                       e.preventDefault();
                       onNavigate(tool.path);
                     }}
-                    className="hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+                    className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors block truncate"
                   >
                     {tool.label}
                   </a>
@@ -121,12 +115,12 @@ export function Footer({ onNavigate }) {
             </ul>
           </div>
 
-          {/* Dev & API */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Dev & API
+          {/* 3. Dev & API Suite Column */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200 font-mono">
+              Dev & API ({devTools.length})
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-1.5 text-[11px]">
               {devTools.map((tool) => (
                 <li key={tool.path}>
                   <a
@@ -135,7 +129,7 @@ export function Footer({ onNavigate }) {
                       e.preventDefault();
                       onNavigate(tool.path);
                     }}
-                    className="hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
+                    className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors block truncate"
                   >
                     {tool.label}
                   </a>
@@ -144,35 +138,59 @@ export function Footer({ onNavigate }) {
             </ul>
           </div>
 
-          {/* Trust & Legal */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-900 dark:text-slate-200">
-              Trust & Legal
+          {/* 4. Docs & Legal Column */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-200 font-mono">
+              Docs & Legal
             </h4>
-            <ul className="space-y-2 text-xs">
-              {legalAndTrust.map((item) => (
-                <li key={item.path}>
-                  <a
-                    href={item.path}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigate(item.path);
-                    }}
-                    className="hover:text-brand-500 dark:hover:text-brand-400 transition-colors font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-1 mb-2">
+              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-mono block">Text & Docs</span>
+              <ul className="space-y-1 text-[11px]">
+                {docTools.map((tool) => (
+                  <li key={tool.path}>
+                    <a
+                      href={tool.path}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onNavigate(tool.path);
+                      }}
+                      className="hover:text-purple-500 dark:hover:text-purple-400 transition-colors block truncate"
+                    >
+                      {tool.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-1 pt-1 border-t border-slate-200/60 dark:border-white/[0.04]">
+              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-mono block">Compliance</span>
+              <ul className="space-y-1 text-[11px]">
+                {legalAndTrust.map((item) => (
+                  <li key={item.path}>
+                    <a
+                      href={item.path}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onNavigate(item.path);
+                      }}
+                      className="hover:text-sky-500 dark:hover:text-sky-400 transition-colors block font-medium"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
         {/* AdSense Compliance & Copyright */}
-        <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} QuickFormat Hub. Built for developers, analysts & creators.</p>
-          <div className="flex items-center gap-3 text-[11px] text-slate-400">
-            <span>Compliant with Google AdSense Policies</span>
+        <div className="mt-8 pt-4 border-t border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+          <p>© {new Date().getFullYear()} QuickFormat Hub. Built for developers, analysts & security engineers.</p>
+          <div className="flex items-center gap-2.5 text-[10px] text-slate-400 font-mono">
+            <span>Air-Gapped Architecture</span>
+            <span>•</span>
+            <span>Google AdSense Compliant</span>
             <span>•</span>
             <span>GDPR & CCPA Compliant</span>
           </div>
