@@ -20,6 +20,51 @@ export const SAMPLE_SRI_JS = `/*! Alpine.js v3.14.8 | MIT License | https://alpi
   console.log("QuickFormat Hub: SRI Verified Script Loaded Successfully");
 })();`;
 
+export const CDN_PRESETS = [
+  {
+    id: 'alpine',
+    label: 'Alpine.js 3.14',
+    type: 'script',
+    url: 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js',
+    content: SAMPLE_SRI_JS,
+  },
+  {
+    id: 'htmx',
+    label: 'HTMX 2.0',
+    type: 'script',
+    url: 'https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js',
+    content: '/*! htmx.org 2.0.4 */\nvar htmx = (function(){ return { version: "2.0.4" }; })();',
+  },
+  {
+    id: 'react',
+    label: 'React 18 Production',
+    type: 'script',
+    url: 'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
+    content: '/** @license React v18.3.1 | MIT License | facebook.github.io/react */\n(function(){ window.React = { version: "18.3.1" }; })();',
+  },
+  {
+    id: 'tailwind',
+    label: 'Tailwind CDN',
+    type: 'script',
+    url: 'https://cdn.tailwindcss.com/3.4.16',
+    content: '/*! Tailwind CSS v3.4.16 | MIT License */\n(function(){ window.tailwind = { config: {} }; })();',
+  },
+  {
+    id: 'bootstrap_css',
+    label: 'Bootstrap 5.3 CSS',
+    type: 'link',
+    url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+    content: '/*! Bootstrap v5.3.3 (https://getbootstrap.com/) */\n:root { --bs-blue: #0d6efd; --bs-indigo: #6610f2; }',
+  },
+  {
+    id: 'fontawesome',
+    label: 'FontAwesome 6 CSS',
+    type: 'link',
+    url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
+    content: '/*! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com */\n.fa { font-family: "Font Awesome 6 Free"; }',
+  },
+];
+
 // Convert ArrayBuffer to Base64
 function bufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
@@ -57,15 +102,22 @@ export async function computeSriHashes(inputData) {
     sha256,
     sha384, // W3C Recommended standard
     sha512,
+    progressive: `${sha384} ${sha512}`, // Progressive fallback standard
     byteSize: buffer.byteLength,
   };
 }
 
 // Generate HTML Tag Snippets
-export function generateSriHtmlTag(url, hash, type = 'script') {
+export function generateSriHtmlTag(url, hash, type = 'script', isSingleLine = false) {
   const safeUrl = url.trim() || 'https://cdn.example.com/library.min.js';
   if (type === 'script') {
+    if (isSingleLine) {
+      return `<script src="${safeUrl}" integrity="${hash}" crossorigin="anonymous"></script>`;
+    }
     return `<script\n  src="${safeUrl}"\n  integrity="${hash}"\n  crossorigin="anonymous"\n></script>`;
+  }
+  if (isSingleLine) {
+    return `<link rel="stylesheet" href="${safeUrl}" integrity="${hash}" crossorigin="anonymous" />`;
   }
   return `<link\n  rel="stylesheet"\n  href="${safeUrl}"\n  integrity="${hash}"\n  crossorigin="anonymous"\n/>`;
 }
@@ -81,15 +133,16 @@ export async function validateSriIntegrity(expectedTagOrHash, contentData) {
 
   const hashes = await computeSriHashes(contentData);
 
-  const matched =
-    expectedHash === hashes.sha256 ||
-    expectedHash === hashes.sha384 ||
-    expectedHash === hashes.sha512;
+  // Check if expected hash matches any computed or progressive hash
+  const tokens = expectedHash.split(/\s+/);
+  const matched = tokens.some(
+    (t) => t === hashes.sha256 || t === hashes.sha384 || t === hashes.sha512
+  );
 
   let algorithmUsed = 'Unknown';
-  if (expectedHash.startsWith('sha256-')) algorithmUsed = 'SHA-256';
-  else if (expectedHash.startsWith('sha384-')) algorithmUsed = 'SHA-384';
-  else if (expectedHash.startsWith('sha512-')) algorithmUsed = 'SHA-512';
+  if (expectedHash.includes('sha384-')) algorithmUsed = 'SHA-384 (Recommended)';
+  else if (expectedHash.includes('sha512-')) algorithmUsed = 'SHA-512';
+  else if (expectedHash.includes('sha256-')) algorithmUsed = 'SHA-256';
 
   return {
     matched,

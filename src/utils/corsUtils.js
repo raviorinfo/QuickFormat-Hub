@@ -297,3 +297,85 @@ func setupRouter() *gin.Engine {
       return '';
   }
 }
+
+export const CORS_ERROR_DATABASE = [
+  {
+    pattern: /wildcard '\*' when the request's credentials mode is 'include'/i,
+    title: 'Wildcard Origin with Credentials Forbidden',
+    cause: 'The frontend requested with credentials: "include" (cookies or HTTP auth), but the server replied with Access-Control-Allow-Origin: *.',
+    fix: 'The server must return the exact requesting origin in Access-Control-Allow-Origin (e.g. "https://app.example.com") and Access-Control-Allow-Credentials: true. Never send "*" with credentials.',
+  },
+  {
+    pattern: /No 'Access-Control-Allow-Origin' header is present/i,
+    title: 'Missing Access-Control-Allow-Origin Header',
+    cause: 'The backend server or reverse proxy did not include the Access-Control-Allow-Origin header in the response, or returned a 4xx/5xx status before CORS headers were added.',
+    fix: 'Ensure your backend CORS middleware runs before authentication and error handlers. For Nginx/Apache, use the "always" directive (e.g. add_header Access-Control-Allow-Origin "..." always;).',
+  },
+  {
+    pattern: /Response to preflight request doesn't pass access control check: It does not have HTTP ok status/i,
+    title: 'Preflight (OPTIONS) Returned Non-2xx Status',
+    cause: 'The browser sent an HTTP OPTIONS preflight request, but the server responded with 401, 403, 404, or 500.',
+    fix: 'Ensure your server handles HTTP OPTIONS requests and returns HTTP 200 OK or 204 No Content without requiring authentication cookies or bearer tokens.',
+  },
+  {
+    pattern: /header contains multiple values/i,
+    title: 'Duplicate CORS Headers (Multiple Values)',
+    cause: 'Both your application server (Express/FastAPI) and your reverse proxy (Nginx/Cloudflare) added Access-Control-Allow-Origin, resulting in duplicate headers.',
+    fix: 'Remove CORS headers from either the application code or the reverse proxy so only one layer sets the header.',
+  },
+  {
+    pattern: /not allowed by Access-Control-Allow-Headers/i,
+    title: 'Disallowed Request Header',
+    cause: 'The client sent custom HTTP headers (e.g. X-Api-Key, Sentry-Trace, Authorization) that are not listed in the server\'s Access-Control-Allow-Headers response.',
+    fix: 'Add the missing header name to Access-Control-Allow-Headers on the server.',
+  },
+  {
+    pattern: /Method .* is not allowed by Access-Control-Allow-Methods/i,
+    title: 'HTTP Method Not Allowed in Preflight',
+    cause: 'The requested HTTP method (e.g. PUT, PATCH, DELETE) was not declared in Access-Control-Allow-Methods.',
+    fix: 'Include the method in Access-Control-Allow-Methods (e.g. "GET, POST, PUT, DELETE, OPTIONS").',
+  },
+];
+
+export function diagnoseCorsError(rawError) {
+  if (!rawError || !rawError.trim()) return null;
+  for (const item of CORS_ERROR_DATABASE) {
+    if (item.pattern.test(rawError)) {
+      return item;
+    }
+  }
+  return {
+    title: 'Generic CORS Policy Rejection',
+    cause: 'The browser enforced the Same-Origin Policy (SOP) because the response headers did not satisfy the cross-origin security requirements.',
+    fix: 'Verify that the backend sends Access-Control-Allow-Origin matching your frontend origin, and responds 200/204 to preflight OPTIONS requests.',
+  };
+}
+
+export function testOriginBypasses(targetDomain) {
+  const cleanDomain = targetDomain.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+  if (!cleanDomain) return [];
+
+  return [
+    {
+      testOrigin: `https://${cleanDomain}.evil-attacker.com`,
+      attackType: 'Suffix Domain Hijack',
+      desc: 'Checks if server regex misses the end-of-string ($) anchor, allowing any attacker domain ending with your domain name.',
+    },
+    {
+      testOrigin: `https://not${cleanDomain}`,
+      attackType: 'Prefix Domain Hijack',
+      desc: 'Checks if server regex misses start-of-string (^) anchor, allowing unverified prefix registrations.',
+    },
+    {
+      testOrigin: 'null',
+      attackType: 'Sandboxed iframe "null" Origin',
+      desc: 'Checks if origin "null" (sent by data: URLs and sandboxed iframes) is insecurely reflected.',
+    },
+    {
+      testOrigin: `https://${cleanDomain}:8080`,
+      attackType: 'Arbitrary Port Binding',
+      desc: 'Checks if non-standard attacker ports on the target host are accepted.',
+    },
+  ];
+}
+

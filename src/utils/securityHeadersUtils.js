@@ -100,6 +100,47 @@ export const ESSENTIAL_HEADERS = [
       return { pass: true, level: 'good', message: 'Hardware and browser capabilities restricted.' };
     },
   },
+  {
+    name: 'Cross-Origin-Opener-Policy',
+    alias: 'COOP',
+    description: 'Ensures top-level document does not share a browsing context group with cross-origin documents.',
+    weight: 10,
+    evaluate: (val) => {
+      if (!val) return { pass: false, level: 'info', message: 'Optional: Missing COOP. Recommended "same-origin" for process isolation.' };
+      const lower = val.toLowerCase().trim();
+      if (lower === 'same-origin') return { pass: true, level: 'good', message: 'Process isolation active (same-origin).' };
+      return { pass: true, level: 'good', message: `COOP set to "${val}".` };
+    },
+  },
+  {
+    name: 'Cross-Origin-Embedder-Policy',
+    alias: 'COEP',
+    description: 'Prevents document from loading cross-origin resources that do not explicitly grant permission.',
+    weight: 10,
+    evaluate: (val) => {
+      if (!val) return { pass: false, level: 'info', message: 'Optional: Missing COEP. Required together with COOP for SharedArrayBuffer.' };
+      return { pass: true, level: 'good', message: `COEP active (${val}).` };
+    },
+  },
+  {
+    name: 'Cross-Origin-Resource-Policy',
+    alias: 'CORP',
+    description: 'Protects backend resources from being read by cross-origin attackers.',
+    weight: 10,
+    evaluate: (val) => {
+      if (!val) return { pass: false, level: 'info', message: 'Optional: Missing CORP. Recommended "same-origin" or "same-site".' };
+      return { pass: true, level: 'good', message: `CORP active (${val}).` };
+    },
+  },
+];
+
+// Banner & Version Information Disclosure Leaks
+export const LEAK_HEADERS = [
+  { key: 'server', label: 'Server Banner' },
+  { key: 'x-powered-by', label: 'Framework / Runtime' },
+  { key: 'x-aspnet-version', label: 'ASP.NET Version' },
+  { key: 'x-runtime', label: 'Ruby / Rails Runtime' },
+  { key: 'x-version', label: 'App Version' },
 ];
 
 export function evaluateHeaders(rawHeadersText) {
@@ -123,6 +164,7 @@ export function evaluateHeaders(rawHeadersText) {
   let totalScore = 0;
   let maxScore = 0;
   const findings = [];
+  const leaks = [];
 
   for (const def of ESSENTIAL_HEADERS) {
     maxScore += def.weight;
@@ -146,7 +188,25 @@ export function evaluateHeaders(rawHeadersText) {
     });
   }
 
-  const scorePct = Math.round((totalScore / maxScore) * 100);
+  // Check for Information Disclosure leaks
+  for (const leakDef of LEAK_HEADERS) {
+    const val = headerMap[leakDef.key];
+    if (val) {
+      // Check if it exposes specific version numbers or names (e.g. Apache/2.4.41, PHP/7.4)
+      const hasSpecificDetails = /[0-9]/.test(val) || /(apache|nginx|express|php|asp\.net)/i.test(val);
+      if (hasSpecificDetails) {
+        leaks.push({
+          header: leakDef.key,
+          label: leakDef.label,
+          value: val,
+          message: `Leaking internal technology details ("${val}"). Remove in production to avoid reconnaissance.`,
+        });
+        totalScore = Math.max(0, totalScore - 5);
+      }
+    }
+  }
+
+  const scorePct = Math.min(100, Math.round((totalScore / maxScore) * 100));
   let grade = 'F';
   let gradeColor = 'rose';
 
@@ -172,8 +232,25 @@ export function evaluateHeaders(rawHeadersText) {
     grade,
     gradeColor,
     findings,
+    leaks,
     parsedHeadersCount: Object.keys(headerMap).length,
   };
+}
+
+// Build Content-Security-Policy string from configuration object
+export function buildCspString(directives) {
+  const parts = [];
+  for (const [directive, values] of Object.entries(directives)) {
+    if (!values || (Array.isArray(values) && values.length === 0)) continue;
+    if (typeof values === 'boolean') {
+      if (values) parts.push(directive);
+    } else if (Array.isArray(values)) {
+      parts.push(`${directive} ${values.join(' ')}`);
+    } else if (typeof values === 'string' && values.trim()) {
+      parts.push(`${directive} ${values.trim()}`);
+    }
+  }
+  return parts.join('; ');
 }
 
 export function generateHardenedServerConfig(format = 'nginx') {

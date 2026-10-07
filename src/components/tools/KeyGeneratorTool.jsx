@@ -17,12 +17,13 @@ import { useToast } from '../../context/ToastContext';
 import {
   generateRsaKeyPair,
   generateEccKeyPair,
-  derivePublicKeyFromPrivatePem
+  derivePublicKeyFromPrivatePem,
+  signAndVerifyTestPayload,
 } from '../../utils/keyGenUtils';
 
 export function KeyGeneratorTool() {
   const toast = useToast();
-  const [keyType, setKeyType] = useState('RSA-2048'); // 'RSA-2048' | 'RSA-4096' | 'ECDSA-P256' | 'ECDSA-P384'
+  const [keyType, setKeyType] = useState('RSA-2048'); // 'RSA-2048' | 'RSA-4096' | 'ECDSA-P256' | 'ECDSA-P384' | 'ECDSA-P521'
   const [format, setFormat] = useState('pem'); // 'pem' | 'jwk'
   const [isGenerating, setIsGenerating] = useState(false);
   const [keyData, setKeyData] = useState(null);
@@ -34,9 +35,15 @@ export function KeyGeneratorTool() {
   const [derivedKey, setDerivedKey] = useState(null);
   const [deriveError, setDeriveError] = useState(null);
 
+  // Interactive Sign & Verify Sandbox state
+  const [sandboxMessage, setSandboxMessage] = useState('QuickFormat Cryptographic Proof of Possession');
+  const [sandboxResult, setSandboxResult] = useState(null);
+  const [isSandboxTesting, setIsSandboxTesting] = useState(false);
+
   // Generate keys on mount or algorithm change
   const handleGenerate = async (type = keyType) => {
     setIsGenerating(true);
+    setSandboxResult(null);
     try {
       let result;
       if (type === 'RSA-2048') {
@@ -47,6 +54,8 @@ export function KeyGeneratorTool() {
         result = await generateEccKeyPair('P-256');
       } else if (type === 'ECDSA-P384') {
         result = await generateEccKeyPair('P-384');
+      } else if (type === 'ECDSA-P521') {
+        result = await generateEccKeyPair('P-521');
       }
       setKeyData(result);
       toast.success(`Generated new ${result.algorithm} key pair`);
@@ -54,6 +63,29 @@ export function KeyGeneratorTool() {
       toast.error('Key generation failed: ' + err.message);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleTestSignVerify = async () => {
+    if (!keyData || !sandboxMessage) return;
+    setIsSandboxTesting(true);
+    try {
+      const res = await signAndVerifyTestPayload(
+        keyData.privatePem,
+        keyData.publicPem,
+        sandboxMessage,
+        keyData.algorithm
+      );
+      setSandboxResult(res);
+      if (res.isValid) {
+        toast.success('Signature mathematically verified with public key!');
+      } else {
+        toast.error('Signature verification failed.');
+      }
+    } catch (err) {
+      toast.error(`Sign/Verify error: ${err.message}`);
+    } finally {
+      setIsSandboxTesting(false);
     }
   };
 
@@ -136,6 +168,7 @@ export function KeyGeneratorTool() {
             <option value="RSA-4096">RSA 4096-bit (High Security)</option>
             <option value="ECDSA-P256">ECDSA P-256 (Fast / Compact)</option>
             <option value="ECDSA-P384">ECDSA P-384 (Suite B)</option>
+            <option value="ECDSA-P521">ECDSA P-521 (Maximum Strength)</option>
           </select>
 
           {/* Regenerate Button */}
@@ -152,15 +185,15 @@ export function KeyGeneratorTool() {
         </div>
       </div>
 
-      {/* Air-Gapped Trust Guarantee Bar */}
-      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+      {/* Air-Gapped Trust Guarantee Bar & RFC 7638 Key ID */}
+      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 shrink-0" />
           <span>
-            <strong>100% In-Browser Cryptography:</strong> Private keys are generated in your local device RAM via <code className="font-mono">window.crypto.subtle</code> and are NEVER transmitted over the network.
+            <strong>100% In-Browser Cryptography:</strong> Generated locally via <code className="font-mono">window.crypto.subtle</code>. Zero network transmission.
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0 font-bold">
+        <div className="flex items-center gap-1 shrink-0 font-bold self-end sm:self-center">
           <button
             type="button"
             onClick={() => setFormat('pem')}
@@ -181,6 +214,24 @@ export function KeyGeneratorTool() {
           </button>
         </div>
       </div>
+
+      {/* RFC 7638 Key ID (kid) Banner */}
+      {keyData?.kid && (
+        <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between gap-2 font-mono">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-bold text-purple-600 dark:text-purple-400 whitespace-nowrap">RFC 7638 Key ID (kid):</span>
+            <span className="truncate text-slate-800 dark:text-slate-200 select-all font-semibold">{keyData.kid}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => copyText(keyData.kid, 'Key ID (kid)')}
+            className="text-purple-500 hover:underline shrink-0 text-[11px] font-sans font-semibold flex items-center gap-1"
+          >
+            <Copy className="w-3 h-3" />
+            <span>Copy kid</span>
+          </button>
+        </div>
+      )}
 
       {/* Two Column Display: Public Key & Private Key */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -340,6 +391,56 @@ export function KeyGeneratorTool() {
             <pre className="text-[11px] font-mono text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-all">
               {derivedKey.publicPem}
             </pre>
+          </div>
+        )}
+      </div>
+
+      {/* Interactive WebCrypto Sign & Verify Sandbox */}
+      <div className="glass-panel rounded-2xl p-5 space-y-3.5 border border-slate-200/80 dark:border-white/[0.08]">
+        <div>
+          <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Interactive WebCrypto Sign & Verify Sandbox</span>
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Prove cryptographic possession by signing a custom challenge with this private key and verifying it with the public key.
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            Challenge Message String:
+          </label>
+          <input
+            type="text"
+            value={sandboxMessage}
+            onChange={(e) => setSandboxMessage(e.target.value)}
+            className="w-full p-2.5 rounded-xl bg-slate-50 dark:bg-[#050811] border border-slate-200 dark:border-white/[0.08] text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-500"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleTestSignVerify}
+          disabled={isSandboxTesting || !keyData}
+          className="btn-primary py-1.5 px-4 text-xs font-bold flex items-center gap-1.5 disabled:opacity-40"
+        >
+          <span>{isSandboxTesting ? 'Testing Sign/Verify...' : 'Sign with Private Key & Verify with Public Key'}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+
+        {sandboxResult && (
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2 text-xs">
+            <div className="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Cryptographic Signature Validated with Public Key!</span>
+            </div>
+            <div className="space-y-1 font-mono text-[11px]">
+              <div className="text-slate-500 dark:text-slate-400">Signature (Hex):</div>
+              <div className="p-2 rounded-lg bg-black/20 break-all select-all text-sky-400 border border-white/5">
+                {sandboxResult.sigHex}
+              </div>
+            </div>
           </div>
         )}
       </div>

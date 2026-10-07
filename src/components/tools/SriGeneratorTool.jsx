@@ -17,6 +17,7 @@ import {
   computeSriHashes,
   generateSriHtmlTag,
   validateSriIntegrity,
+  CDN_PRESETS,
   SAMPLE_SRI_JS
 } from '../../utils/sriUtils';
 
@@ -26,7 +27,8 @@ export function SriGeneratorTool() {
   const [scriptContent, setScriptContent] = useState(SAMPLE_SRI_JS);
   const [cdnUrl, setCdnUrl] = useState('https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js');
   const [tagType, setTagType] = useState('script'); // 'script' | 'link'
-  const [selectedAlgo, setSelectedAlgo] = useState('sha384'); // 'sha384' | 'sha256' | 'sha512'
+  const [selectedAlgo, setSelectedAlgo] = useState('sha384'); // 'sha384' | 'sha256' | 'sha512' | 'progressive'
+  const [isSingleLine, setIsSingleLine] = useState(false);
   const [hashes, setHashes] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
 
@@ -96,10 +98,17 @@ export function SriGeneratorTool() {
     reader.readAsText(file);
   };
 
-  const activeHash = hashes ? hashes[selectedAlgo] : '';
+  const handleSelectPreset = (preset) => {
+    setScriptContent(preset.content);
+    setCdnUrl(preset.url);
+    setTagType(preset.type);
+    toast.success(`Loaded preset: ${preset.label}`);
+  };
+
+  const activeHash = hashes ? (hashes[selectedAlgo] || hashes.sha384) : '';
   const htmlTag = useMemo(
-    () => generateSriHtmlTag(cdnUrl, activeHash, tagType),
-    [cdnUrl, activeHash, tagType]
+    () => generateSriHtmlTag(cdnUrl, activeHash, tagType, isSingleLine),
+    [cdnUrl, activeHash, tagType, isSingleLine]
   );
 
   return (
@@ -114,25 +123,23 @@ export function SriGeneratorTool() {
             <span>Subresource Integrity (SRI) Hash & Tag Generator</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Generate tamper-proof sha384-, sha256-, and sha512- integrity hashes and ready-to-use HTML CDN tags.
+            Generate tamper-proof sha384-, sha256-, sha512-, and progressive multi-hash tags with 1-click popular CDN presets.
           </p>
         </div>
 
+        {/* 1-Click Library Presets in Header */}
         <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            data-sample-trigger="true"
-            onClick={() => {
-              setScriptContent(SAMPLE_SRI_JS);
-              setCdnUrl('https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js');
-              setTagType('script');
-              toast.success('Loaded Alpine.js sample bundle');
-            }}
-            className="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5"
-          >
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>Sample Bundle</span>
-          </button>
+          <span className="text-[11px] font-semibold text-slate-400">CDN Presets:</span>
+          {CDN_PRESETS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => handleSelectPreset(p)}
+              className="btn-secondary py-0.5 px-2 text-[11px] font-medium"
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -322,6 +329,39 @@ export function SriGeneratorTool() {
                       {hashes.sha512}
                     </div>
                   </div>
+
+                  {/* Multi-Hash Progressive Fallback (W3C Standard) */}
+                  <div
+                    onClick={() => setSelectedAlgo('progressive')}
+                    className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
+                      selectedAlgo === 'progressive'
+                        ? 'border-emerald-500 bg-emerald-500/10'
+                        : 'border-slate-200 dark:border-white/[0.06] hover:bg-slate-50 dark:hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">Progressive Fallback</span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-purple-500/15 text-purple-500 border border-purple-500/20 font-bold">
+                          SHA-384 + SHA-512
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyToClipboard(hashes.progressive, 'Progressive Hash');
+                        }}
+                        className="text-xs text-sky-500 hover:underline flex items-center gap-1"
+                      >
+                        {copiedField === 'Progressive Hash' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                    <div className="font-mono text-[10px] text-slate-700 dark:text-slate-300 break-all select-all">
+                      {hashes.progressive}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="p-4 text-center text-xs text-slate-400">
@@ -332,19 +372,47 @@ export function SriGeneratorTool() {
 
             {/* Ready-to-Paste HTML Tag */}
             <div className="glass-panel rounded-2xl p-4 sm:p-5 space-y-2.5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Code2 className="w-4 h-4 text-sky-500" />
-                  Ready-to-Paste HTML Tag
+                  <span>Ready-to-Paste HTML Tag</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(htmlTag, 'HTML Tag')}
-                  className="btn-primary py-1 px-3 text-xs flex items-center gap-1.5"
-                >
-                  {copiedField === 'HTML Tag' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>Copy HTML Tag</span>
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex rounded-lg bg-slate-100 dark:bg-white/[0.06] p-0.5 border border-slate-200/60 dark:border-white/[0.08]">
+                    <button
+                      type="button"
+                      onClick={() => setIsSingleLine(false)}
+                      className={`px-2 py-0.5 text-[11px] rounded font-medium transition-all ${
+                        !isSingleLine
+                          ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                    >
+                      Multi-line
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsSingleLine(true)}
+                      className={`px-2 py-0.5 text-[11px] rounded font-medium transition-all ${
+                        isSingleLine
+                          ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
+                          : 'text-slate-500 hover:text-white'
+                      }`}
+                    >
+                      Single-line
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(htmlTag, 'HTML Tag')}
+                    className="btn-primary py-1 px-3 text-xs flex items-center gap-1.5"
+                  >
+                    {copiedField === 'HTML Tag' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>Copy HTML Tag</span>
+                  </button>
+                </div>
               </div>
 
               <div className="code-viewport p-3 text-xs font-mono overflow-x-auto whitespace-pre leading-relaxed">

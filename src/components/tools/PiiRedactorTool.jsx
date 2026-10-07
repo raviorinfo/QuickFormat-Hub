@@ -18,7 +18,10 @@ import {
   ArrowRight,
   Zap,
   EyeOff,
-  Globe
+  Globe,
+  SlidersHorizontal,
+  Landmark,
+  UserCheck
 } from 'lucide-react';
 import { sanitizeText, unmaskText, SAMPLE_DIRTY_LOG } from '../../utils/piiSanitizer';
 import { useToast } from '../../context/ToastContext';
@@ -38,15 +41,15 @@ const PII_PRESETS = [
   },
   {
     id: 'customer_ticket',
-    label: 'Support Ticket Chat',
-    description: 'Customer chat message containing credit card and contact info',
-    text: `Customer Name: Marcus Vance\nEmail: marcus.vance@techcorp.io\nBilling Address Phone: +44 20 7946 0991\nPayment Issue: "My Visa card 4242-5555-6666-7777 failed with error code ERR_302. Please check my account UUID: 550e8400-e29b-41d4-a716-446655440000."`,
+    label: 'Support Ticket & Banking',
+    description: 'Customer chat message containing credit card, SSN, IBAN and contact info',
+    text: `Customer Name: Marcus Vance\nEmail: marcus.vance@techcorp.io\nBilling Address Phone: +44 20 7946 0991\nUS SSN: 049-21-9842\nIBAN Bank Account: GB29NWBK60161331926819\nPayment Issue: "My Visa card 4242-5555-6666-7777 failed with error code ERR_302. Please check my account UUID: 550e8400-e29b-41d4-a716-446655440000."`,
   },
   {
     id: 'api_config',
     label: 'Env & API Keys Leak',
-    description: 'Environment file snippet containing AWS and database credentials',
-    text: `AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nSERVICE_SECRET_KEY=sec_live_dummy_secret_hash_demo_token_xyz99\nADMIN_EMAIL=root@enterprise.internal\nBASTION_HOST_IP=203.0.113.195\nDB_CONNECTION=postgresql://admin@10.0.4.12:5432/production`,
+    description: 'Environment file snippet containing AWS, DB credentials and JWT',
+    text: `AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nSERVICE_SECRET_KEY=sec_live_dummy_secret_hash_demo_token_xyz99\nSESSION_JWT=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHclp_swpQxLStp_y8gE61_mock_sig\nADMIN_EMAIL=root@enterprise.internal\nBASTION_HOST_IP=203.0.113.195\nDB_CONNECTION=postgresql://admin@10.0.4.12:5432/production`,
   },
 ];
 
@@ -58,6 +61,24 @@ export function PiiRedactorTool() {
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
   const [activePreset, setActivePreset] = useState(null);
+
+  // Redaction options
+  const [maskApiKeys, setMaskApiKeys] = useState(true);
+  const [maskEmails, setMaskEmails] = useState(true);
+  const [maskIps, setMaskIps] = useState(true);
+  const [maskCreditCards, setMaskCreditCards] = useState(true);
+  const [maskPhones, setMaskPhones] = useState(true);
+  const [maskUuids, setMaskUuids] = useState(true);
+  const [maskSsn, setMaskSsn] = useState(true);
+  const [maskNino, setMaskNino] = useState(true);
+  const [maskIban, setMaskIban] = useState(true);
+  const [maskJwts, setMaskJwts] = useState(true);
+
+  // Masking Style: 'token' | 'asterisk' | 'placeholder'
+  const [maskStyle, setMaskStyle] = useState('token');
+
+  // Custom blacklist keywords
+  const [customKeywords, setCustomKeywords] = useState('');
 
   // Esc key listener to exit Zen Mode
   useEffect(() => {
@@ -77,14 +98,6 @@ export function PiiRedactorTool() {
       ? 'text-sm leading-relaxed'
       : 'text-xs sm:text-sm leading-relaxed';
 
-  // Options
-  const [maskApiKeys, setMaskApiKeys] = useState(true);
-  const [maskEmails, setMaskEmails] = useState(true);
-  const [maskIps, setMaskIps] = useState(true);
-  const [maskCreditCards, setMaskCreditCards] = useState(true);
-  const [maskPhones, setMaskPhones] = useState(true);
-  const [maskUuids, setMaskUuids] = useState(true);
-
   // Compute Sanitization
   const { sanitized, unmaskMap, stats } = useMemo(() => {
     return sanitizeText(inputText, {
@@ -94,8 +107,28 @@ export function PiiRedactorTool() {
       maskCreditCards,
       maskPhones,
       maskUuids,
+      maskSsn,
+      maskNino,
+      maskIban,
+      maskJwts,
+      customKeywords,
+      maskStyle,
     });
-  }, [inputText, maskApiKeys, maskEmails, maskIps, maskCreditCards, maskPhones, maskUuids]);
+  }, [
+    inputText,
+    maskApiKeys,
+    maskEmails,
+    maskIps,
+    maskCreditCards,
+    maskPhones,
+    maskUuids,
+    maskSsn,
+    maskNino,
+    maskIban,
+    maskJwts,
+    customKeywords,
+    maskStyle,
+  ]);
 
   // Compute Unmasked Text
   const unmaskedResult = useMemo(() => {
@@ -103,7 +136,17 @@ export function PiiRedactorTool() {
   }, [aiResponseText, unmaskMap]);
 
   const totalRedacted =
-    stats.emails + stats.apiKeys + stats.ips + stats.creditCards + stats.phones + stats.uuids;
+    (stats.emails || 0) +
+    (stats.apiKeys || 0) +
+    (stats.ips || 0) +
+    (stats.creditCards || 0) +
+    (stats.phones || 0) +
+    (stats.uuids || 0) +
+    (stats.ssn || 0) +
+    (stats.nino || 0) +
+    (stats.iban || 0) +
+    (stats.jwts || 0) +
+    (stats.custom || 0);
 
   const handleSelectPreset = (preset) => {
     setInputText(preset.text);
@@ -119,7 +162,7 @@ export function PiiRedactorTool() {
         category="Security & AI Governance"
         badge="Zero-Leakage Privacy Engine"
         title="AI Prompt & Log Sanitizer (PII Redactor)"
-        description="Redact API keys, bearer tokens, IP addresses, emails, credit cards, and customer identifiers before sending logs to LLMs. Reverse-unmask AI responses in your local browser."
+        description="Redact API keys, bearer tokens, IP addresses, emails, credit cards, SSN, IBAN, and customer identifiers before sending logs to LLMs. Reverse-unmask AI responses in your local browser."
         actions={
           <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/60 dark:border-white/[0.08]">
             <button
@@ -167,44 +210,68 @@ export function PiiRedactorTool() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={Key}
-          label="API Tokens Masked"
-          value={`${stats.apiKeys} Tokens`}
-          subtext="Secrets & Bearer keys"
+          label="API Keys & JWTs"
+          value={`${(stats.apiKeys || 0) + (stats.jwts || 0)} Tokens`}
+          subtext="Secrets, Bearer & JWT tokens"
           color="rose"
         />
         <StatCard
           icon={Mail}
           label="Emails & Contacts"
-          value={`${stats.emails + stats.phones} Entities`}
-          subtext="Email addresses & phones"
+          value={`${(stats.emails || 0) + (stats.phones || 0)} Entities`}
+          subtext="Email addresses & phone numbers"
           color="sky"
         />
         <StatCard
-          icon={Globe}
-          label="Network Addresses"
-          value={`${stats.ips} IPs`}
-          subtext="IPv4 & IPv6 addresses"
-          color="purple"
+          icon={Landmark}
+          label="Financial & Identity"
+          value={`${(stats.creditCards || 0) + (stats.ssn || 0) + (stats.nino || 0) + (stats.iban || 0)} PII`}
+          subtext="Cards, SSN, NINo & IBAN"
+          color="amber"
         />
         <StatCard
-          icon={CreditCard}
-          label="Financial & UUIDs"
-          value={`${stats.creditCards + stats.uuids} Tokens`}
-          subtext="Cards & unique UUIDs"
-          color="amber"
+          icon={Globe}
+          label="Network & Custom"
+          value={`${(stats.ips || 0) + (stats.uuids || 0) + (stats.custom || 0)} Entities`}
+          subtext="IPs, UUIDs & Blacklist terms"
+          color="purple"
         />
       </div>
 
       {activeTab === 'sanitize' ? (
         <div className="space-y-4 animate-fade-in">
-          {/* Options Strip */}
-          <div className="p-4 glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-3 shadow-xl">
-            <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+          {/* Options & Styling Strip */}
+          <div className="p-4 glass-panel rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between flex-wrap gap-3 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">Redacted Tokens:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">Total Redacted:</span>
                 <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold border border-emerald-500/20">
                   {totalRedacted} items masked
                 </span>
+              </div>
+
+              {/* Masking Style Switcher */}
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 font-medium">Masking Style:</span>
+                <div className="inline-flex rounded-lg bg-slate-100 dark:bg-white/[0.06] p-0.5 border border-slate-200/60 dark:border-white/[0.08]">
+                  {[
+                    { id: 'token', label: 'Tokenized (Reversible)' },
+                    { id: 'asterisk', label: 'Asterisks (****)' },
+                    { id: 'placeholder', label: '[REDACTED]' },
+                  ].map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => setMaskStyle(style.id)}
+                      className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
+                        maskStyle === style.id
+                          ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <CopyButton
@@ -217,36 +284,80 @@ export function PiiRedactorTool() {
             </div>
 
             {/* Filter Toggle Switches */}
-            <div className="flex items-center flex-wrap gap-5 text-xs pt-3 border-t border-slate-200/60 dark:border-white/[0.06]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs pt-3 border-t border-slate-200/60 dark:border-white/[0.06]">
               <ToggleSwitch
-                label={`API Keys (${stats.apiKeys})`}
+                label={`API Keys (${stats.apiKeys || 0})`}
                 checked={maskApiKeys}
                 onChange={setMaskApiKeys}
                 size="sm"
               />
               <ToggleSwitch
-                label={`Emails (${stats.emails})`}
+                label={`JWTs (${stats.jwts || 0})`}
+                checked={maskJwts}
+                onChange={setMaskJwts}
+                size="sm"
+              />
+              <ToggleSwitch
+                label={`Emails (${stats.emails || 0})`}
                 checked={maskEmails}
                 onChange={setMaskEmails}
                 size="sm"
               />
               <ToggleSwitch
-                label={`IPs (${stats.ips})`}
-                checked={maskIps}
-                onChange={setMaskIps}
+                label={`Phones (${stats.phones || 0})`}
+                checked={maskPhones}
+                onChange={setMaskPhones}
                 size="sm"
               />
               <ToggleSwitch
-                label={`Credit Cards (${stats.creditCards})`}
+                label={`Credit Cards (${stats.creditCards || 0})`}
                 checked={maskCreditCards}
                 onChange={setMaskCreditCards}
                 size="sm"
               />
               <ToggleSwitch
-                label={`Phones (${stats.phones})`}
-                checked={maskPhones}
-                onChange={setMaskPhones}
+                label={`US SSN (${stats.ssn || 0})`}
+                checked={maskSsn}
+                onChange={setMaskSsn}
                 size="sm"
+              />
+              <ToggleSwitch
+                label={`UK NINo (${stats.nino || 0})`}
+                checked={maskNino}
+                onChange={setMaskNino}
+                size="sm"
+              />
+              <ToggleSwitch
+                label={`IBAN Banks (${stats.iban || 0})`}
+                checked={maskIban}
+                onChange={setMaskIban}
+                size="sm"
+              />
+              <ToggleSwitch
+                label={`IPs (${stats.ips || 0})`}
+                checked={maskIps}
+                onChange={setMaskIps}
+                size="sm"
+              />
+              <ToggleSwitch
+                label={`UUIDs (${stats.uuids || 0})`}
+                checked={maskUuids}
+                onChange={setMaskUuids}
+                size="sm"
+              />
+            </div>
+
+            {/* Custom Blacklist Keywords Input */}
+            <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                Custom Blacklist Keywords:
+              </span>
+              <input
+                type="text"
+                value={customKeywords}
+                onChange={(e) => setCustomKeywords(e.target.value)}
+                placeholder="Comma-separated custom terms to redact (e.g. ProjectTitan, AcmeCorp, internal.server)..."
+                className="flex-1 px-3 py-1.5 text-xs font-mono bg-slate-50 dark:bg-[#070b14] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500"
               />
             </div>
           </div>

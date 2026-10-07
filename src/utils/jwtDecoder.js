@@ -195,3 +195,207 @@ export async function verifyJwtSignature(jwtString, secret) {
     return { verified: false, message: `Verification failed: ${err.message}` };
   }
 }
+
+// Common weak dictionary secrets for security audit
+export const COMMON_WEAK_SECRETS = [
+  'secret', 'password', '123456', 'jwt', 'admin', 'secret123', 'qwerty',
+  'supersecret', 'test', 'development', 'private', '12345678', 'auth_secret', 'app_secret'
+];
+
+/**
+ * Sign a new JWT directly in browser with Web Crypto API
+ */
+export async function signJwt(headerObj, payloadObj, secret) {
+  const toB64Url = (obj) => {
+    const json = typeof obj === 'string' ? obj : JSON.stringify(obj);
+    const enc = new TextEncoder().encode(json);
+    let binary = '';
+    for (let i = 0; i < enc.length; i++) binary += String.fromCharCode(enc[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+
+  const alg = (headerObj.alg || 'HS256').toUpperCase();
+  const headerB64 = toB64Url(headerObj);
+  const payloadB64 = toB64Url(payloadObj);
+
+  if (alg === 'NONE') {
+    return `${headerB64}.${payloadB64}.`;
+  }
+
+  const hashMap = {
+    HS256: 'SHA-256',
+    HS384: 'SHA-384',
+    HS512: 'SHA-512',
+  };
+
+  if (!hashMap[alg]) {
+    throw new Error(`Signing currently supports HS256, HS384, HS512, or none.`);
+  }
+
+  if (!secret) {
+    throw new Error(`A secret key is required to sign with ${alg}.`);
+  }
+
+  const enc = new TextEncoder();
+  const keyData = enc.encode(secret);
+  const cryptoKey = await window.crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: { name: hashMap[alg] } },
+    false,
+    ['sign']
+  );
+
+  const messageData = enc.encode(`${headerB64}.${payloadB64}`);
+  const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
+  const sigBytes = new Uint8Array(signatureBuffer);
+  let binary = '';
+  for (let i = 0; i < sigBytes.length; i++) binary += String.fromCharCode(sigBytes[i]);
+  const sigB64 = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+  return `${headerB64}.${payloadB64}.${sigB64}`;
+}
+
+/**
+ * Comprehensive client-side JWT security auditor
+ */
+export async function auditJwt(jwtString, header, payload, signature) {
+  const issues = [];
+  const now = Math.floor(Date.now() / 1000);
+
+  if (!header || !payload) return issues;
+
+  // 1. alg: none check
+  if (!header.alg || header.alg.toLowerCase() === 'none') {
+    issues.push({
+      severity: 'critical',
+      title: 'Critical Vulnerability: Algorithm "none" Detected',
+      desc: 'The token specifies alg: "none", allowing attackers to forge arbitrary tokens without cryptographic verification.',
+    });
+  }
+
+  // 2. Expiration check
+  if (!payload.exp) {
+    issues.push({
+      severity: 'warning',
+      title: 'Missing Expiration (exp) Claim',
+      desc: 'Token never expires, presenting a permanent replay attack surface if intercepted.',
+    });
+  } else if (payload.exp < now) {
+    issues.push({
+      severity: 'info',
+      title: 'Token is Expired',
+      desc: `Expired on ${new Date(payload.exp * 1000).toLocaleString()}.`,
+    });
+  }
+
+  // 3. Not Before check
+  if (payload.nbf && payload.nbf > now) {
+    issues.push({
+      severity: 'warning',
+      title: 'Token Not Yet Valid (nbf in future)',
+      desc: `Token is scheduled to become valid on ${new Date(payload.nbf * 1000).toLocaleString()}.`,
+    });
+  }
+
+  // 4. Missing standard subject/issuer
+  if (!payload.sub && !payload.iss) {
+    issues.push({
+      severity: 'low',
+      title: 'Missing Subject (sub) & Issuer (iss)',
+      desc: 'Neither sub nor iss claims are present. Verification cannot establish principal identity.',
+    });
+  }
+
+  // 5. Weak secret brute-force audit for HMAC
+  if (header.alg && header.alg.toUpperCase().startsWith('HS') && signature) {
+    for (const testSecret of COMMON_WEAK_SECRETS) {
+      const res = await verifyJwtSignature(jwtString, testSecret);
+      if (res.verified) {
+        issues.push({
+          severity: 'critical',
+          title: `Compromised Secret Found: "${testSecret}"`,
+          desc: `The token was signed using a known weak dictionary secret ("${testSecret}"). It can be trivially cracked and forged offline.`,
+        });
+        break;
+      }
+    }
+  }
+
+  return issues;
+}
+
+/**
+ * Verify RSA or ECDSA public key signature in SPKI PEM format
+ */
+export async function verifyJwtWithPublicKey(jwtString, pemPublicKey) {
+  if (!jwtString || !pemPublicKey) {
+    return { verified: false, message: 'Please provide both JWT and Public Key (SPKI PEM).' };
+  }
+  const clean = jwtString.replace(/^Bearer\s+/i, '').trim();
+  const parts = clean.split('.');
+  if (parts.length !== 3) {
+    return { verified: false, message: 'Invalid token structure.' };
+  }
+
+  try {
+    const headerB64 = parts[0].replace(/-/g, '+').replace(/_/g, '/');
+    const header = JSON.parse(atob(headerB64));
+    const alg = (header.alg || '').toUpperCase();
+
+    // Clean PEM
+    const pemContents = pemPublicKey
+      .replace(/-----BEGIN [^-]+-----/g, '')
+      .replace(/-----END [^-]+-----/g, '')
+      .replace(/\s+/g, '');
+    const binaryDer = atob(pemContents);
+    const derBytes = new Uint8Array(binaryDer.length);
+    for (let i = 0; i < binaryDer.length; i++) derBytes[i] = binaryDer.charCodeAt(i);
+
+    let verifyAlgorithm;
+    let importAlgorithm;
+
+    if (alg === 'RS256') {
+      importAlgorithm = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' };
+      verifyAlgorithm = { name: 'RSASSA-PKCS1-v1_5' };
+    } else if (alg === 'ES256') {
+      importAlgorithm = { name: 'ECDSA', namedCurve: 'P-256' };
+      verifyAlgorithm = { name: 'ECDSA', hash: 'SHA-256' };
+    } else {
+      return { verified: false, message: `Public key verification currently supports RS256 and ES256. (Detected: ${alg})` };
+    }
+
+    const cryptoKey = await window.crypto.subtle.importKey(
+      'spki',
+      derBytes.buffer,
+      importAlgorithm,
+      false,
+      ['verify']
+    );
+
+    // Decode base64url signature
+    let sigB64 = parts[2].replace(/-/g, '+').replace(/_/g, '/');
+    while (sigB64.length % 4 !== 0) sigB64 += '=';
+    const rawSig = atob(sigB64);
+    const sigBytes = new Uint8Array(rawSig.length);
+    for (let i = 0; i < rawSig.length; i++) sigBytes[i] = rawSig.charCodeAt(i);
+
+    const messageData = new TextEncoder().encode(`${parts[0]}.${parts[1]}`);
+    const isValid = await window.crypto.subtle.verify(
+      verifyAlgorithm,
+      cryptoKey,
+      sigBytes,
+      messageData
+    );
+
+    return {
+      verified: isValid,
+      message: isValid
+        ? `Valid asymmetric signature! Authenticated with ${alg} public key.`
+        : `Signature mismatch: public key does not correspond to token signature.`,
+    };
+  } catch (err) {
+    return { verified: false, message: `Public key verification error: ${err.message}` };
+  }
+}
+

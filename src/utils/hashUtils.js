@@ -189,25 +189,71 @@ export function generateRandomSecret(options = {}) {
   }
   return result;
 }
-
-// Calculate Password / Secret Entropy (bits)
+// Calculate Shannon-style password/secret entropy
 export function calculateEntropy(secret) {
-  if (!secret) return { bits: 0, score: 'None', label: 'Empty' };
-
+  if (!secret) return { bits: 0, score: 'None', poolSize: 0 };
   let pool = 0;
   if (/[a-z]/.test(secret)) pool += 26;
   if (/[A-Z]/.test(secret)) pool += 26;
   if (/[0-9]/.test(secret)) pool += 10;
   if (/[^a-zA-Z0-9]/.test(secret)) pool += 33;
-
   if (pool === 0) pool = 1;
   const bits = Math.round(secret.length * Math.log2(pool));
-
   let score = 'Weak';
-  if (bits >= 128) score = 'Military-Grade';
-  else if (bits >= 80) score = 'Very Strong';
-  else if (bits >= 60) score = 'Strong';
-  else if (bits >= 40) score = 'Moderate';
-
+  if (bits >= 128) score = 'Military / Quantum-Resistant';
+  else if (bits >= 80) score = 'Strong (Cryptographic)';
+  else if (bits >= 56) score = 'Moderate';
+  else score = 'Weak';
   return { bits, score, poolSize: pool };
+}
+
+// Convert hex string to Base64
+export function hexToBase64(hex) {
+  if (!hex) return '';
+  const cleanHex = hex.replace(/[^0-9a-fA-F]/g, '');
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0; i < cleanHex.length; i += 2) {
+    bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
+  }
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+// Format hash output according to selected representation
+export function formatHash(hexStr, format = 'hex-lower') {
+  if (!hexStr) return '';
+  if (format === 'hex-upper') return hexStr.toUpperCase();
+  if (format === 'base64') return hexToBase64(hexStr);
+  return hexStr.toLowerCase();
+}
+
+// Compare user-provided expected checksum against calculated hash
+export function verifyChecksumMatch(expectedInput, calculatedHashes) {
+  if (!expectedInput || !expectedInput.trim()) return null;
+  // Clean expected input: remove algorithm prefixes like "sha256:", "sha-256=", spaces, dashes
+  let cleanExpected = expectedInput.trim().toLowerCase();
+  cleanExpected = cleanExpected.replace(/^(?:sha\d*|md5|sha-\d+)\s*[:=]\s*/i, '');
+  cleanExpected = cleanExpected.replace(/[\s:-]/g, '');
+
+  for (const [algo, hashVal] of Object.entries(calculatedHashes)) {
+    if (!hashVal) continue;
+    const cleanHash = hashVal.trim().toLowerCase().replace(/[\s:-]/g, '');
+    const cleanBase64 = hexToBase64(cleanHash).trim();
+    if (cleanExpected === cleanHash || expectedInput.trim() === cleanBase64) {
+      return {
+        isMatch: true,
+        matchedAlgo: algo.toUpperCase(),
+        expected: expectedInput.trim(),
+      };
+    }
+  }
+
+  return {
+    isMatch: false,
+    matchedAlgo: null,
+    expected: expectedInput.trim(),
+  };
 }

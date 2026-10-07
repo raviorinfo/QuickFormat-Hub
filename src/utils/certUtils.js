@@ -383,8 +383,13 @@ export async function parseCertificate(inputPem) {
     }
   }
 
-  // Extensions (SANs, Key Usage, etc.)
+  // Extensions (SANs, Key Usage, Basic Constraints, etc.)
   const sans = [];
+  let isCa = false;
+  let basicConstraints = 'End Entity (Not a CA)';
+  const keyUsages = [];
+  const extendedKeyUsages = [];
+
   while (tbsReader.hasMore()) {
     const extBlock = tbsReader.readElement();
     if (!extBlock) break;
@@ -401,16 +406,56 @@ export async function parseCertificate(inputPem) {
           const extOidElem = sReader.readElement();
           if (extOidElem) {
             const extOid = decodeOid(extOidElem.value);
-            if (extOid === '2.5.29.17') {
-              // Found SAN
-              let next = sReader.readElement();
-              // Skip boolean critical if present
-              if (next && next.tag === 0x01) {
-                next = sReader.readElement();
-              }
-              if (next) {
+            let next = sReader.readElement();
+            // Skip boolean critical if present
+            if (next && next.tag === 0x01) {
+              next = sReader.readElement();
+            }
+
+            if (next) {
+              // 1. SANs (2.5.29.17)
+              if (extOid === '2.5.29.17') {
                 const foundSans = parseSanExtension(next.value);
                 sans.push(...foundSans);
+              }
+              // 2. Basic Constraints (2.5.29.19)
+              else if (extOid === '2.5.29.19') {
+                let bcValBytes = next.value;
+                if (next.tag === 0x04) {
+                  const bcr = new Asn1Reader(next.value);
+                  const bSeq = bcr.readElement();
+                  if (bSeq) bcValBytes = bSeq.value;
+                }
+                const bReader = new Asn1Reader(bcValBytes);
+                const bCa = bReader.readElement();
+                if (bCa && bCa.tag === 0x01 && bCa.value.length > 0 && bCa.value[0] !== 0) {
+                  isCa = true;
+                  basicConstraints = 'Certificate Authority (CA: TRUE)';
+                } else {
+                  isCa = false;
+                  basicConstraints = 'End Entity (CA: FALSE)';
+                }
+              }
+              // 3. Extended Key Usage (2.5.29.37)
+              else if (extOid === '2.5.29.37') {
+                let ekuBytes = next.value;
+                if (next.tag === 0x04) {
+                  const er = new Asn1Reader(next.value);
+                  const eSeq = er.readElement();
+                  if (eSeq) ekuBytes = eSeq.value;
+                }
+                const eReader = new Asn1Reader(ekuBytes);
+                while (eReader.hasMore()) {
+                  const oidEl = eReader.readElement();
+                  if (oidEl) {
+                    const eOid = decodeOid(oidEl.value);
+                    if (eOid === '1.3.6.1.5.5.7.3.1') extendedKeyUsages.push('Server Authentication (TLS)');
+                    else if (eOid === '1.3.6.1.5.5.7.3.2') extendedKeyUsages.push('Client Authentication');
+                    else if (eOid === '1.3.6.1.5.5.7.3.3') extendedKeyUsages.push('Code Signing');
+                    else if (eOid === '1.3.6.1.5.5.7.3.4') extendedKeyUsages.push('Email Protection (S/MIME)');
+                    else extendedKeyUsages.push(eOid);
+                  }
+                }
               }
             }
           }
@@ -435,6 +480,22 @@ export async function parseCertificate(inputPem) {
     }
   }
 
+  // Check Self-Signed status
+  const isSelfSigned =
+    (subject.commonName && subject.commonName === issuer.commonName) ||
+    JSON.stringify(subject) === JSON.stringify(issuer);
+
+  // Compute SPKI public key thumbprint
+  let spkiSha256 = '';
+  if (spkiElem && spkiElem.raw) {
+    try {
+      const spkiBuf = await crypto.subtle.digest('SHA-256', spkiElem.raw);
+      spkiSha256 = bytesToHex(new Uint8Array(spkiBuf));
+    } catch {
+      spkiSha256 = 'N/A';
+    }
+  }
+
   return {
     type: 'X.509 Certificate',
     isCsr: false,
@@ -448,6 +509,10 @@ export async function parseCertificate(inputPem) {
     issuer,
     issuerCommonName: issuer.commonName || issuer.organizationName || 'N/A',
     issuerOrganization: issuer.organizationName || 'N/A',
+    isSelfSigned,
+    isCa,
+    basicConstraints,
+    extendedKeyUsages: extendedKeyUsages.length > 0 ? extendedKeyUsages : ['Server Authentication (TLS Default)'],
     notBefore,
     notAfter,
     daysRemaining,
@@ -457,7 +522,102 @@ export async function parseCertificate(inputPem) {
     sans: sans.length > 0 ? Array.from(new Set(sans)) : [subject.commonName || 'None listed'],
     sha256Fingerprint,
     sha1Fingerprint,
+    spkiSha256,
     byteLength: rawBytes.length,
     rawPem: cleaned,
+    rawSpkiBytes: spkiElem ? spkiElem.raw : null,
   };
 }
+
+/**
+ * Parse multi-certificate bundles (Leaf -> Intermediate -> Root CA)
+ */
+export async function parseCertificateBundle(bundlePem) {
+  if (!bundlePem || !bundlePem.trim()) return [];
+  const certRegex = /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g;
+  const matches = bundlePem.match(certRegex);
+
+  if (!matches || matches.length === 0) {
+    // Check if it's a CSR
+    if (bundlePem.includes('CERTIFICATE REQUEST')) {
+      const single = await parseCertificate(bundlePem);
+      return [single];
+    }
+    const single = await parseCertificate(bundlePem);
+    return [single];
+  }
+
+  const parsedChain = [];
+  for (let i = 0; i < matches.length; i++) {
+    const cert = await parseCertificate(matches[i]);
+    cert.chainIndex = i;
+    cert.chainRole =
+      i === 0
+        ? 'Leaf (Server Certificate)'
+        : i === matches.length - 1 && cert.isSelfSigned
+        ? 'Root CA'
+        : `Intermediate CA (${i})`;
+    parsedChain.push(cert);
+  }
+  return parsedChain;
+}
+
+/**
+ * Match a certificate or CSR against a private key using WebCrypto sign/verify
+ */
+export async function verifyCertKeyMatch(certPem, privateKeyPem) {
+  if (!certPem || !privateKeyPem) {
+    return { isMatch: false, message: 'Please provide both Certificate/CSR and Private Key.' };
+  }
+
+  try {
+    // 1. Clean and parse cert SPKI
+    const parsedCert = await parseCertificate(certPem);
+    if (!parsedCert.rawSpkiBytes) {
+      return { isMatch: false, message: 'Could not extract public key from certificate.' };
+    }
+
+    // 2. Clean private key PEM
+    const cleanKeyPem = privateKeyPem
+      .replace(/-----BEGIN [^-]+-----/g, '')
+      .replace(/-----END [^-]+-----/g, '')
+      .replace(/\s+/g, '');
+    const keyDer = base64ToBytes(cleanKeyPem);
+
+    // Try importing private key as PKCS8
+    const privKey = await window.crypto.subtle.importKey(
+      'pkcs8',
+      keyDer.buffer,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    // Import public key from certificate SPKI
+    const pubKey = await window.crypto.subtle.importKey(
+      'spki',
+      parsedCert.rawSpkiBytes.buffer,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    // Sign test challenge nonce
+    const challenge = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    const sig = await window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', privKey, challenge);
+    const valid = await window.crypto.subtle.verify('RSASSA-PKCS1-v1_5', pubKey, sig, challenge);
+
+    return {
+      isMatch: valid,
+      message: valid
+        ? 'Keys MATCH! The private key successfully verified against this certificate public key.'
+        : 'Keys DO NOT match! Private key does not correspond to this certificate.',
+    };
+  } catch (err) {
+    return {
+      isMatch: false,
+      message: `Verification check failed: ${err.message}. (Ensure private key is in PKCS#8 format).`,
+    };
+  }
+}
+

@@ -14,6 +14,9 @@ import {
   Binary,
   Upload,
   Sliders,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
 } from 'lucide-react';
 import {
   computeSubtleHash,
@@ -22,6 +25,8 @@ import {
   md5,
   generateRandomSecret,
   calculateEntropy,
+  formatHash,
+  verifyChecksumMatch,
 } from '../../utils/hashUtils';
 import { useToast } from '../../context/ToastContext';
 import { ToolHeroHeader } from '../common/ToolHeroHeader';
@@ -36,17 +41,20 @@ export function HashGeneratorTool() {
   const [activeTab, setActiveTab] = useState('text'); // 'text' | 'file' | 'secret'
   const [textInput, setTextInput] = useState('QuickFormat Hub — Secure Client-Side Utilities');
   const [hmacSecret, setHmacSecret] = useState('');
+  const [hashFormat, setHashFormat] = useState('hex-lower'); // 'hex-lower' | 'hex-upper' | 'base64'
+  const [expectedChecksum, setExpectedChecksum] = useState('');
   const [hashes, setHashes] = useState({
     sha256: '',
     sha512: '',
     sha384: '',
+    sha1: '',
     md5: '',
     hmac256: '',
   });
 
   // File Checksum state
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileHash, setFileHash] = useState({ sha256: '', calculating: false });
+  const [fileHashes, setFileHashes] = useState({ sha256: '', sha1: '', sha512: '', calculating: false });
 
   // Secret Generator state
   const [secretLength, setSecretLength] = useState(32);
@@ -79,13 +87,14 @@ export function HashGeneratorTool() {
     let active = true;
     async function runHash() {
       if (!textInput) {
-        setHashes({ sha256: '', sha512: '', sha384: '', md5: '', hmac256: '' });
+        setHashes({ sha256: '', sha512: '', sha384: '', sha1: '', md5: '', hmac256: '' });
         return;
       }
-      const [s256, s512, s384, md5Val] = await Promise.all([
+      const [s256, s512, s384, s1, md5Val] = await Promise.all([
         computeSubtleHash(textInput, 'SHA-256'),
         computeSubtleHash(textInput, 'SHA-512'),
         computeSubtleHash(textInput, 'SHA-384'),
+        computeSubtleHash(textInput, 'SHA-1'),
         Promise.resolve(md5(textInput)),
       ]);
 
@@ -99,6 +108,7 @@ export function HashGeneratorTool() {
           sha256: s256,
           sha512: s512,
           sha384: s384,
+          sha1: s1,
           md5: md5Val,
           hmac256: hmacVal,
         });
@@ -110,20 +120,32 @@ export function HashGeneratorTool() {
     };
   }, [textInput, hmacSecret]);
 
+  // Live Checksum Verification Matcher
+  const verificationResult = useMemo(() => {
+    const activeHashes = activeTab === 'file'
+      ? { sha256: fileHashes.sha256, sha1: fileHashes.sha1, sha512: fileHashes.sha512 }
+      : hashes;
+    return verifyChecksumMatch(expectedChecksum, activeHashes);
+  }, [expectedChecksum, hashes, fileHashes, activeTab]);
+
   // Handle local file drop / select
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedFile(file);
-    setFileHash({ sha256: '', calculating: true });
+    setFileHashes({ sha256: '', sha1: '', sha512: '', calculating: true });
     try {
-      const sha = await computeFileHash(file, 'SHA-256');
-      setFileHash({ sha256: sha, calculating: false });
-      toast.success(`Computed SHA-256 for "${file.name}"!`);
+      const [s256, s1, s512] = await Promise.all([
+        computeFileHash(file, 'SHA-256'),
+        computeFileHash(file, 'SHA-1'),
+        computeFileHash(file, 'SHA-512'),
+      ]);
+      setFileHashes({ sha256: s256, sha1: s1, sha512: s512, calculating: false });
+      toast.success(`Computed checksums for "${file.name}"!`);
       fireConfetti();
     } catch (err) {
-      setFileHash({ sha256: 'Error calculating file hash', calculating: false });
+      setFileHashes({ sha256: 'Error calculating file hash', sha1: '', sha512: '', calculating: false });
       toast.error('Failed to compute file checksum');
     }
   };
@@ -251,44 +273,127 @@ export function HashGeneratorTool() {
             </div>
           </div>
 
+          {/* Format Selector & Checksum Matcher Bar */}
+          <div className="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                Output Format:
+              </span>
+              <div className="inline-flex rounded-lg bg-slate-100 dark:bg-white/[0.06] p-0.5 border border-slate-200/60 dark:border-white/[0.08]">
+                {[
+                  { id: 'hex-lower', label: 'Hex (lower)' },
+                  { id: 'hex-upper', label: 'HEX (UPPER)' },
+                  { id: 'base64', label: 'Base64' },
+                ].map((fmt) => (
+                  <button
+                    key={fmt.id}
+                    onClick={() => setHashFormat(fmt.id)}
+                    className={`px-2.5 py-1 text-xs rounded-md font-mono font-medium transition-all ${
+                      hashFormat === fmt.id
+                        ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                    }`}
+                  >
+                    {fmt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 max-w-xl flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={expectedChecksum}
+                  onChange={(e) => setExpectedChecksum(e.target.value)}
+                  placeholder="Paste expected checksum to verify match..."
+                  className="w-full pl-3 pr-20 py-1.5 text-xs font-mono bg-slate-50 dark:bg-[#070b14] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500"
+                />
+                {expectedChecksum && (
+                  <button
+                    onClick={() => setExpectedChecksum('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {expectedChecksum && verificationResult && (
+                <div
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all ${
+                    verificationResult.isMatch
+                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                      : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                  }`}
+                >
+                  {verificationResult.isMatch ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>MATCH ({verificationResult.matchedAlgo})</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-3.5 h-3.5" />
+                      <span>NO MATCH</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Digest Cards List */}
           <div className="space-y-3">
             {[
-              { id: 'sha256', label: 'SHA-256', val: hashes.sha256, bits: '256 bits (64 hex)', badge: 'Recommended' },
-              { id: 'sha512', label: 'SHA-512', val: hashes.sha512, bits: '512 bits (128 hex)', badge: 'Maximum Security' },
-              { id: 'sha384', label: 'SHA-384', val: hashes.sha384, bits: '384 bits (96 hex)', badge: 'NSA Suite B' },
-              { id: 'md5', label: 'MD5', val: hashes.md5, bits: '128 bits (32 hex)', badge: 'Legacy Checksum' },
-              ...(hmacSecret ? [{ id: 'hmac256', label: 'HMAC-SHA256', val: hashes.hmac256, bits: 'Keyed Digest', badge: 'Authenticity' }] : []),
-            ].map((item) => (
-              <div
-                key={item.id}
-                className="glass-panel p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 group hover:border-sky-500/40 transition-colors"
-              >
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs text-sky-600 dark:text-sky-400">{item.label}</span>
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
-                      {item.bits}
-                    </span>
-                    <span className="text-[10px] font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                      {item.badge}
-                    </span>
+              { id: 'sha256', label: 'SHA-256', raw: hashes.sha256, bits: '256 bits (64 hex)', badge: 'Recommended' },
+              { id: 'sha512', label: 'SHA-512', raw: hashes.sha512, bits: '512 bits (128 hex)', badge: 'Maximum Security' },
+              { id: 'sha384', label: 'SHA-384', raw: hashes.sha384, bits: '384 bits (96 hex)', badge: 'NSA Suite B' },
+              { id: 'sha1', label: 'SHA-1', raw: hashes.sha1, bits: '160 bits (40 hex)', badge: 'Git / Legacy' },
+              { id: 'md5', label: 'MD5', raw: hashes.md5, bits: '128 bits (32 hex)', badge: 'Legacy Checksum' },
+              ...(hmacSecret ? [{ id: 'hmac256', label: 'HMAC-SHA256', raw: hashes.hmac256, bits: 'Keyed Digest', badge: 'Authenticity' }] : []),
+            ].map((item) => {
+              const formattedVal = formatHash(item.raw, hashFormat);
+              const isItemMatched = verificationResult?.isMatch && verificationResult?.matchedAlgo === item.id.toUpperCase();
+              return (
+                <div
+                  key={item.id}
+                  className={`glass-panel p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group ${
+                    isItemMatched
+                      ? 'border-emerald-500/80 bg-emerald-500/5 shadow-md shadow-emerald-500/10'
+                      : 'border-slate-200/80 dark:border-white/[0.08] hover:border-sky-500/40'
+                  }`}
+                >
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-xs text-sky-600 dark:text-sky-400">{item.label}</span>
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
+                        {item.bits}
+                      </span>
+                      <span className="text-[10px] font-medium text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                        {item.badge}
+                      </span>
+                      {isItemMatched && (
+                        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                          <CheckCircle2 className="w-3 h-3" /> Exact Checksum Match
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-xs text-slate-800 dark:text-slate-200 break-all select-all">
+                      {formattedVal || '—'}
+                    </p>
                   </div>
-                  <p className="font-mono text-xs text-slate-800 dark:text-slate-200 break-all select-all">
-                    {item.val || '—'}
-                  </p>
-                </div>
 
-                <div className="shrink-0 self-end sm:self-center">
-                  <CopyButton
-                    text={() => item.val}
-                    label="Copy"
-                    copiedLabel="Copied!"
-                    variant="subtle"
-                  />
+                  <div className="shrink-0 self-end sm:self-center">
+                    <CopyButton
+                      text={() => formattedVal}
+                      label="Copy"
+                      copiedLabel="Copied!"
+                      variant="subtle"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -296,14 +401,37 @@ export function HashGeneratorTool() {
       {/* TAB 2: File Checksum */}
       {activeTab === 'file' && (
         <div className="glass-panel p-6 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-sky-500" />
-              <span>In-Browser Local File Checksum (Zero Upload)</span>
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Select or drop any file to compute its cryptographic hash. The file is read directly from local memory and is never uploaded anywhere.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-sky-500" />
+                <span>In-Browser Local File Checksum (Zero Upload)</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Select or drop any file to compute its cryptographic hash. The file is read directly from local memory and is never uploaded anywhere.
+              </p>
+            </div>
+
+            {/* Format toggle in file tab */}
+            <div className="inline-flex rounded-lg bg-slate-100 dark:bg-white/[0.06] p-0.5 border border-slate-200/60 dark:border-white/[0.08] self-start sm:self-center">
+              {[
+                { id: 'hex-lower', label: 'Hex (lower)' },
+                { id: 'hex-upper', label: 'HEX (UPPER)' },
+                { id: 'base64', label: 'Base64' },
+              ].map((fmt) => (
+                <button
+                  key={fmt.id}
+                  onClick={() => setHashFormat(fmt.id)}
+                  className={`px-2.5 py-1 text-xs rounded-md font-mono font-medium transition-all ${
+                    hashFormat === fmt.id
+                      ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                  }`}
+                >
+                  {fmt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <label className="border-2 border-dashed border-slate-300 dark:border-white/10 hover:border-sky-500/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-white/[0.02]">
@@ -317,29 +445,85 @@ export function HashGeneratorTool() {
             <input type="file" onChange={handleFileChange} className="hidden" />
           </label>
 
-          {fileHash.calculating && (
+          {/* Checksum verification matcher for files */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <input
+              type="text"
+              value={expectedChecksum}
+              onChange={(e) => setExpectedChecksum(e.target.value)}
+              placeholder="Paste expected file checksum to verify integrity..."
+              className="flex-1 px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-[#070b14] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500"
+            />
+            {expectedChecksum && verificationResult && (
+              <div
+                className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                  verificationResult.isMatch
+                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                }`}
+              >
+                {verificationResult.isMatch ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>VERIFIED ({verificationResult.matchedAlgo})</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>CHECKSUM MISMATCH</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {fileHashes.calculating && (
             <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-500 text-xs font-mono text-center animate-pulse">
-              Computing hardware-accelerated SHA-256 digest...
+              Computing hardware-accelerated SHA-256, SHA-1, and SHA-512 digests...
             </div>
           )}
 
-          {fileHash.sha256 && (
-            <div className="glass-panel p-4 rounded-2xl border border-emerald-500/30 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>SHA-256 File Checksum</span>
-                </span>
-                <CopyButton
-                  text={() => fileHash.sha256}
-                  label="Copy Checksum"
-                  copiedLabel="Copied!"
-                  variant="subtle"
-                />
-              </div>
-              <p className="font-mono text-xs text-slate-900 dark:text-slate-100 break-all select-all bg-black/20 p-3 rounded-xl">
-                {fileHash.sha256}
-              </p>
+          {fileHashes.sha256 && (
+            <div className="space-y-3">
+              {[
+                { id: 'sha256', label: 'SHA-256 Checksum', raw: fileHashes.sha256 },
+                { id: 'sha1', label: 'SHA-1 Checksum', raw: fileHashes.sha1 },
+                { id: 'sha512', label: 'SHA-512 Checksum', raw: fileHashes.sha512 },
+              ].map((fItem) => {
+                const formatted = formatHash(fItem.raw, hashFormat);
+                const isMatch = verificationResult?.isMatch && verificationResult?.matchedAlgo === fItem.id.toUpperCase();
+                return (
+                  <div
+                    key={fItem.id}
+                    className={`glass-panel p-4 rounded-2xl border transition-all space-y-2 ${
+                      isMatch
+                        ? 'border-emerald-500/80 bg-emerald-500/5'
+                        : 'border-slate-200/80 dark:border-white/[0.08]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>{fItem.label}</span>
+                        {isMatch && (
+                          <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Matches expected
+                          </span>
+                        )}
+                      </span>
+                      <CopyButton
+                        text={() => formatted}
+                        label="Copy"
+                        copiedLabel="Copied!"
+                        variant="subtle"
+                      />
+                    </div>
+                    <p className="font-mono text-xs text-slate-900 dark:text-slate-100 break-all select-all bg-black/20 p-3 rounded-xl">
+                      {formatted}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
