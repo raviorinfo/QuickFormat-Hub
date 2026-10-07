@@ -1,5 +1,5 @@
 import React from 'react';
-import { Megaphone, ExternalLink, Sparkles } from 'lucide-react';
+import { Sparkles, ShieldCheck, Cpu, Lock, CheckCircle2 } from 'lucide-react';
 import { ADS_CONFIG } from '../config/adsConfig';
 
 export function AdSlot({ type = 'top-banner', className = '' }) {
@@ -27,51 +27,49 @@ export function AdSlot({ type = 'top-banner', className = '' }) {
     );
   }
 
-  // Pre-approval fallback: Hide empty banner boxes to prevent "Under Construction" / "Dummy Ad" policy flags
-  if (type === 'top-banner' || type === 'bottom-banner') {
-    return null;
-  }
+  // Pre-approval fallback: Hide empty banner boxes to prevent "Under Construction" flags
+  return null;
+}
 
-  if (type === 'sidebar') {
-    return (
-      <aside className={`w-[300px] shrink-0 sticky top-24 space-y-4 ad-slot no-print hidden lg:block ${className}`}>
-        {/* Architecture & Privacy Guarantee card */}
-        <div className="w-[300px] rounded-2xl border border-slate-200/80 dark:border-slate-800/80 glass-panel p-5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-            <Sparkles className="w-4 h-4 text-brand-500" />
-            <span>Architecture & Privacy</span>
+/**
+ * High-Polish Architecture & Privacy Trust Ribbon
+ * Displayed below tools to highlight client-side security without cramping editor width.
+ */
+export function TrustGuaranteeBar({ className = '' }) {
+  return (
+    <div className={`mt-8 w-full rounded-2xl border border-slate-200/80 dark:border-slate-800/80 glass-panel p-5 sm:p-6 no-print ${className}`}>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Left: Heading & Intro */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-500">
+            <Sparkles className="w-4 h-4" />
+            <span>Architecture & Privacy Guarantee</span>
           </div>
-
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            QuickFormat Hub executes all conversions, hashes, and diffs inside your local web browser engine.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            All transformations run 100% inside your local browser V8/Wasm engine. Zero telemetry, zero cloud uploads.
           </p>
+        </div>
 
-          <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-2.5">
-            <li className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-              <span><strong>100% In-Browser:</strong> Zero server compute</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0"></span>
-              <span><strong>Air-Gapped Ready:</strong> Works 100% offline</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
-              <span><strong>Zero Telemetry:</strong> No tracking or data logging</span>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-              <span><strong>Web Standards:</strong> Native HTML5 & WebAssembly</span>
-            </li>
-          </ul>
-
-          <div className="pt-3 border-t border-slate-200/60 dark:border-slate-800/60 text-[11px] text-slate-400">
-            Complies with Google AdSense Publisher Policies & GDPR Standards.
+        {/* Right: Key badges */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">100% In-Browser</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80">
+            <div className="w-2 h-2 rounded-full bg-sky-500 shrink-0"></div>
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Air-Gap Offline</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80">
+            <div className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></div>
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Zero Telemetry</span>
+          </div>
+          <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/80">
+            <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></div>
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">GDPR Compliant</span>
           </div>
         </div>
-      </aside>
-    );
-  }
-
-  return null;
+      </div>
+    </div>
+  );
 }

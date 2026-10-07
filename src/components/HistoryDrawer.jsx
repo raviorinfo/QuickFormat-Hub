@@ -46,7 +46,7 @@ export function HistoryDrawer({ isOpen, onClose, onNavigate }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-sm animate-fade-in">
       <div
-        className="w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col animate-slide-left"
+        className="w-full max-w-md bg-white dark:bg-[#0b1120] h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col animate-slide-left"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}

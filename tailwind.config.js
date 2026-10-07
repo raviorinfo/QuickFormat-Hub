@@ -21,14 +21,21 @@ export default {
           900: '#082f49',
         },
         slate: {
-          850: '#151f32',
-          950: '#080c14',
+          850: '#111827',
+          900: '#0f172a',
+          925: '#0b1120',
+          950: '#060911',
         }
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
+      boxShadow: {
+        'glow-brand': '0 0 25px -5px rgba(56, 189, 248, 0.25)',
+        'glow-purple': '0 0 25px -5px rgba(168, 85, 247, 0.2)',
+        'inner-glow': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+      }
     },
   },
   plugins: [],

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { AdSlot } from './components/AdSlot';
+import { AdSlot, TrustGuaranteeBar } from './components/AdSlot';
 import { ToolsOverview } from './components/ToolsOverview';
 import { CommandPalette } from './components/CommandPalette';
 import { HistoryDrawer } from './components/HistoryDrawer';
@@ -121,8 +121,9 @@ function QuickFormatApp() {
   ].includes(currentPath);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
-      {/* Ambient Radiant Glows */}
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#060911] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
+      {/* Subtle Developer Grid Texture & Ambient Radiant Glows */}
+      <div className="fixed inset-0 bg-grid-pattern bg-radial-vignette pointer-events-none z-0" aria-hidden="true" />
       <div className="ambient-glow-cyan" aria-hidden="true" />
       <div className="ambient-glow-purple" aria-hidden="true" />
 
@@ -163,7 +164,7 @@ function QuickFormatApp() {
       {!isLegalRoute && <AdSlot type="top-banner" />}
 
       {/* Main Workspace */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 relative z-10">
         {isLegalRoute ? (
           <Suspense fallback={<ToolSkeletonLoader />}>
             {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}
@@ -173,31 +174,32 @@ function QuickFormatApp() {
           </Suspense>
         ) : (
           <>
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {/* Main Action Tool Workspace with Code-Splitting Suspense */}
-              <div className="flex-1 w-full min-w-0">
-                <Suspense fallback={<ToolSkeletonLoader />}>
-                  {currentPath === '/json-to-csv' && <JsonToCsvTool />}
-                  {currentPath === '/csv-to-json' && <CsvToJsonTool />}
-                  {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
-                  {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
-                  {currentPath === '/text-diff' && <TextDiffTool />}
-                  {currentPath === '/base64-tool' && <Base64Tool />}
-                  {currentPath === '/url-parser' && <UrlParserTool />}
-                  {currentPath === '/pii-redactor' && <PiiRedactorTool />}
-                  {currentPath === '/curl-converter' && <CurlConverterTool />}
-                  {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
-                  {currentPath === '/json-to-types' && <JsonToTypesTool />}
-                  {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
-                  {currentPath === '/regex-tester' && <RegexTesterTool />}
-                </Suspense>
-              </div>
-
-              {/* Sticky Sidebar Ad & Guarantee Unit (300x250) */}
-              <AdSlot type="sidebar" />
+            {/* Full-Width Tool Workspace */}
+            <div className="w-full">
+              <Suspense fallback={<ToolSkeletonLoader />}>
+                {currentPath === '/json-to-csv' && <JsonToCsvTool />}
+                {currentPath === '/csv-to-json' && <CsvToJsonTool />}
+                {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
+                {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
+                {currentPath === '/text-diff' && <TextDiffTool />}
+                {currentPath === '/base64-tool' && <Base64Tool />}
+                {currentPath === '/url-parser' && <UrlParserTool />}
+                {currentPath === '/pii-redactor' && <PiiRedactorTool />}
+                {currentPath === '/curl-converter' && <CurlConverterTool />}
+                {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
+                {currentPath === '/json-to-types' && <JsonToTypesTool />}
+                {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
+                {currentPath === '/regex-tester' && <RegexTesterTool />}
+              </Suspense>
             </div>
 
-            {/* In-Depth Tools Overview & SEO FAQ Section */}
+            {/* Architecture & Privacy Guarantee Ribbon */}
+            <TrustGuaranteeBar />
+
+            {/* Optional Sidebar Ad Slot when active */}
+            <AdSlot type="sidebar" />
+
+            {/* In-Depth Interactive Tools Overview & SEO FAQ Section */}
             <ToolsOverview toolMeta={toolMeta} />
           </>
         )}
