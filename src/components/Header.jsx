@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { useTheme, ACCENT_THEMES } from '../context/ThemeContext';
 import { ALL_TOOLS } from '../utils/toolsList';
+import { BrandLogo } from './BrandLogo';
 import {
   initSoundPreference,
   toggleSoundPreference,
@@ -313,14 +314,7 @@ export function Header({
                 }}
                 className="flex items-center gap-2 group focus:outline-none cursor-pointer select-none"
               >
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 via-sky-500 to-cyan-400 p-0.5 flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:shadow-sky-500/40 group-hover:scale-105 transition-all duration-200">
-                    <div className="w-full h-full bg-[#060911]/30 backdrop-blur-xs rounded-[6px] flex items-center justify-center">
-                      <Zap className="w-3.5 h-3.5 text-white animate-pulse" />
-                    </div>
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#060911]" />
-                </div>
+                <BrandLogo className="w-8 h-8" />
                 <div className="text-left">
                   <div className="flex items-center gap-1.5 leading-tight">
                     <span className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -758,9 +752,7 @@ export function Header({
             {/* Drawer Header */}
             <div className="p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white">
-                  <Zap className="w-4 h-4" />
-                </div>
+                <BrandLogo className="w-8 h-8" />
                 <div>
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                     QuickFormat <span className="gradient-text">Hub</span>

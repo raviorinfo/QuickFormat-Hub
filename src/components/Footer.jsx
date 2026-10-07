@@ -27,6 +27,7 @@ import {
   Zap
 } from 'lucide-react';
 import { ALL_TOOLS } from '../utils/toolsList';
+import { BrandLogo } from './BrandLogo';
 
 export function Footer({ onNavigate }) {
   const dataTools = ALL_TOOLS.filter((t) => t.category === 'Data');
@@ -48,13 +49,15 @@ export function Footer({ onNavigate }) {
           {/* Brand & Mission Column */}
           <div className="col-span-2 space-y-2.5">
             <div className="flex items-center gap-2 text-slate-900 dark:text-white font-extrabold text-sm">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white shrink-0">
-                <Zap className="w-3 h-3" />
-              </div>
+              <BrandLogo className="w-6 h-6" />
               <span>QuickFormat Hub</span>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                 {ALL_TOOLS.length} UTILITIES
               </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+              <span className="text-slate-400 dark:text-slate-500">Powered by</span>
+              <span className="font-bold text-sky-600 dark:text-sky-400 tracking-tight">Arvaan Core Logic</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
               Professional, air-gapped web utility suite. All transformations, cryptographic operations, parsing, and redactions execute exclusively inside your local browser memory with zero network uploads.
@@ -186,7 +189,15 @@ export function Footer({ onNavigate }) {
 
         {/* AdSense Compliance & Copyright */}
         <div className="mt-8 pt-4 border-t border-slate-200/80 dark:border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} QuickFormat Hub. Built for developers, analysts & security engineers.</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p>© {new Date().getFullYear()} QuickFormat Hub.</p>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+            <p className="font-medium text-slate-600 dark:text-slate-300">
+              Powered by <span className="font-bold text-sky-600 dark:text-sky-400">Arvaan Core Logic</span>
+            </p>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">•</span>
+            <span>Built for developers, analysts & security engineers.</span>
+          </div>
           <div className="flex items-center gap-2.5 text-[10px] text-slate-400 font-mono">
             <span>Air-Gapped Architecture</span>
             <span>•</span>

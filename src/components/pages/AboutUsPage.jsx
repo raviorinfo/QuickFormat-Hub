@@ -152,7 +152,7 @@ export function AboutUsPage({ onNavigate }) {
           How QuickFormat Hub Remains 100% Free
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          QuickFormat Hub is proudly free to use for both personal and enterprise workflows without subscription paywalls. We sustain our domain hosting, global edge CDN caching, and continuous tool development through ethical, non-intrusive display advertising (via certified partners like Google AdSense) and developer tool sponsorships.
+          QuickFormat Hub is proudly powered and maintained by <strong>Arvaan Core Logic</strong> as a free service for personal and enterprise workflows without subscription paywalls. We sustain our domain hosting, global edge CDN caching, and continuous tool development through ethical, non-intrusive display advertising (via certified partners like Google AdSense) and developer tool sponsorships.
         </p>
       </section>
 
@@ -162,7 +162,7 @@ export function AboutUsPage({ onNavigate }) {
           onClick={() => onNavigate('/json-to-csv')}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-lg shadow-brand-500/25 transition-all cursor-pointer"
         >
-          <span>Explore All 13 Tools</span>
+          <span>Explore All Utilities</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
