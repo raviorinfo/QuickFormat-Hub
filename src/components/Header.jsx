@@ -86,11 +86,11 @@ export function Header({
   };
 
   const categories = [
-    { id: 'All', label: 'All Tools', count: 13 },
-    { id: 'Data', label: 'Data', count: 4 },
-    { id: 'Security', label: 'Security', count: 2 },
-    { id: 'Docs', label: 'Docs & Text', count: 3 },
-    { id: 'Dev', label: 'Dev & API', count: 4 },
+    { id: 'All', label: 'All Tools', count: ALL_TOOLS.length },
+    { id: 'Data', label: 'Data', count: ALL_TOOLS.filter((t) => t.category === 'Data').length },
+    { id: 'Security', label: 'Security', count: ALL_TOOLS.filter((t) => t.category === 'Security').length },
+    { id: 'Docs', label: 'Docs & Text', count: ALL_TOOLS.filter((t) => t.category === 'Docs').length },
+    { id: 'Dev', label: 'Dev & API', count: ALL_TOOLS.filter((t) => t.category === 'Dev').length },
   ];
 
   const filteredTools =
@@ -146,7 +146,7 @@ export function Header({
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-50/90 dark:bg-white/[0.04] text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-sky-500/50 hover:bg-white dark:hover:bg-white/[0.08] transition-all shadow-xs"
-              title="Browse all 13 developer utilities"
+              title={`Browse all ${ALL_TOOLS.length} developer utilities`}
             >
               <div className="w-5 h-5 rounded-md bg-sky-500/15 text-sky-500 flex items-center justify-center shrink-0">
                 <CurrentIcon className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export function Header({
               >
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between border-b border-slate-100 dark:border-white/[0.06] mb-1">
                   <span>Developer Utilities Suite</span>
-                  <span className="text-sky-500 font-mono">13 Total</span>
+                  <span className="text-sky-500 font-mono">{ALL_TOOLS.length} Total</span>
                 </div>
                 <div className="divide-y divide-slate-100 dark:divide-white/[0.04]">
                   {['Data', 'Security', 'Docs', 'Dev'].map((cat) => {

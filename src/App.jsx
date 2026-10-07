@@ -52,6 +52,24 @@ const CronSchedulerTool = lazy(() =>
 const RegexTesterTool = lazy(() =>
   import('./components/tools/RegexTesterTool').then((m) => ({ default: m.RegexTesterTool }))
 );
+const JsonViewerTool = lazy(() =>
+  import('./components/tools/JsonViewerTool').then((m) => ({ default: m.JsonViewerTool }))
+);
+const SecurityHeadersTool = lazy(() =>
+  import('./components/tools/SecurityHeadersTool').then((m) => ({ default: m.SecurityHeadersTool }))
+);
+const HashGeneratorTool = lazy(() =>
+  import('./components/tools/HashGeneratorTool').then((m) => ({ default: m.HashGeneratorTool }))
+);
+const TimestampConverterTool = lazy(() =>
+  import('./components/tools/TimestampConverterTool').then((m) => ({ default: m.TimestampConverterTool }))
+);
+const SqlFormatterTool = lazy(() =>
+  import('./components/tools/SqlFormatterTool').then((m) => ({ default: m.SqlFormatterTool }))
+);
+const UuidGeneratorTool = lazy(() =>
+  import('./components/tools/UuidGeneratorTool').then((m) => ({ default: m.UuidGeneratorTool }))
+);
 const PrivacyPolicyPage = lazy(() =>
   import('./components/pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
 );
@@ -179,15 +197,21 @@ function QuickFormatApp() {
               <Suspense fallback={<ToolSkeletonLoader />}>
                 {currentPath === '/json-to-csv' && <JsonToCsvTool />}
                 {currentPath === '/csv-to-json' && <CsvToJsonTool />}
+                {currentPath === '/json-viewer' && <JsonViewerTool />}
                 {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
                 {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
                 {currentPath === '/text-diff' && <TextDiffTool />}
                 {currentPath === '/base64-tool' && <Base64Tool />}
+                {currentPath === '/security-headers' && <SecurityHeadersTool />}
+                {currentPath === '/hash-generator' && <HashGeneratorTool />}
                 {currentPath === '/url-parser' && <UrlParserTool />}
                 {currentPath === '/pii-redactor' && <PiiRedactorTool />}
                 {currentPath === '/curl-converter' && <CurlConverterTool />}
                 {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
                 {currentPath === '/json-to-types' && <JsonToTypesTool />}
+                {currentPath === '/timestamp-converter' && <TimestampConverterTool />}
+                {currentPath === '/sql-formatter' && <SqlFormatterTool />}
+                {currentPath === '/uuid-generator' && <UuidGeneratorTool />}
                 {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
                 {currentPath === '/regex-tester' && <RegexTesterTool />}
               </Suspense>

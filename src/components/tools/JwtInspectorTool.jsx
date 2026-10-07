@@ -16,7 +16,7 @@ import {
   FileCode,
   Fingerprint
 } from 'lucide-react';
-import { decodeJwt, getSampleJwt } from '../../utils/jwtDecoder';
+import { decodeJwt, getSampleJwt, verifyJwtSignature, RFC7519_CLAIMS } from '../../utils/jwtDecoder';
 import { useToast } from '../../context/ToastContext';
 import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import { WindowHeader } from '../common/WindowHeader';
@@ -76,6 +76,9 @@ export function JwtInspectorTool() {
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
   const [activePreset, setActivePreset] = useState('admin');
+  const [secretKey, setSecretKey] = useState('');
+  const [verificationResult, setVerificationResult] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Esc key listener to exit Zen Mode
   useEffect(() => {
@@ -319,8 +322,8 @@ export function JwtInspectorTool() {
               </div>
 
               {/* Signature Info */}
-              <div className="p-4 border-t border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#060911]/60">
-                <div className="flex items-center justify-between mb-2">
+              <div className="p-4 border-t border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-[#060911]/60 space-y-3">
+                <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                     <Fingerprint className="w-3.5 h-3.5 text-sky-500" />
                     <span>Cryptographic Signature Hash</span>
@@ -332,9 +335,113 @@ export function JwtInspectorTool() {
                 <p className="font-mono text-xs text-sky-600 dark:text-sky-300 break-all bg-white dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200 dark:border-white/[0.08]">
                   {decoded.signature}
                 </p>
+
+                {/* In-Browser HMAC Signature Verification */}
+                <div className="pt-2 border-t border-slate-200/60 dark:border-white/[0.06] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Verify HMAC Signature (Client-Side)</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">Web Crypto API</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={secretKey}
+                      onChange={(e) => {
+                        setSecretKey(e.target.value);
+                        setVerificationResult(null);
+                      }}
+                      placeholder="Enter HMAC Secret Key (e.g. your-256-bit-secret)..."
+                      className="flex-1 px-3 py-1.5 text-xs font-mono bg-white dark:bg-[#070b14] border border-slate-200 dark:border-white/[0.08] rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500"
+                    />
+                    <button
+                      onClick={async () => {
+                        setIsVerifying(true);
+                        const res = await verifyJwtSignature(tokenInput, secretKey);
+                        setVerificationResult(res);
+                        setIsVerifying(false);
+                        if (res.verified) {
+                          toast.success('Signature verified successfully!');
+                        } else if (res.verified === false) {
+                          toast.error(res.message);
+                        } else {
+                          toast.info(res.message);
+                        }
+                      }}
+                      disabled={isVerifying || !secretKey.trim()}
+                      className="btn-primary text-xs py-1.5 px-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {isVerifying ? 'Checking...' : 'Verify'}
+                    </button>
+                  </div>
+
+                  {verificationResult && (
+                    <div
+                      className={`p-2.5 rounded-xl text-xs font-medium border flex items-center gap-2 ${
+                        verificationResult.verified
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                          : verificationResult.verified === false
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                          : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                      }`}
+                    >
+                      {verificationResult.verified ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                      )}
+                      <span>{verificationResult.message}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* RFC 7519 Registered Claims Inspector */}
+          {decoded.payload && Object.keys(decoded.payload).some((k) => RFC7519_CLAIMS[k]) && (
+            <div className="glass-panel p-4 rounded-2xl border border-slate-200/80 dark:border-white/[0.08] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-purple-500" />
+                  <span>RFC 7519 Registered Standard Claims</span>
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">Standardized claims detected</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {Object.keys(decoded.payload)
+                  .filter((k) => RFC7519_CLAIMS[k])
+                  .map((k) => {
+                    const info = RFC7519_CLAIMS[k];
+                    const val = decoded.payload[k];
+                    const isTimeClaim = ['exp', 'iat', 'nbf'].includes(k);
+                    const formattedVal = isTimeClaim && typeof val === 'number'
+                      ? `${val} (${new Date(val * 1000).toLocaleString()})`
+                      : String(val);
+
+                    return (
+                      <div
+                        key={k}
+                        className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] text-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-bold text-purple-600 dark:text-purple-400">{k}</span>
+                          <span className="text-[10px] text-slate-400 font-sans">{info.name}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{info.desc}</p>
+                        <p className="font-mono text-[11px] font-semibold text-slate-900 dark:text-slate-100 truncate pt-0.5">
+                          {formattedVal}
+                        </p>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         decoded && (

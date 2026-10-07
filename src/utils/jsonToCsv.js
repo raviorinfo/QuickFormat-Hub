@@ -2,7 +2,7 @@
  * Utility functions for JSON parsing, flattening, and converting to CSV/TSV
  */
 
-export function flattenObject(obj, prefix = '', delimiter = '.', res = {}) {
+export function flattenObject(obj, prefix = '', delimiter = '.', res = {}, arrayMode = 'join') {
   if (obj === null || obj === undefined) {
     res[prefix] = '';
     return res;
@@ -14,6 +14,14 @@ export function flattenObject(obj, prefix = '', delimiter = '.', res = {}) {
   }
 
   if (Array.isArray(obj)) {
+    if (arrayMode === 'json') {
+      res[prefix] = JSON.stringify(obj);
+      return res;
+    }
+    if (arrayMode === 'count') {
+      res[prefix] = `[${obj.length} items]`;
+      return res;
+    }
     // If it's an array of primitives, join them
     const allPrimitives = obj.every(
       (item) => item === null || typeof item !== 'object'
@@ -25,7 +33,7 @@ export function flattenObject(obj, prefix = '', delimiter = '.', res = {}) {
     // Array of objects
     obj.forEach((item, index) => {
       const arrayKey = prefix ? `${prefix}[${index}]` : `[${index}]`;
-      flattenObject(item, arrayKey, delimiter, res);
+      flattenObject(item, arrayKey, delimiter, res, arrayMode);
     });
     return res;
   }
@@ -39,17 +47,23 @@ export function flattenObject(obj, prefix = '', delimiter = '.', res = {}) {
       !Array.isArray(val) &&
       !(val instanceof Date)
     ) {
-      flattenObject(val, propKey, delimiter, res);
+      flattenObject(val, propKey, delimiter, res, arrayMode);
     } else if (Array.isArray(val)) {
-      const allPrimitives = val.every(
-        (item) => item === null || typeof item !== 'object'
-      );
-      if (allPrimitives) {
-        res[propKey] = val.join('; ');
+      if (arrayMode === 'json') {
+        res[propKey] = JSON.stringify(val);
+      } else if (arrayMode === 'count') {
+        res[propKey] = `[${val.length} items]`;
       } else {
-        val.forEach((item, index) => {
-          flattenObject(item, `${propKey}[${index}]`, delimiter, res);
-        });
+        const allPrimitives = val.every(
+          (item) => item === null || typeof item !== 'object'
+        );
+        if (allPrimitives) {
+          res[propKey] = val.join('; ');
+        } else {
+          val.forEach((item, index) => {
+            flattenObject(item, `${propKey}[${index}]`, delimiter, res, arrayMode);
+          });
+        }
       }
     } else {
       res[propKey] = val;
@@ -112,6 +126,8 @@ export function jsonToCsv(records, options = {}) {
     includeHeaders = true,
     quoteAll = false,
     flattenDelimiter = '.',
+    arrayMode = 'join', // 'join' | 'json' | 'count'
+    includeBom = false,
   } = options;
 
   if (!records || records.length === 0) {
@@ -124,7 +140,7 @@ export function jsonToCsv(records, options = {}) {
       return { value: record };
     }
     return flatten
-      ? flattenObject(record, '', flattenDelimiter)
+      ? flattenObject(record, '', flattenDelimiter, {}, arrayMode)
       : record;
   });
 
@@ -167,8 +183,11 @@ export function jsonToCsv(records, options = {}) {
     tableRows.push(rowValues);
   });
 
+  const rawCsv = csvLines.join('\r\n');
+  const finalCsv = includeBom ? `\uFEFF${rawCsv}` : rawCsv;
+
   return {
-    csv: csvLines.join('\r\n'),
+    csv: finalCsv,
     headers,
     rows: tableRows,
     rowCount: processedRows.length,

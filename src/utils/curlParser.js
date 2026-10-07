@@ -78,11 +78,6 @@ export function parseCurl(curlString) {
 }
 
 export function generateFetchCode({ url, method, headers, data, isJson }) {
-  const options = {
-    method,
-    headers: Object.keys(headers).length > 0 ? headers : undefined,
-  };
-
   let bodyCode = '';
   if (data) {
     if (isJson) {
@@ -165,6 +160,37 @@ print(response.status_code)
 print(response.json())`;
 }
 
+export function generatePythonHttpx({ url, method, headers, data, isJson }) {
+  let bodyParam = '';
+  if (data) {
+    if (isJson) {
+      bodyParam = `\n    json=${JSON.stringify(JSON.parse(data), null, 4).replace(/\n/g, '\n    ')},`;
+    } else {
+      bodyParam = `\n    content=${JSON.stringify(data)},`;
+    }
+  }
+
+  const headersFormatted = Object.keys(headers).length > 0
+    ? `\nheaders = ${JSON.stringify(headers, null, 4)}\n`
+    : '';
+
+  return `# Python httpx (Async Client)
+import httpx
+import asyncio
+
+async def main():
+    url = "${url}"
+${headersFormatted}    async with httpx.AsyncClient() as client:
+        response = await client.request(
+            "${method}",
+            url,${headersFormatted ? '\n            headers=headers,' : ''}${bodyParam}
+        )
+        print(response.status_code)
+        print(response.text)
+
+asyncio.run(main())`;
+}
+
 export function generateGoCode({ url, method, headers, data }) {
   let bodyPayload = 'nil';
   let bodySetup = '';
@@ -203,6 +229,89 @@ ${headerSetters}
 
 \tbody, _ := io.ReadAll(res.Body)
 \tfmt.Println(string(body))
+}`;
+}
+
+export function generateRustReqwest({ url, method, headers, data }) {
+  let headerLines = '';
+  for (const [k, v] of Object.entries(headers)) {
+    headerLines += `\n        .header("${k}", "${v}")`;
+  }
+
+  let bodyLine = '';
+  if (data) {
+    bodyLine = `\n        .body(${JSON.stringify(data)})`;
+  }
+
+  return `// Rust reqwest (Tokio Async)
+use reqwest::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::new();
+    let res = client
+        .${method.toLowerCase()}("${url}")${headerLines}${bodyLine}
+        .send()
+        .await?;
+
+    let text = res.text().await?;
+    println!("{}", text);
+    Ok(())
+}`;
+}
+
+export function generatePhpCode({ url, method, headers, data }) {
+  const headerArr = Object.entries(headers).map(([k, v]) => `    "${k}: ${v}",`).join('\n');
+  const bodySetting = data ? `\ncurl_setopt($ch, CURLOPT_POSTFIELDS, ${JSON.stringify(data)});` : '';
+
+  return `<?php
+// PHP cURL
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL, "${url}");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "${method}");
+${headerArr ? `curl_setopt($ch, CURLOPT_HTTPHEADER, [\n${headerArr}\n]);\n` : ''}${bodySetting}
+
+$response = curl_exec($ch);
+$err = curl_error($ch);
+curl_close($ch);
+
+if ($err) {
+    echo "cURL Error: " . $err;
+} else {
+    echo $response;
+}`;
+}
+
+export function generateCSharpCode({ url, method, headers, data }) {
+  let headerLines = '';
+  for (const [k, v] of Object.entries(headers)) {
+    if (k.toLowerCase() !== 'content-type') {
+      headerLines += `request.Headers.Add("${k}", "${v}");\n        `;
+    }
+  }
+
+  let contentLine = '';
+  if (data) {
+    const cType = headers['Content-Type'] || headers['content-type'] || 'application/json';
+    contentLine = `request.Content = new StringContent(${JSON.stringify(data)}, System.Text.Encoding.UTF8, "${cType}");\n        `;
+  }
+
+  return `// C# HttpClient (.NET 8+)
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task Main() {
+        using var client = new HttpClient();
+        using var request = new HttpRequestMessage(HttpMethod.${method.charAt(0) + method.slice(1).toLowerCase()}, "${url}");
+        ${headerLines}${contentLine}
+        var response = await client.SendAsync(request);
+        var responseString = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(responseString);
+    }
 }`;
 }
 

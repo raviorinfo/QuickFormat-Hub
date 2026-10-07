@@ -19,7 +19,11 @@ import {
   generateFetchCode,
   generateAxiosCode,
   generatePythonRequests,
+  generatePythonHttpx,
   generateGoCode,
+  generateRustReqwest,
+  generatePhpCode,
+  generateCSharpCode,
   SAMPLE_CURL,
 } from '../../utils/curlParser';
 import { useToast } from '../../context/ToastContext';
@@ -63,7 +67,7 @@ const CURL_PRESETS = [
 export function CurlConverterTool() {
   const toast = useToast();
   const [curlInput, setCurlInput] = useState(SAMPLE_CURL);
-  const [langTab, setLangTab] = useState('fetch'); // 'fetch' | 'axios' | 'python' | 'go'
+  const [langTab, setLangTab] = useState('fetch'); // 'fetch' | 'axios' | 'python' | 'httpx' | 'go' | 'rust' | 'php' | 'csharp'
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
   const [activePreset, setActivePreset] = useState(null);
@@ -100,15 +104,32 @@ export function CurlConverterTool() {
         return generateAxiosCode(parsed);
       case 'python':
         return generatePythonRequests(parsed);
+      case 'httpx':
+        return generatePythonHttpx(parsed);
       case 'go':
         return generateGoCode(parsed);
+      case 'rust':
+        return generateRustReqwest(parsed);
+      case 'php':
+        return generatePhpCode(parsed);
+      case 'csharp':
+        return generateCSharpCode(parsed);
       default:
         return generateFetchCode(parsed);
     }
   }, [parsed, langTab]);
 
   const handleDownloadCode = () => {
-    const extMap = { fetch: 'js', axios: 'js', python: 'py', go: 'go' };
+    const extMap = {
+      fetch: 'js',
+      axios: 'js',
+      python: 'py',
+      httpx: 'py',
+      go: 'go',
+      rust: 'rs',
+      php: 'php',
+      csharp: 'cs',
+    };
     const ext = extMap[langTab] || 'js';
     const blob = new Blob([generatedCode], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -282,47 +303,29 @@ export function CurlConverterTool() {
             onFontSizeChange={setFontSize}
           >
             {/* Language Tabs */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs mr-1 border border-slate-200/60 dark:border-white/[0.08]">
-              <button
-                onClick={() => setLangTab('fetch')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
-                  langTab === 'fetch'
-                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Fetch
-              </button>
-              <button
-                onClick={() => setLangTab('axios')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
-                  langTab === 'axios'
-                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Axios
-              </button>
-              <button
-                onClick={() => setLangTab('python')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
-                  langTab === 'python'
-                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Python
-              </button>
-              <button
-                onClick={() => setLangTab('go')}
-                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
-                  langTab === 'go'
-                    ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                }`}
-              >
-                Go
-              </button>
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-white/[0.06] p-0.5 rounded-lg text-xs mr-1 border border-slate-200/60 dark:border-white/[0.08] overflow-x-auto max-w-[280px] sm:max-w-none">
+              {[
+                { id: 'fetch', label: 'Fetch' },
+                { id: 'axios', label: 'Axios' },
+                { id: 'python', label: 'Python (req)' },
+                { id: 'httpx', label: 'httpx' },
+                { id: 'go', label: 'Go' },
+                { id: 'rust', label: 'Rust' },
+                { id: 'php', label: 'PHP' },
+                { id: 'csharp', label: 'C#' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setLangTab(tab.id)}
+                  className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
+                    langTab === tab.id
+                      ? 'bg-white dark:bg-slate-700 text-sky-500 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </WindowHeader>
 

@@ -784,4 +784,216 @@ export const TOOL_METADATA = {
       ],
     },
   },
+  '/json-viewer': {
+    id: 'json-viewer',
+    path: '/json-viewer',
+    title: 'JSON Formatter, Tree Viewer & JSONPath Query',
+    badge: 'Interactive Tree & JSONPath',
+    h1: 'Interactive JSON Formatter, Tree Viewer & Query Engine',
+    description: 'Format, inspect, and evaluate JSON in an interactive collapsible tree view with real-time JSONPath filtering, key sorting, and in-browser schema validation.',
+    seoOverview: {
+      intro: 'QuickFormat Hub’s JSON Formatter & Tree Viewer offers interactive collapsible node inspection, color-coded tokens, and high-performance JSONPath query capabilities with zero server uploads.',
+      features: [
+        'Interactive Collapsible Tree: Explore nested objects and arrays with expand/collapse controls and node depth summaries.',
+        'Real-Time JSONPath Querying: Filter JSON hierarchies using standard expressions like $.store.items[*].price.',
+        'Alphabetical Key Sorting: Standardize JSON configurations and payloads for deterministic comparison.',
+        'Schema Syntax Error Pointers: Accurately pinpoint line and column numbers of invalid syntax tokens.',
+        'Zero-Latency Client-Side Parsing: Processes megabyte-scale JSON datasets in browser memory with zero network delay.',
+      ],
+      howTo: [
+        '1. Paste your JSON payload into the left editor pane or select a preset.',
+        '2. Switch between Tree View, JSONPath filter, or Formatted Code tabs.',
+        '3. Use the search bar to filter keys and values instantly.',
+        '4. Click "Copy JSON" or "Download JSON" to export formatted files.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Syntax Error in JSONPath',
+          desc: 'Ensure your JSONPath begins with the root symbol "$" (e.g. $.users[0].name or $..id).',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Can this viewer handle deeply nested JSON arrays?',
+          a: 'Yes. The recursive tree architecture virtualizes and nests child nodes without stack overflow limits.',
+        },
+        {
+          q: 'Does it send my JSON data anywhere?',
+          a: 'No. All formatting, sorting, and tree rendering happen entirely in your local browser tab.',
+        },
+      ],
+    },
+  },
+  '/security-headers': {
+    id: 'security-headers',
+    path: '/security-headers',
+    title: 'HTTP Security Headers & CSP Evaluator',
+    badge: 'OWASP Security Standard',
+    h1: 'HTTP Security Headers & Content Security Policy (CSP) Evaluator',
+    description: 'Inspect HTTP response headers and Content-Security-Policy (CSP) directives. Audit against XSS, clickjacking, and SSL stripping with instant security grades and hardened server snippets.',
+    seoOverview: {
+      intro: 'Evaluate web security posture by auditing critical HTTP response headers including HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy with hardened server config generation.',
+      features: [
+        'Executive Security Grading: Automated score from A+ to F based on OWASP security standards.',
+        'Content-Security-Policy Audit: Flags unsafe-inline, unsafe-eval, and weak resource directives.',
+        '1-Click Hardened Snippets: Copy production-ready configurations for Nginx, Apache, Cloudflare, Vercel, and Helmet.js.',
+        'Zero-Data Transmission: Headers are evaluated in local memory without exposing server architecture.',
+      ],
+      howTo: [
+        '1. Paste your HTTP response headers or Content-Security-Policy string.',
+        '2. Review security findings, grade indicators, and flagged vulnerabilities.',
+        '3. Copy the recommended hardened configuration for your server in the bottom generator.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Missing Colon in Header Line',
+          desc: 'Headers must follow the standard "Header-Name: Value" format for accurate parsing.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'What is the recommended HSTS max-age?',
+          a: 'For production sites with HTTPS, max-age=31536000 (1 year) with includeSubDomains and preload is recommended by Google and Mozilla.',
+        },
+      ],
+    },
+  },
+  '/hash-generator': {
+    id: 'hash-generator',
+    path: '/hash-generator',
+    title: 'Web Crypto Hash & Secret Generator',
+    badge: 'FIPS PUB 180-4',
+    h1: 'Web Crypto Hash Checksum & Secret Generator (SHA-256, SHA-512, MD5, HMAC)',
+    description: 'Compute SHA-256, SHA-512, MD5, and HMAC checksums directly in browser using native Web Crypto APIs. Verify file integrity and generate cryptographically secure secrets.',
+    seoOverview: {
+      intro: 'High-speed client-side cryptographic hashing engine utilizing browser-native window.crypto.subtle for hardware-accelerated SHA-256, SHA-512, and HMAC generation, plus local file checksum verification.',
+      features: [
+        'Hardware-Accelerated Web Crypto: Native C++ SubtleCrypto engine for zero-overhead cryptographic computation.',
+        'Simultaneous Multi-Hash Digest: Generates SHA-256, SHA-512, SHA-384, MD5, and HMAC simultaneously.',
+        'Local File Checksum: Drag and drop files to calculate SHA-256 checksums without uploading to a server.',
+        'CSPRNG Secret Generator: Generate passwords and API keys with Shannon entropy bits scoring.',
+      ],
+      howTo: [
+        '1. Enter text to compute simultaneous hashes or enter an HMAC secret key.',
+        '2. Use the File Checksum tab to verify downloaded files or software distributions.',
+        '3. Use Key Generator to produce cryptographically random API tokens.',
+      ],
+      troubleshooting: [
+        {
+          title: 'MD5 vs SHA-256',
+          desc: 'MD5 is recommended only for non-security checksums and legacy deduplication. Use SHA-256 for cryptographic security.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Does computing a file hash upload the file to any server?',
+          a: 'No. The file is read via JavaScript FileReader directly into browser memory. Nothing leaves your computer.',
+        },
+      ],
+    },
+  },
+  '/timestamp-converter': {
+    id: 'timestamp-converter',
+    path: '/timestamp-converter',
+    title: 'Unix Timestamp & Timezone Converter',
+    badge: 'POSIX Epoch',
+    h1: 'Unix Timestamp & Epoch Timezone Converter (Seconds, Milliseconds & ISO 8601)',
+    description: 'Convert seconds and milliseconds epoch timestamps to ISO 8601, UTC, and local timezones. Includes live real-time clock ticker, relative time, and global city timezone matrices.',
+    seoOverview: {
+      intro: 'Convert between Unix epoch timestamps and human-readable dates across multiple international timezones with sub-second accuracy and relative time calculations.',
+      features: [
+        'Live Real-Time Epoch Clock: Current Unix seconds and milliseconds ticker with pause control.',
+        'Bidirectional Conversion: Converts epoch seconds/ms to ISO 8601, RFC 2822, and localized strings.',
+        'Global City Timezone Matrix: Compare localized times across New York, London, Tokyo, Mumbai, and Sydney.',
+        'Relative Time Math: Quickly add or subtract hours, days, and weeks.',
+      ],
+      howTo: [
+        '1. Paste or type an epoch timestamp (seconds or milliseconds) or an ISO date string.',
+        '2. View converted UTC, ISO 8601, and local timezone formats.',
+        '3. Inspect the global timezone matrix or use quick adjust buttons.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Seconds vs Milliseconds',
+          desc: 'Timestamps with 10 digits are seconds (e.g. 1791350000); timestamps with 13 digits are milliseconds. The converter auto-detects both.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'What is the Year 2038 problem?',
+          a: 'On Jan 19, 2038, 32-bit signed integers overflow. Modern 64-bit systems and JavaScript numbers (64-bit floats) handle dates billions of years into the future without issue.',
+        },
+      ],
+    },
+  },
+  '/sql-formatter': {
+    id: 'sql-formatter',
+    path: '/sql-formatter',
+    title: 'SQL Query Formatter & Minifier',
+    badge: 'ANSI SQL / Postgres / MySQL',
+    h1: 'SQL Query Formatter & Minifier Online (Client-Side & Private)',
+    description: 'Format, beautify, and minify messy SQL queries. Configurable uppercase keyword casing, intelligent clause indentation, CTE support, and instant query statistics.',
+    seoOverview: {
+      intro: 'Beautify, structure, and minify SQL queries for PostgreSQL, MySQL, SQLite, BigQuery, and SQL Server. Highlights joins, common table expressions, and complex subqueries with zero server uploads.',
+      features: [
+        'Keyword Casing Control: Choose between UPPERCASE, lowercase, or preserved original keywords.',
+        'Intelligent Clause Indentation: Automatic line breaks and indents for SELECT, JOIN, WHERE, and GROUP BY.',
+        'Single-Line Minifier: Strip comments and whitespace to embed queries into application code or configs.',
+        'Query Statistics: Instant detection of statement type, table counts, and relational joins.',
+      ],
+      howTo: [
+        '1. Paste unformatted SQL into the left pane or pick a sample query preset.',
+        '2. Choose your keyword casing and indent preferences in the options bar.',
+        '3. Click "Copy Formatted SQL" or "Download SQL" to export.',
+      ],
+      troubleshooting: [
+        {
+          title: 'String Literals with Keywords',
+          desc: 'Quoted string literals containing keywords are preserved intact and will not have their casing modified.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Which SQL dialects are supported?',
+          a: 'Standard ANSI SQL, PostgreSQL, MySQL, MariaDB, SQLite, BigQuery, and Microsoft SQL Server.',
+        },
+      ],
+    },
+  },
+  '/uuid-generator': {
+    id: 'uuid-generator',
+    path: '/uuid-generator',
+    title: 'UUID (v4/v7), ULID & NanoID Generator',
+    badge: 'RFC 9562 & ULID',
+    h1: 'UUID v4, UUID v7, ULID & NanoID Batch Generator & Inspector',
+    description: 'Batch generate cryptographically secure UUID v4, timestamp-ordered UUID v7 (RFC 9562), ULID, and NanoIDs. Inspect and decode embedded creation timestamps directly in browser.',
+    seoOverview: {
+      intro: 'Generate batch identifiers conforming to UUID v4, the new RFC 9562 UUID v7 timestamp standard, ULID, and NanoID with custom formats (JSON array, CSV, newline) and embedded timestamp inspection.',
+      features: [
+        'RFC 9562 UUID v7 Support: The modern standard combining millisecond timestamp ordering with cryptographic randomness.',
+        'Batch Generation: Produce up to 500 identifiers in a single click with instant copy and download.',
+        'Embedded Timestamp Inspector: Decode UUIDv7 or ULID to reveal creation time and local date.',
+        'Hardware CSPRNG: Uses window.crypto.getRandomValues for cryptographic uniqueness.',
+      ],
+      howTo: [
+        '1. Select your identifier type (UUID v7, UUID v4, ULID, or NanoID).',
+        '2. Set desired quantity and formatting options (casing, hyphens, braces).',
+        '3. Click "Copy All" or download as a .txt or .json batch file.',
+        '4. Paste any UUIDv7 or ULID into the inspector to verify its timestamp.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Why use UUID v7 over UUID v4?',
+          desc: 'UUID v7 is monotonically sortable by creation time, eliminating B-tree database index fragmentation in PostgreSQL and MySQL while retaining globally unique randomness.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Are these UUIDs cryptographically random?',
+          a: 'Yes. All random bits are sourced directly from the browser’s Cryptographically Secure Pseudo-Random Number Generator (CSPRNG).',
+        },
+      ],
+    },
+  },
 };
+

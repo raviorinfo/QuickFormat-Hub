@@ -115,3 +115,83 @@ export function getSampleJwt() {
   const sig = 'K_8a39Xz9jL_10928aBcDeFgHiJkLmNoPqRsTuVwXyZ';
   return `${h}.${p}.${sig}`;
 }
+
+export const RFC7519_CLAIMS = {
+  iss: { name: 'Issuer', desc: 'Identifies the principal that issued the JWT' },
+  sub: { name: 'Subject', desc: 'Identifies the principal that is the subject of the JWT' },
+  aud: { name: 'Audience', desc: 'Identifies the recipients that the JWT is intended for' },
+  exp: { name: 'Expiration Time', desc: 'Time on or after which the JWT must NOT be accepted' },
+  nbf: { name: 'Not Before', desc: 'Time before which the JWT must NOT be accepted' },
+  iat: { name: 'Issued At', desc: 'Time at which the JWT was issued' },
+  jti: { name: 'JWT ID', desc: 'Unique identifier for the JWT (nonce / replay protection)' },
+};
+
+/**
+ * Verify HMAC-SHA signature (HS256, HS384, HS512) directly in browser with Web Crypto API
+ */
+export async function verifyJwtSignature(jwtString, secret) {
+  if (!jwtString || !secret) {
+    return { verified: null, message: 'Enter a secret key to verify signature' };
+  }
+
+  const clean = jwtString.replace(/^Bearer\s+/i, '').trim();
+  const parts = clean.split('.');
+  if (parts.length !== 3) {
+    return { verified: false, message: 'Invalid token structure (3 segments required)' };
+  }
+
+  try {
+    const headerB64 = parts[0].replace(/-/g, '+').replace(/_/g, '/');
+    const header = JSON.parse(atob(headerB64));
+    const alg = (header.alg || 'HS256').toUpperCase();
+
+    const hashMap = {
+      HS256: 'SHA-256',
+      HS384: 'SHA-384',
+      HS512: 'SHA-512',
+    };
+
+    if (!hashMap[alg]) {
+      return {
+        verified: null,
+        message: `Client-side verification supports HMAC (${Object.keys(hashMap).join(', ')}). Alg ${alg} requires public key.`,
+      };
+    }
+
+    const enc = new TextEncoder();
+    const keyData = enc.encode(secret);
+    const cryptoKey = await window.crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: { name: hashMap[alg] } },
+      false,
+      ['sign']
+    );
+
+    const messageData = enc.encode(`${parts[0]}.${parts[1]}`);
+    const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
+
+    // Convert signatureBuffer to base64url
+    const sigBytes = new Uint8Array(signatureBuffer);
+    let binary = '';
+    for (let i = 0; i < sigBytes.length; i++) {
+      binary += String.fromCharCode(sigBytes[i]);
+    }
+    const computedB64Url = btoa(binary)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const expectedSig = parts[2];
+    const isMatch = computedB64Url === expectedSig;
+
+    return {
+      verified: isMatch,
+      message: isMatch
+        ? `Signature verified! Token is authentic using ${alg}.`
+        : `Invalid signature: computed signature does not match with this secret.`,
+    };
+  } catch (err) {
+    return { verified: false, message: `Verification failed: ${err.message}` };
+  }
+}

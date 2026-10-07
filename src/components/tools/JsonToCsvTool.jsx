@@ -74,6 +74,8 @@ export function JsonToCsvTool() {
   const [includeHeaders, setIncludeHeaders] = useState(true);
   const [quoteAll, setQuoteAll] = useState(false);
   const [flattenDelimiter, setFlattenDelimiter] = useState('.');
+  const [arrayMode, setArrayMode] = useState('join'); // 'join' | 'json' | 'count'
+  const [includeBom, setIncludeBom] = useState(false);
   const [activePreset, setActivePreset] = useState(null);
   
   // UI UX enhancements
@@ -105,6 +107,8 @@ export function JsonToCsvTool() {
         includeHeaders,
         quoteAll,
         flattenDelimiter,
+        arrayMode,
+        includeBom,
       });
       setParsedData(result);
       setErrorMessage(null);
@@ -113,7 +117,7 @@ export function JsonToCsvTool() {
       setErrorMessage(err.message);
       setParsedData(null);
     }
-  }, [jsonInput, flatten, delimiter, includeHeaders, quoteAll, flattenDelimiter]);
+  }, [jsonInput, flatten, delimiter, includeHeaders, quoteAll, flattenDelimiter, arrayMode, includeBom]);
 
   // Prettify
   const handlePrettify = () => {
@@ -427,7 +431,7 @@ export function JsonToCsvTool() {
           {/* Modern Options Bar with Switch Toggles */}
           <div className="p-3.5 bg-slate-50/80 dark:bg-[#0b1120]/80 border-t border-slate-200/80 dark:border-white/[0.06] flex flex-wrap items-center justify-between gap-4 text-xs">
             <ToggleSwitch
-              label="Flatten Nested"
+              label="Flatten Objects"
               checked={flatten}
               onChange={setFlatten}
               size="sm"
@@ -447,6 +451,19 @@ export function JsonToCsvTool() {
               </select>
             </div>
 
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 font-medium">Arrays:</span>
+              <select
+                value={arrayMode}
+                onChange={(e) => setArrayMode(e.target.value)}
+                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/[0.1] rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:border-sky-500 shadow-xs cursor-pointer"
+              >
+                <option value="join">Join with ;</option>
+                <option value="json">Raw JSON</option>
+                <option value="count">Item Count</option>
+              </select>
+            </div>
+
             <ToggleSwitch
               label="Header Row"
               checked={includeHeaders}
@@ -458,6 +475,13 @@ export function JsonToCsvTool() {
               label="Quote All"
               checked={quoteAll}
               onChange={setQuoteAll}
+              size="sm"
+            />
+
+            <ToggleSwitch
+              label="Excel BOM"
+              checked={includeBom}
+              onChange={setIncludeBom}
               size="sm"
             />
           </div>
