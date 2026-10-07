@@ -27,6 +27,7 @@ import { createSamplePdfBytes } from '../../utils/samplePdf';
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
 import { triggerConfetti } from '../../utils/confetti';
 import { marked } from 'marked';
 
@@ -169,6 +170,8 @@ export function PdfToMarkdownTool() {
   // Rendered preview HTML from extracted Markdown
   const previewHtml = marked.parse(extractedMarkdown || '*No text extracted.*');
 
+  const wordCount = extractedMarkdown ? extractedMarkdown.split(/\s+/).filter(Boolean).length : 0;
+
   return (
     <div className={`space-y-6 ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl overflow-y-auto' : ''}`}>
       {/* Header & Single H1 */}
@@ -205,6 +208,34 @@ export function PdfToMarkdownTool() {
             <span>Export Markdown (.md)</span>
           </button>
         </div>
+      </div>
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Total Pages"
+          value={`${totalPages} Pages`}
+          badge={`Page ${currentPage} of ${totalPages}`}
+          color="brand"
+        />
+        <StatCard
+          label="Canvas Zoom"
+          value={`${Math.round(zoomScale * 100)}% Scale`}
+          badge="Vector Rasterized"
+          color="emerald"
+        />
+        <StatCard
+          label="Extraction Scope"
+          value={extractScope === 'all' ? 'Complete Document' : `Page ${currentPage} Only`}
+          badge="AST Mode"
+          color="purple"
+        />
+        <StatCard
+          label="Extracted Words"
+          value={`${wordCount} Words`}
+          badge={`${extractedMarkdown.length} Characters`}
+          color="slate"
+        />
       </div>
 
       {/* Main Dual Workspace */}

@@ -7,7 +7,10 @@ import {
   RefreshCw,
   Sparkles,
   Layers,
-  Wand2
+  Wand2,
+  Code2,
+  CheckCircle2,
+  Cpu
 } from 'lucide-react';
 import {
   generateTypeScript,
@@ -19,7 +22,85 @@ import {
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
 import { fireConfetti } from '../../utils/confetti';
+
+const SCHEMA_PRESETS = [
+  {
+    id: 'ecommerce',
+    label: 'E-Commerce Order',
+    description: 'Nested items, billing & taxes',
+    rootName: 'OrderPayload',
+    json: SAMPLE_SCHEMA_JSON
+  },
+  {
+    id: 'user_session',
+    label: 'Auth Session',
+    description: 'JWT profile, roles & permissions',
+    rootName: 'AuthSession',
+    json: JSON.stringify({
+      id: "usr_9981",
+      email: "alex@enterprise.corp",
+      profile: {
+        firstName: "Alex",
+        lastName: "Vance",
+        avatarUrl: "https://cdn.example.com/avatars/9981.png"
+      },
+      roles: ["administrator", "platform_lead"],
+      permissions: {
+        canDeploy: true,
+        canDeleteDatabases: false,
+        maxRateLimit: 50000
+      },
+      lastLoginAt: 1712498210
+    }, null, 2)
+  },
+  {
+    id: 'stripe_event',
+    label: 'Stripe Webhook',
+    description: 'Charge succeeded & metadata',
+    rootName: 'PaymentIntentEvent',
+    json: JSON.stringify({
+      id: "evt_3MtwLwLkdIwHu7ix28a3tqPa",
+      object: "event",
+      api_version: "2024-04-10",
+      created: 1712498210,
+      data: {
+        object: {
+          id: "pi_3MtwLwLkdIwHu7ix28a3tqPa",
+          amount: 1099,
+          currency: "usd",
+          status: "succeeded",
+          payment_method_types: ["card"],
+          customer: "cus_123456",
+          receipt_email: "billing@acme.com"
+        }
+      },
+      livemode: false
+    }, null, 2)
+  },
+  {
+    id: 'metrics',
+    label: 'Server Telemetry',
+    description: 'Kubernetes pods & cpu loads',
+    rootName: 'NodeTelemetry',
+    json: JSON.stringify({
+      nodeId: "k8s-worker-us-east-4",
+      cluster: "production-core",
+      status: "ready",
+      resources: {
+        cpuCores: 32,
+        memoryGigabytes: 128,
+        allocatedCpuPercent: 74.2
+      },
+      activePods: [
+        { name: "gateway-api-7b89d", restarts: 0, healthy: true },
+        { name: "worker-queue-2x4f1", restarts: 2, healthy: true }
+      ]
+    }, null, 2)
+  }
+];
 
 export function JsonToTypesTool() {
   const toast = useToast();
@@ -28,6 +109,7 @@ export function JsonToTypesTool() {
   const [rootName, setRootName] = useState('OrderPayload');
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
+  const [activePreset, setActivePreset] = useState('ecommerce');
 
   // Esc key listener to exit Zen Mode
   useEffect(() => {
@@ -96,6 +178,23 @@ export function JsonToTypesTool() {
     toast.success(`Downloaded .${ext} file!`);
   };
 
+  const handleSelectPreset = (preset) => {
+    setJsonInput(preset.json);
+    setRootName(preset.rootName);
+    setActivePreset(preset.id);
+    toast.success(`Loaded "${preset.label}" schema preset`);
+  };
+
+  const detectedFieldsCount = useMemo(() => {
+    if (!parsedJson || typeof parsedJson !== 'object') return 0;
+    return Object.keys(parsedJson).length;
+  }, [parsedJson]);
+
+  const outputLinesCount = useMemo(() => {
+    if (!generatedCode) return 0;
+    return generatedCode.split('\n').length;
+  }, [generatedCode]);
+
   return (
     <div className="space-y-6">
       {/* Header & Single H1 */}
@@ -125,12 +224,48 @@ export function JsonToTypesTool() {
 
           <button
             onClick={handleDownloadCode}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Download Schema</span>
           </button>
         </div>
+      </div>
+
+      {/* Preset Chips */}
+      <PresetChips
+        presets={SCHEMA_PRESETS}
+        activeId={activePreset}
+        onSelect={handleSelectPreset}
+        title="Schema Templates"
+      />
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Root Interface"
+          value={rootName || 'Unnamed'}
+          badge="PascalCase"
+          color="brand"
+        />
+        <StatCard
+          label="Target Format"
+          value={targetLang === 'ts' ? 'TypeScript Interface' : targetLang === 'zod' ? 'Zod Validator' : targetLang === 'pydantic' ? 'Pydantic BaseModel' : 'PostgreSQL DDL'}
+          badge={targetLang.toUpperCase()}
+          color="emerald"
+        />
+        <StatCard
+          label="Top-Level Fields"
+          value={`${detectedFieldsCount} Attributes`}
+          badge={parsedJson ? 'Valid JSON' : 'Syntax Error'}
+          color={parsedJson ? 'purple' : 'rose'}
+        />
+        <StatCard
+          label="Generated Code"
+          value={`${outputLinesCount} Lines`}
+          badge="AST Rendered"
+          color="slate"
+        />
       </div>
 
       {/* Main Dual Workspace */}
@@ -150,15 +285,20 @@ export function JsonToTypesTool() {
             <button
               onClick={() => {
                 setJsonInput(SAMPLE_SCHEMA_JSON);
+                setRootName('OrderPayload');
+                setActivePreset('ecommerce');
                 toast.success('Sample JSON loaded');
               }}
-              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-1.5 py-0.5 rounded hover:bg-brand-500/10 transition-colors"
+              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 transition-colors"
             >
-              Sample
+              Reset
             </button>
             <button
-              onClick={() => setJsonInput('')}
-              className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
+              onClick={() => {
+                setJsonInput('');
+                setActivePreset(null);
+              }}
+              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
               title="Clear input"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -166,10 +306,14 @@ export function JsonToTypesTool() {
           </WindowHeader>
           <textarea
             value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
+            onChange={(e) => {
+              setJsonInput(e.target.value);
+              setActivePreset(null);
+            }}
             placeholder="Paste JSON object here..."
             rows={18}
             className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] ${fontSizeClass}`}
+            spellCheck={false}
           />
         </div>
 
@@ -184,10 +328,10 @@ export function JsonToTypesTool() {
             onFontSizeChange={setFontSize}
           >
             {/* Language Tabs */}
-            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-1">
+            <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-2">
               <button
                 onClick={() => setTargetLang('ts')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'ts'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -197,7 +341,7 @@ export function JsonToTypesTool() {
               </button>
               <button
                 onClick={() => setTargetLang('zod')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'zod'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -207,7 +351,7 @@ export function JsonToTypesTool() {
               </button>
               <button
                 onClick={() => setTargetLang('pydantic')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'pydantic'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -217,7 +361,7 @@ export function JsonToTypesTool() {
               </button>
               <button
                 onClick={() => setTargetLang('sql')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   targetLang === 'sql'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -229,12 +373,12 @@ export function JsonToTypesTool() {
 
             {/* Model Name Input */}
             <div className="flex items-center gap-1 text-xs">
-              <span className="text-slate-400 text-[10px]">Name:</span>
+              <span className="text-slate-400 text-[10px] uppercase font-bold">Name:</span>
               <input
                 type="text"
                 value={rootName}
                 onChange={(e) => setRootName(e.target.value)}
-                className="w-20 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-mono text-[10px] text-slate-800 dark:text-slate-200 focus:outline-none focus:border-brand-500"
+                className="w-24 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
           </WindowHeader>
@@ -246,7 +390,8 @@ export function JsonToTypesTool() {
               readOnly
               value={generatedCode}
               rows={18}
-              className={`w-full flex-1 p-3 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              className={`w-full flex-1 p-4 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              spellCheck={false}
             />
           </div>
         </div>
@@ -254,3 +399,4 @@ export function JsonToTypesTool() {
     </div>
   );
 }
+

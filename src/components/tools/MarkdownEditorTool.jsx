@@ -34,7 +34,75 @@ import {
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
 import { triggerConfetti } from '../../utils/confetti';
+
+const DOC_PRESETS = [
+  {
+    id: 'architecture',
+    label: 'Engineering RFC Spec',
+    description: 'Architecture context & system trade-offs',
+    markdown: SAMPLE_MARKDOWN
+  },
+  {
+    id: 'api_doc',
+    label: 'API Reference Document',
+    description: 'Endpoints, bearer authentication & payloads',
+    markdown: `# Users API — v2 Endpoint Reference
+
+The Users Service handles user entity lifecycles, authentication permissions, and role provisioning across our microservices mesh.
+
+## Base URL
+\`\`\`
+https://api.internal.network/v2
+\`\`\`
+
+### GET /users/{id}
+Retrieves detailed profile metadata for a registered tenant account.
+
+#### Request Headers
+| Header | Type | Description |
+| :--- | :--- | :--- |
+| \`Authorization\` | \`string\` | Bearer token format (\`Bearer eyJ...\`) |
+| \`X-Request-Id\` | \`uuid\` | Distributed tracing trace identifier |
+
+#### Response Example
+\`\`\`json
+{
+  "id": "usr_9981",
+  "name": "Elena Rostova",
+  "tier": "enterprise",
+  "active": true
+}
+\`\`\`
+
+> **Note:** Rate limited to 1,000 requests per rolling minute per API token.
+`
+  },
+  {
+    id: 'changelog',
+    label: 'Release Notes Changelog',
+    description: 'Version milestone features & fixes',
+    markdown: `# Release Notes — v2.4.0 (Production)
+
+*Shipped on October 7, 2026 by the Platform Engineering Core*
+
+### ⚡ Highlights & New Features
+- **Ultra-Fast In-Memory Engine:** 3x speedup on multi-megabyte CSV and JSON transformations.
+- **Raycast-Inspired Command Hub:** Global spotlight palette accessible with \`Ctrl+K\` / \`Cmd+K\`.
+- **Zero-Data Leak Guarantee:** Pure in-browser air-gap execution with zero cloud storage.
+
+### 🛡️ Security & Reliability
+- Upgraded Web Crypto API integration for SHA-256 integrity validation.
+- Sanitized markdown AST renderer to block remote iframe injection vectors.
+
+### 🐛 Bug Fixes
+- Fixed table scroll synchronization on Firefox 130+ windows.
+- Resolved delimiter sniffing ambiguity between tabs and semicolons.
+`
+  }
+];
 
 // Configure marked
 marked.setOptions({
@@ -49,10 +117,17 @@ export function MarkdownEditorTool() {
   const [activePreviewTab, setActivePreviewTab] = useState('rendered'); // 'rendered' | 'html-code'
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
+  const [activePreset, setActivePreset] = useState('architecture');
 
   const textareaRef = useRef(null);
 
   const metrics = useMemo(() => calculateMetrics(markdown), [markdown]);
+
+  const handleSelectPreset = (preset) => {
+    setMarkdown(preset.markdown);
+    setActivePreset(preset.id);
+    toast.success(`Loaded "${preset.label}" document template`);
+  };
 
   const renderedHtml = useMemo(() => {
     try {
@@ -155,7 +230,7 @@ export function MarkdownEditorTool() {
           <button
             onClick={handleExportHtml}
             id="btn-export-html"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Export HTML</span>
@@ -164,7 +239,7 @@ export function MarkdownEditorTool() {
           <button
             onClick={handlePrintToPdf}
             id="btn-print-pdf"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-all"
             title="Generate print-ready PDF using fine-tuned CSS media rules"
           >
             <Printer className="w-4 h-4" />
@@ -173,32 +248,51 @@ export function MarkdownEditorTool() {
         </div>
       </div>
 
-      {/* Real-Time Metrics Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl glass-panel text-xs">
-        <div className="flex items-center gap-4 text-slate-600 dark:text-slate-300 font-mono">
-          <span>
-            <strong className="text-slate-900 dark:text-white font-bold">{metrics.words}</strong> words
-          </span>
-          <span className="text-slate-400">•</span>
-          <span>
-            <strong className="text-slate-900 dark:text-white font-bold">{metrics.characters}</strong> chars
-          </span>
-          <span className="text-slate-400">•</span>
-          <span>
-            <strong className="text-slate-900 dark:text-white font-bold">{metrics.lines}</strong> lines
-          </span>
-          <span className="text-slate-400 hidden sm:inline">•</span>
-          <span className="hidden sm:flex items-center gap-1 text-brand-600 dark:text-brand-400">
-            <Clock className="w-3.5 h-3.5" />
-            ~{metrics.readingTimeMinutes} min read
-          </span>
-        </div>
+      {/* Preset Chips */}
+      <PresetChips
+        presets={DOC_PRESETS}
+        activeId={activePreset}
+        onSelect={handleSelectPreset}
+        title="Document Templates"
+      />
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Total Words"
+          value={metrics.words}
+          badge="Lexical Tokens"
+          color="brand"
+        />
+        <StatCard
+          label="Total Characters"
+          value={`${metrics.characters} chars`}
+          badge="Length"
+          color="slate"
+        />
+        <StatCard
+          label="Reading Duration"
+          value={`~${metrics.readingTimeMinutes} min`}
+          badge="Estimated Read"
+          color="emerald"
+        />
+        <StatCard
+          label="Total Lines"
+          value={`${metrics.lines} lines`}
+          badge="Paragraphs & Headings"
+          color="purple"
+        />
+      </div>
+
+      {/* View Mode Bar */}
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl glass-panel text-xs">
+        <span className="text-slate-500 font-medium">Workspace Canvas View:</span>
 
         {/* Layout View Toggles */}
         <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg">
           <button
             onClick={() => setViewMode('split')}
-            className={`p-1.5 rounded text-xs transition-colors ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               viewMode === 'split'
                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -206,10 +300,11 @@ export function MarkdownEditorTool() {
             title="Split View"
           >
             <Columns className="w-3.5 h-3.5" />
+            <span>Split View</span>
           </button>
           <button
             onClick={() => setViewMode('editor')}
-            className={`p-1.5 rounded text-xs transition-colors ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               viewMode === 'editor'
                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -217,10 +312,11 @@ export function MarkdownEditorTool() {
             title="Editor Only"
           >
             <FileCode className="w-3.5 h-3.5" />
+            <span>Editor Only</span>
           </button>
           <button
             onClick={() => setViewMode('preview')}
-            className={`p-1.5 rounded text-xs transition-colors ${
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
               viewMode === 'preview'
                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -228,6 +324,7 @@ export function MarkdownEditorTool() {
             title="Preview Only"
           >
             <Eye className="w-3.5 h-3.5" />
+            <span>Preview Only</span>
           </button>
         </div>
       </div>

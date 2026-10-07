@@ -9,7 +9,9 @@ import {
   FileCode,
   Sparkles,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Globe,
+  Send
 } from 'lucide-react';
 import {
   parseCurl,
@@ -22,7 +24,39 @@ import {
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
 import { fireConfetti } from '../../utils/confetti';
+
+const CURL_PRESETS = [
+  {
+    id: 'github',
+    label: 'GitHub API (GET)',
+    description: 'User details with Bearer token',
+    curl: `curl -X GET "https://api.github.com/user" \\
+  -H "Accept: application/vnd.github+json" \\
+  -H "Authorization: Bearer token_sample_demo_9981" \\
+  -H "User-Agent: QuickFormat-Client/2.0"`
+  },
+  {
+    id: 'stripe',
+    label: 'Stripe Payment (POST)',
+    description: 'Form URL-encoded charge intent',
+    curl: `curl https://api.stripe.com/v1/payment_intents \\
+  -u api_secret_sample_test_key: \\
+  -d amount=2000 \\
+  -d currency=usd \\
+  -d "payment_method_types[]=card"`
+  },
+  {
+    id: 'json_api',
+    label: 'JSON Payload (POST)',
+    description: 'Application/json authentication',
+    curl: `curl -X POST "https://api.example.com/v1/auth/login" \\
+  -H "Content-Type: application/json" \\
+  -d '{"email": "alex@company.com", "password": "superSecretPassword123"}'`
+  }
+];
 
 export function CurlConverterTool() {
   const toast = useToast();
@@ -30,6 +64,7 @@ export function CurlConverterTool() {
   const [langTab, setLangTab] = useState('fetch'); // 'fetch' | 'axios' | 'python' | 'go'
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
+  const [activePreset, setActivePreset] = useState(null);
 
   // Esc key listener to exit Zen Mode
   useEffect(() => {
@@ -86,6 +121,27 @@ export function CurlConverterTool() {
     toast.success(`Downloaded .${ext} file!`);
   };
 
+  const handleSelectPreset = (preset) => {
+    setCurlInput(preset.curl);
+    setActivePreset(preset.id);
+    toast.success(`Loaded "${preset.label}" cURL preset`);
+  };
+
+  const hostName = useMemo(() => {
+    if (!parsed || !parsed.url) return 'None';
+    try {
+      const u = new URL(parsed.url);
+      return u.hostname;
+    } catch {
+      return parsed.url.split('/')[2] || parsed.url;
+    }
+  }, [parsed]);
+
+  const headersCount = useMemo(() => {
+    if (!parsed || !parsed.headers) return 0;
+    return Object.keys(parsed.headers).length;
+  }, [parsed]);
+
   return (
     <div className="space-y-6">
       {/* Header & Single H1 */}
@@ -115,12 +171,48 @@ export function CurlConverterTool() {
 
           <button
             onClick={handleDownloadCode}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Download Script</span>
           </button>
         </div>
+      </div>
+
+      {/* Preset Chips */}
+      <PresetChips
+        presets={CURL_PRESETS}
+        activeId={activePreset}
+        onSelect={handleSelectPreset}
+        title="Sample Requests"
+      />
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="HTTP Method"
+          value={parsed && parsed.method ? parsed.method : 'GET'}
+          badge="Verb"
+          color="brand"
+        />
+        <StatCard
+          label="Target Host"
+          value={hostName}
+          badge="Destination"
+          color="emerald"
+        />
+        <StatCard
+          label="Request Headers"
+          value={`${headersCount} Headers`}
+          badge="Detected"
+          color="purple"
+        />
+        <StatCard
+          label="Target Runtime"
+          value={langTab === 'fetch' ? 'Browser & Node Fetch' : langTab === 'axios' ? 'Axios Client' : langTab === 'python' ? 'Python Requests' : 'Go net/http'}
+          badge={langTab.toUpperCase()}
+          color="slate"
+        />
       </div>
 
       {/* Main Dual Workspace */}
@@ -140,15 +232,19 @@ export function CurlConverterTool() {
             <button
               onClick={() => {
                 setCurlInput(SAMPLE_CURL);
+                setActivePreset(null);
                 toast.success('Sample cURL loaded');
               }}
-              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-1.5 py-0.5 rounded hover:bg-brand-500/10 transition-colors"
+              className="text-xs text-brand-500 hover:text-brand-400 font-medium px-2 py-1 rounded-lg hover:bg-brand-500/10 transition-colors"
             >
-              Sample
+              Reset
             </button>
             <button
-              onClick={() => setCurlInput('')}
-              className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
+              onClick={() => {
+                setCurlInput('');
+                setActivePreset(null);
+              }}
+              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
               title="Clear input"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -156,10 +252,14 @@ export function CurlConverterTool() {
           </WindowHeader>
           <textarea
             value={curlInput}
-            onChange={(e) => setCurlInput(e.target.value)}
+            onChange={(e) => {
+              setCurlInput(e.target.value);
+              setActivePreset(null);
+            }}
             placeholder="Paste cURL command here (e.g. curl -X POST 'https://api.example.com'...)..."
             rows={18}
             className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[420px] ${fontSizeClass}`}
+            spellCheck={false}
           />
         </div>
 
@@ -177,7 +277,7 @@ export function CurlConverterTool() {
             <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-1">
               <button
                 onClick={() => setLangTab('fetch')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'fetch'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -187,7 +287,7 @@ export function CurlConverterTool() {
               </button>
               <button
                 onClick={() => setLangTab('axios')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'axios'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -197,7 +297,7 @@ export function CurlConverterTool() {
               </button>
               <button
                 onClick={() => setLangTab('python')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'python'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -207,7 +307,7 @@ export function CurlConverterTool() {
               </button>
               <button
                 onClick={() => setLangTab('go')}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
                   langTab === 'go'
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -216,12 +316,6 @@ export function CurlConverterTool() {
                 Go
               </button>
             </div>
-
-            {parsed && parsed.url && (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-bold">
-                {parsed.method}
-              </span>
-            )}
           </WindowHeader>
 
           {/* Generated Code Area */}
@@ -231,7 +325,8 @@ export function CurlConverterTool() {
               readOnly
               value={generatedCode}
               rows={18}
-              className={`w-full flex-1 p-3 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              className={`w-full flex-1 p-4 font-mono bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none resize-none leading-relaxed min-h-[400px] ${fontSizeClass}`}
+              spellCheck={false}
             />
           </div>
         </div>
@@ -239,3 +334,4 @@ export function CurlConverterTool() {
     </div>
   );
 }
+

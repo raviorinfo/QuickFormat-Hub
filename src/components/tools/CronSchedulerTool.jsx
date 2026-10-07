@@ -1,25 +1,57 @@
 import React, { useState, useMemo } from 'react';
 import {
   Clock,
-  Copy,
   Calendar,
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  HelpCircle,
+  History,
+  Activity,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from 'lucide-react';
 import { parseCronExpression, CRON_PRESETS } from '../../utils/cronParser';
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
+
+const STUDIO_CRON_PRESETS = CRON_PRESETS.map((p) => ({
+  id: p.cron,
+  label: p.label,
+  description: p.cron,
+  cron: p.cron
+}));
 
 export function CronSchedulerTool() {
   const toast = useToast();
   const [cronInput, setCronInput] = useState('0 9 * * 1-5');
+  const [activePreset, setActivePreset] = useState('0 9 * * 1-5');
 
   const parsed = useMemo(() => parseCronExpression(cronInput), [cronInput]);
+
+  const handleSelectPreset = (preset) => {
+    setCronInput(preset.cron);
+    setActivePreset(preset.id);
+    toast.success(`Loaded "${preset.label}" schedule`);
+  };
+
+  const nextRunRelative = useMemo(() => {
+    if (!parsed.valid || !parsed.nextRuns || parsed.nextRuns.length === 0) return 'Invalid';
+    const next = parsed.nextRuns[0];
+    const diffMs = next.getTime() - Date.now();
+    if (diffMs <= 0) return 'Imminent';
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    if (diffHours > 24) {
+      const days = Math.floor(diffHours / 24);
+      return `in ${days}d ${diffHours % 24}h`;
+    }
+    if (diffHours > 0) return `in ${diffHours}h ${diffMins}m`;
+    return `in ${diffMins}m`;
+  }, [parsed]);
 
   return (
     <div className="space-y-6">
@@ -47,54 +79,85 @@ export function CronSchedulerTool() {
         />
       </div>
 
+      {/* Preset Chips */}
+      <PresetChips
+        presets={STUDIO_CRON_PRESETS}
+        activeId={activePreset}
+        onSelect={handleSelectPreset}
+        title="Production Schedules"
+      />
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Schedule Status"
+          value={parsed.valid ? 'Syntax Valid' : 'Syntax Error'}
+          badge={parsed.valid ? 'UNIX 5-Field' : 'Invalid'}
+          color={parsed.valid ? 'emerald' : 'rose'}
+        />
+        <StatCard
+          label="Next Execution"
+          value={nextRunRelative}
+          badge="Countdown"
+          color="brand"
+        />
+        <StatCard
+          label="Recurrence Depth"
+          value={parsed.valid && parsed.nextRuns ? `${parsed.nextRuns.length} Predicted` : '0 Runs'}
+          badge="Future Runs"
+          color="purple"
+        />
+        <StatCard
+          label="Active Timezone"
+          value={Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local UTC'}
+          badge="Browser Context"
+          color="amber"
+        />
+      </div>
+
       {/* Main Expression Input & Human Translation Banner */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
         <WindowHeader
           title="Cron Expression Editor"
-          badge="UNIX 5-Field"
+          badge="UNIX Syntax"
         />
 
-        <div className="p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <input
-              type="text"
-              value={cronInput}
-              onChange={(e) => setCronInput(e.target.value)}
-              placeholder="* * * * *"
-              className="w-full sm:w-1/2 px-4 py-3 font-mono text-base font-bold bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 text-center tracking-widest"
-            />
+        <div className="p-6 space-y-5">
+          <div className="flex flex-col lg:flex-row items-center gap-4">
+            <div className="relative w-full lg:w-1/2">
+              <input
+                type="text"
+                value={cronInput}
+                onChange={(e) => {
+                  setCronInput(e.target.value);
+                  setActivePreset(null);
+                }}
+                placeholder="* * * * *"
+                className="w-full px-5 py-3.5 font-mono text-lg font-bold bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 text-center tracking-widest transition-all"
+              />
+            </div>
 
             {/* Plain English Translation Pill */}
-            <div className="w-full sm:flex-1 p-3.5 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
-              <div>
-                <span className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 block uppercase">
-                  Plain English Schedule
+            <div className={`w-full lg:flex-1 p-4 rounded-xl border flex items-center gap-3 transition-colors ${
+              parsed.valid
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-950 dark:text-emerald-100'
+                : 'bg-rose-500/10 border-rose-500/20 text-rose-950 dark:text-rose-100'
+            }`}>
+              {parsed.valid ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+              )}
+              <div className="min-w-0">
+                <span className={`text-[10px] font-bold block uppercase tracking-wider ${
+                  parsed.valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                }`}>
+                  {parsed.valid ? 'Plain English Translation' : 'Validation Error'}
                 </span>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                   {parsed.valid ? parsed.humanText : parsed.error}
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Presets Chips */}
-          <div className="pt-2">
-            <span className="text-xs text-slate-400 block mb-2 font-medium">Quick Presets:</span>
-            <div className="flex flex-wrap gap-2">
-              {CRON_PRESETS.map((preset) => (
-                <button
-                  key={preset.cron}
-                  onClick={() => setCronInput(preset.cron)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors border ${
-                    cronInput === preset.cron
-                      ? 'bg-brand-500 text-white border-brand-500 font-bold'
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                  }`}
-                >
-                  {preset.label} <span className="opacity-60 text-[10px] ml-1">({preset.cron})</span>
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -103,58 +166,67 @@ export function CronSchedulerTool() {
       {/* Field Anatomy Breakdown Cards */}
       {parsed.valid && parsed.parts && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">1. Minute (0-59)</span>
-            <span className="font-mono text-base font-bold text-brand-500">{parsed.parts.min}</span>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">1. Minute (0-59)</span>
+            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.min}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">2. Hour (0-23)</span>
-            <span className="font-mono text-base font-bold text-brand-500">{parsed.parts.hour}</span>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">2. Hour (0-23)</span>
+            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.hour}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">3. Day of Month (1-31)</span>
-            <span className="font-mono text-base font-bold text-brand-500">{parsed.parts.dom}</span>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">3. Day of Mo (1-31)</span>
+            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.dom}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">4. Month (1-12)</span>
-            <span className="font-mono text-base font-bold text-brand-500">{parsed.parts.mon}</span>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center transition-all hover:border-brand-500/40">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">4. Month (1-12)</span>
+            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.mon}</span>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-center col-span-2 sm:col-span-1">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">5. Day of Week (0-6)</span>
-            <span className="font-mono text-base font-bold text-brand-500">{parsed.parts.dow}</span>
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center col-span-2 sm:col-span-1 transition-all hover:border-brand-500/40">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">5. Day of Wk (0-6)</span>
+            <span className="font-mono text-lg font-extrabold text-brand-500">{parsed.parts.dow}</span>
           </div>
         </div>
       )}
 
-      {/* Calculated Next Run Occurrences */}
+      {/* Calculated Next Run Occurrences Timeline */}
       {parsed.valid && parsed.nextRuns && parsed.nextRuns.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
           <WindowHeader
-            title="Scheduled Execution Timestamps"
-            badge="Next 6 Runs"
+            title="Scheduled Execution Timeline"
+            badge="Next 6 Occurrences"
           />
 
           <div className="p-6 divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs">
             {parsed.nextRuns.map((date, idx) => (
-              <div key={idx} className="py-2.5 flex items-center justify-between flex-wrap gap-2">
+              <div key={idx} className="py-3 flex items-center justify-between flex-wrap gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-850/50 px-3 rounded-lg transition-colors">
                 <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[11px] font-bold text-brand-500">
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    idx === 0
+                      ? 'bg-brand-500 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}>
                     {idx + 1}
                   </span>
-                  <span className="text-slate-800 dark:text-slate-200 font-medium">
+                  <span className="text-slate-800 dark:text-slate-200 font-semibold">
                     {date.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                   </span>
-                  <span className="text-brand-600 dark:text-brand-400 font-bold">
+                  <span className="text-brand-600 dark:text-brand-400 font-bold bg-brand-500/10 px-2 py-0.5 rounded">
                     {date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                   </span>
+                  {idx === 0 && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      Immediate Next
+                    </span>
+                  )}
                 </div>
 
-                <span className="text-slate-400 text-[11px]">
-                  UTC: {date.toISOString().replace('T', ' ').slice(0, 16)}Z
+                <span className="text-slate-400 text-[11px] font-mono">
+                  ISO: {date.toISOString().replace('T', ' ').slice(0, 16)} UTC
                 </span>
               </div>
             ))}
@@ -164,3 +236,4 @@ export function CronSchedulerTool() {
     </div>
   );
 }
+

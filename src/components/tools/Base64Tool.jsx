@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Binary,
   Copy,
@@ -10,12 +10,48 @@ import {
   Sparkles,
   ArrowRightLeft,
   CheckCircle2,
-  Code2
+  Code2,
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 import { textToBase64, base64ToText, SAMPLE_BASE64_TEXT } from '../../utils/base64Utils';
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
+import { ToggleSwitch } from '../common/ToggleSwitch';
+
+const BASE64_PRESETS = [
+  {
+    id: 'auth',
+    label: 'Basic Auth',
+    description: 'username:secret_token header',
+    text: 'admin:super_secret_production_key_99',
+    direction: 'encode'
+  },
+  {
+    id: 'svg',
+    label: 'Inline SVG Vector',
+    description: 'Clean SVG icon markup',
+    text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+    direction: 'encode'
+  },
+  {
+    id: 'json_payload',
+    label: 'Base64 Encoded JSON',
+    description: 'Decodable session object',
+    text: 'eyJ1c2VySWQiOiJ1c3JfOGE5MTBjYiIsInJvbGUiOiJzdXBlcmFkbWluIiwicGVybWlzc2lvbnMiOlsid3JpdGUiLCJyZWFkIiwiYWRtaW4iXX0=',
+    direction: 'decode'
+  },
+  {
+    id: 'unicode',
+    label: 'UTF-8 Multilingual',
+    description: 'Accents, CJK & Emojis',
+    text: 'QuickFormat Hub 🚀 • 日本語 • España • München • 100% Privacy',
+    direction: 'encode'
+  }
+];
 
 export function Base64Tool() {
   const toast = useToast();
@@ -27,6 +63,7 @@ export function Base64Tool() {
   const [urlSafe, setUrlSafe] = useState(false);
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
+  const [activePreset, setActivePreset] = useState(null);
 
   // Esc key listener to exit Zen Mode
   useEffect(() => {
@@ -50,7 +87,7 @@ export function Base64Tool() {
   const [fileData, setFileData] = useState(null); // { name, type, size, dataUrl, base64 }
 
   // Compute text output
-  const textOutput = React.useMemo(() => {
+  const textOutput = useMemo(() => {
     if (!textInput) return '';
     if (direction === 'encode') {
       const res = textToBase64(textInput, urlSafe);
@@ -60,6 +97,14 @@ export function Base64Tool() {
       return res.success ? res.result : `Error: ${res.error}`;
     }
   }, [textInput, direction, urlSafe]);
+
+  const handleSelectPreset = (preset) => {
+    setTextInput(preset.text);
+    setDirection(preset.direction);
+    setActivePreset(preset.id);
+    setActiveMode('text');
+    toast.success(`Loaded "${preset.label}" preset`);
+  };
 
   // Handle file drop/upload
   const handleFileUpload = (e) => {
@@ -83,6 +128,11 @@ export function Base64Tool() {
     e.target.value = '';
   };
 
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`Copied ${label} to clipboard!`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header & Single H1 */}
@@ -104,7 +154,7 @@ export function Base64Tool() {
         <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-1 rounded-xl">
           <button
             onClick={() => setActiveMode('text')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               activeMode === 'text'
                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -114,7 +164,7 @@ export function Base64Tool() {
           </button>
           <button
             onClick={() => setActiveMode('file')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               activeMode === 'file'
                 ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -125,30 +175,69 @@ export function Base64Tool() {
         </div>
       </div>
 
+      {/* Preset Chips */}
+      {activeMode === 'text' && (
+        <PresetChips
+          presets={BASE64_PRESETS}
+          activeId={activePreset}
+          onSelect={handleSelectPreset}
+          title="Common Payloads"
+        />
+      )}
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Input Size"
+          value={activeMode === 'text' ? `${textInput.length} chars` : fileData ? `${(fileData.size / 1024).toFixed(1)} KB` : '0 KB'}
+          badge={activeMode === 'text' ? (direction === 'encode' ? 'UTF-8 String' : 'Base64 String') : 'Binary Stream'}
+          color="slate"
+        />
+        <StatCard
+          label="Output Size"
+          value={activeMode === 'text' ? `${textOutput.length} chars` : fileData ? `${(fileData.base64.length / 1024).toFixed(1)} KB` : '0 KB'}
+          badge={activeMode === 'text' ? (direction === 'encode' ? 'ASCII Base64' : 'Plain Text') : 'Data URI'}
+          color="brand"
+        />
+        <StatCard
+          label="Size Overhead"
+          value={direction === 'encode' ? '+33.3%' : '-25.0%'}
+          badge="RFC 4648 Ratio"
+          color="emerald"
+        />
+        <StatCard
+          label="Encoding Standard"
+          value={urlSafe ? 'URL-Safe RFC 4648' : 'Standard Base64'}
+          badge={urlSafe ? '- and _' : '+ and /'}
+          color="purple"
+        />
+      </div>
+
       {activeMode === 'text' ? (
         /* TEXT ENCODER / DECODER WORKSPACE */
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex items-center justify-between flex-wrap gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          <div className="flex items-center justify-between flex-wrap gap-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            {/* Direction Segmented Switch */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Operation:</span>
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+              <span className="text-xs font-medium text-slate-500">Operation:</span>
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl">
                 <button
                   onClick={() => setDirection('encode')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     direction === 'encode'
                       ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
-                      : 'text-slate-500'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
                   Text → Base64 (Encode)
                 </button>
                 <button
                   onClick={() => setDirection('decode')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                     direction === 'decode'
                       ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
-                      : 'text-slate-500'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
                   Base64 → Text (Decode)
@@ -156,16 +245,12 @@ export function Base64Tool() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-xs">
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={urlSafe}
-                  onChange={(e) => setUrlSafe(e.target.checked)}
-                  className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
-                />
-                <span className="text-slate-700 dark:text-slate-300">URL-Safe Base64</span>
-              </label>
+            <div className="flex items-center gap-5 text-xs">
+              <ToggleSwitch
+                checked={urlSafe}
+                onChange={setUrlSafe}
+                label="URL-Safe Base64"
+              />
 
               <CopyButton
                 text={textOutput}
@@ -192,8 +277,11 @@ export function Base64Tool() {
                 onToggleZen={() => setIsZenMode(!isZenMode)}
               >
                 <button
-                  onClick={() => setTextInput('')}
-                  className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
+                  onClick={() => {
+                    setTextInput('');
+                    setActivePreset(null);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                   title="Clear input"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -201,10 +289,13 @@ export function Base64Tool() {
               </WindowHeader>
               <textarea
                 value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
+                onChange={(e) => {
+                  setTextInput(e.target.value);
+                  setActivePreset(null);
+                }}
                 placeholder="Type or paste content here..."
                 rows={14}
-                className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[320px] ${fontSizeClass}`}
+                className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
               />
             </div>
 
@@ -223,7 +314,7 @@ export function Base64Tool() {
                 readOnly
                 value={textOutput}
                 rows={14}
-                className={`w-full p-4 font-mono bg-slate-50 dark:bg-slate-950/80 text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[320px] ${fontSizeClass}`}
+                className={`w-full p-4 font-mono bg-slate-50 dark:bg-slate-950/80 text-slate-900 dark:text-slate-100 focus:outline-none resize-none leading-relaxed min-h-[340px] ${fontSizeClass}`}
               />
             </div>
           </div>
@@ -270,19 +361,19 @@ export function Base64Tool() {
                   </p>
                   <div className="pt-3 flex flex-wrap gap-2">
                     <button
-                      onClick={() => handleCopy(fileData.dataUrl, 'Data URL')}
+                      onClick={() => copyToClipboard(fileData.dataUrl, 'Data URL')}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white transition-colors"
                     >
                       Copy Data URL
                     </button>
                     <button
-                      onClick={() => handleCopy(`<img src="${fileData.dataUrl}" alt="${fileData.name}" />`, 'HTML Tag')}
+                      onClick={() => copyToClipboard(`<img src="${fileData.dataUrl}" alt="${fileData.name}" />`, 'HTML Tag')}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors"
                     >
                       Copy &lt;img&gt; Tag
                     </button>
                     <button
-                      onClick={() => handleCopy(`background-image: url("${fileData.dataUrl}");`, 'CSS')}
+                      onClick={() => copyToClipboard(`background-image: url("${fileData.dataUrl}");`, 'CSS')}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-colors"
                     >
                       Copy CSS
@@ -310,3 +401,4 @@ export function Base64Tool() {
     </div>
   );
 }
+

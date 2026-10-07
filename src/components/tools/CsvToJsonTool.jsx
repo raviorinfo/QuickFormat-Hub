@@ -1,25 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileCode,
   Download,
   Copy,
-  Wand2,
-  Minimize2,
   Trash2,
   Upload,
   RefreshCw,
-  FileSpreadsheet,
-  CheckCircle2,
-  Sliders,
-  Sparkles,
   Layers,
-  ArrowRight
+  Sparkles,
+  Table,
+  CheckCircle2,
+  FileSpreadsheet
 } from 'lucide-react';
 import { csvToJson, SAMPLE_CSV } from '../../utils/csvToJson';
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { StatCard } from '../common/StatCard';
+import { PresetChips } from '../common/PresetChips';
+import { ToggleSwitch } from '../common/ToggleSwitch';
 import { fireConfetti } from '../../utils/confetti';
+
+const CSV_PRESETS = [
+  {
+    id: 'employees',
+    label: 'Team Directory',
+    description: 'Nested dots with departments & salaries',
+    data: `id,profile.name,profile.title,department,salary,active
+1,Alex Vance,Staff Engineer,Platform,185000,true
+2,Jordan Hayes,Product Director,Growth,192000,true
+3,Elena Rostova,Security Architect,InfoSec,210000,true
+4,Marcus Brody,Data Scientist,Analytics,168000,false`
+  },
+  {
+    id: 'ecommerce',
+    label: 'Order Ledgers',
+    description: 'Financial transactions & currency codes',
+    data: `order_id,customer.email,items_count,total_usd,currency,paid,shipped
+ORD-8821,alice@enterprise.io,3,489.50,USD,true,true
+ORD-8822,bob@startup.dev,1,49.00,USD,true,false
+ORD-8823,carol@agency.co,12,3240.00,EUR,true,true
+ORD-8824,david@cloud.org,2,120.00,GBP,false,false`
+  },
+  {
+    id: 'metrics',
+    label: 'DevOps Nodes',
+    description: 'Cluster health metrics & memory loads',
+    data: `host,region,specs.cpu_cores,specs.ram_gb,load_avg,healthy
+node-us-east-1a,us-east-1,64,256,1.42,true
+node-us-east-1b,us-east-1,64,256,4.89,true
+node-eu-west-1a,eu-west-1,32,128,0.78,true
+node-ap-south-1a,ap-south-1,16,64,12.45,false`
+  }
+];
 
 export function CsvToJsonTool() {
   const toast = useToast();
@@ -33,6 +66,7 @@ export function CsvToJsonTool() {
   const [indentation, setIndentation] = useState(2);
   const [fontSize, setFontSize] = useState('normal');
   const [isZenMode, setIsZenMode] = useState(false);
+  const [activePreset, setActivePreset] = useState(null);
 
   const [result, setResult] = useState(null);
 
@@ -118,12 +152,24 @@ export function CsvToJsonTool() {
       const content = event.target?.result;
       if (typeof content === 'string') {
         setCsvInput(content);
+        setActivePreset(null);
         toast.success(`Loaded "${file.name}"`);
       }
     };
     reader.readAsText(file);
     e.target.value = '';
   };
+
+  const handleSelectPreset = (preset) => {
+    setCsvInput(preset.data);
+    setActivePreset(preset.id);
+    toast.success(`Loaded "${preset.label}" preset`);
+  };
+
+  const inputLines = useMemo(() => {
+    if (!csvInput) return 0;
+    return csvInput.split('\n').filter((l) => l.trim().length > 0).length;
+  }, [csvInput]);
 
   return (
     <div className="space-y-6">
@@ -156,12 +202,48 @@ export function CsvToJsonTool() {
             onClick={handleDownloadJson}
             disabled={!result}
             id="btn-download-json"
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
             <span>Download JSON</span>
           </button>
         </div>
+      </div>
+
+      {/* Preset Chips Bar */}
+      <PresetChips
+        presets={CSV_PRESETS}
+        activeId={activePreset}
+        onSelect={handleSelectPreset}
+        title="Sample Spreadsheets"
+      />
+
+      {/* Executive KPI Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard
+          label="Input Rows"
+          value={inputLines}
+          badge="Raw Lines"
+          color="slate"
+        />
+        <StatCard
+          label="Parsed Records"
+          value={result ? result.rowCount : 0}
+          badge={hasHeader ? 'Header Filtered' : 'Direct'}
+          color="brand"
+        />
+        <StatCard
+          label="Active Delimiter"
+          value={delimiter === 'auto' ? 'Auto Detect' : delimiter === ',' ? 'Comma (,)' : delimiter === ';' ? 'Semicolon (;)' : delimiter === '\t' ? 'Tab (\\t)' : delimiter}
+          badge="RFC 4180"
+          color="emerald"
+        />
+        <StatCard
+          label="Output Size"
+          value={result && result.json ? `${(new Blob([result.json]).size / 1024).toFixed(1)} KB` : '0 KB'}
+          badge="UTF-8 JSON"
+          color="purple"
+        />
       </div>
 
       {/* Main Dual-Pane Workspace */}
@@ -179,7 +261,7 @@ export function CsvToJsonTool() {
             onToggleZen={() => setIsZenMode(!isZenMode)}
           >
             <label
-              className="p-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1 cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1 cursor-pointer"
               title="Upload CSV/TSV file"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -195,21 +277,23 @@ export function CsvToJsonTool() {
             <button
               onClick={() => {
                 setCsvInput(SAMPLE_CSV);
+                setActivePreset(null);
                 toast.success('Sample CSV loaded');
               }}
-              className="p-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1"
-              title="Reset to Sample CSV"
+              className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-xs font-medium flex items-center gap-1"
+              title="Reset to Default Sample"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sample</span>
+              <span className="hidden sm:inline">Reset</span>
             </button>
 
             <button
               onClick={() => {
                 setCsvInput('');
+                setActivePreset(null);
                 toast.info('Input cleared');
               }}
-              className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
               title="Clear input"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -220,22 +304,25 @@ export function CsvToJsonTool() {
           <textarea
             id="csv-input-textarea"
             value={csvInput}
-            onChange={(e) => setCsvInput(e.target.value)}
+            onChange={(e) => {
+              setCsvInput(e.target.value);
+              setActivePreset(null);
+            }}
             placeholder="Paste CSV or TSV data here..."
             rows={16}
             className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y leading-relaxed min-h-[380px] ${fontSizeClass}`}
             spellCheck={false}
           />
 
-          {/* Options Footer Bar */}
-          <div className="p-3 bg-slate-50/80 dark:bg-slate-850/80 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          {/* Options Footer Bar with modern ToggleSwitches */}
+          <div className="p-4 bg-slate-50/80 dark:bg-slate-850/80 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
             {/* Delimiter Selection */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500">Delimiter:</span>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 font-medium">Delimiter:</span>
               <select
                 value={delimiter}
                 onChange={(e) => setDelimiter(e.target.value)}
-                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-brand-500"
+                className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 <option value="auto">Auto Detect</option>
                 <option value=",">Comma (,)</option>
@@ -245,40 +332,24 @@ export function CsvToJsonTool() {
               </select>
             </div>
 
-            {/* Unflatten dot notation toggle */}
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={unflatten}
-                onChange={(e) => setUnflatten(e.target.checked)}
-                className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
-              />
-              <span className="text-slate-700 dark:text-slate-300 font-medium">
-                Unflatten Dots (a.b)
-              </span>
-            </label>
-
-            {/* Parse numbers & booleans */}
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={parseNumbers}
-                onChange={(e) => setParseNumbers(e.target.checked)}
-                className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
-              />
-              <span className="text-slate-700 dark:text-slate-300">Parse Numbers</span>
-            </label>
-
-            {/* Header row toggle */}
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
+            {/* Toggle Switches */}
+            <div className="flex items-center gap-5 flex-wrap">
+              <ToggleSwitch
                 checked={hasHeader}
-                onChange={(e) => setHasHeader(e.target.checked)}
-                className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
+                onChange={setHasHeader}
+                label="First Row Header"
               />
-              <span className="text-slate-700 dark:text-slate-300">First Row Header</span>
-            </label>
+              <ToggleSwitch
+                checked={unflatten}
+                onChange={setUnflatten}
+                label="Unflatten Dots (a.b)"
+              />
+              <ToggleSwitch
+                checked={parseNumbers}
+                onChange={setParseNumbers}
+                label="Parse Numbers"
+              />
+            </div>
           </div>
         </div>
 
@@ -296,7 +367,7 @@ export function CsvToJsonTool() {
             <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-lg text-xs mr-1">
               <button
                 onClick={() => setIndentation(2)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 2
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -306,7 +377,7 @@ export function CsvToJsonTool() {
               </button>
               <button
                 onClick={() => setIndentation(4)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 4
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -316,21 +387,15 @@ export function CsvToJsonTool() {
               </button>
               <button
                 onClick={() => setIndentation(0)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors ${
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-colors ${
                   indentation === 0
                     ? 'bg-white dark:bg-slate-700 text-brand-500 shadow-xs'
                     : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                 }`}
               >
-                Min
+                Minify
               </button>
             </div>
-
-            {result && (
-              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-mono font-semibold">
-                {result.rowCount} Records
-              </span>
-            )}
           </WindowHeader>
 
           {/* Body */}
@@ -360,3 +425,4 @@ export function CsvToJsonTool() {
     </div>
   );
 }
+

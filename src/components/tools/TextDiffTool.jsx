@@ -17,7 +17,8 @@ import {
   SlidersHorizontal,
   Sparkles,
   Link2,
-  Link2Off
+  Link2Off,
+  Zap
 } from 'lucide-react';
 import {
   computeLineDiff,
@@ -27,7 +28,33 @@ import {
 import { useToast } from '../../context/ToastContext';
 import { WindowHeader } from '../common/WindowHeader';
 import { CopyButton } from '../common/CopyButton';
+import { ToggleSwitch } from '../common/ToggleSwitch';
+import { PresetChips } from '../common/PresetChips';
 import { fireConfetti } from '../../utils/confetti';
+
+const DIFF_PRESETS = [
+  {
+    id: 'api',
+    label: 'API JSON Payload',
+    description: 'REST API response schema with added fields and modified status',
+    orig: `{\n  "status": 200,\n  "data": {\n    "user_id": 4921,\n    "tier": "free",\n    "rate_limit": 100\n  }\n}`,
+    mod: `{\n  "status": 200,\n  "data": {\n    "user_id": 4921,\n    "tier": "enterprise",\n    "rate_limit": 10000,\n    "sso_enabled": true\n  }\n}`,
+  },
+  {
+    id: 'config',
+    label: 'Docker Compose YAML',
+    description: 'Service configuration version bump and environment variables',
+    orig: `version: '3.8'\nservices:\n  app:\n    image: node:18-alpine\n    ports:\n      - "3000:3000"\n    environment:\n      NODE_ENV: development`,
+    mod: `version: '3.8'\nservices:\n  app:\n    image: node:20-alpine\n    ports:\n      - "3000:3000"\n    environment:\n      NODE_ENV: production\n      LOG_LEVEL: debug`,
+  },
+  {
+    id: 'sql',
+    label: 'SQL Query Refactor',
+    description: 'Optimization of database query with index hints and join syntax',
+    orig: `SELECT u.id, u.name, o.total\nFROM users u, orders o\nWHERE u.id = o.user_id\nAND o.status = 'completed';`,
+    mod: `SELECT u.id, u.name, SUM(o.total) AS lifetime_value\nFROM users u\nINNER JOIN orders o ON u.id = o.user_id\nWHERE o.status = 'completed'\nGROUP BY u.id, u.name;`,
+  },
+];
 
 export function TextDiffTool() {
   const toast = useToast();
@@ -39,6 +66,7 @@ export function TextDiffTool() {
   const [fontSize, setFontSize] = useState('normal'); // 'small' | 'normal' | 'large'
   const [isZenMode, setIsZenMode] = useState(false);
   const [syncScroll, setSyncScroll] = useState(true);
+  const [activePreset, setActivePreset] = useState(null);
 
   const origTextareaRef = useRef(null);
   const modTextareaRef = useRef(null);
@@ -91,59 +119,48 @@ export function TextDiffTool() {
     const temp = originalText;
     setOriginalText(modifiedText);
     setModifiedText(temp);
-    toast.info('Swapped Original and Modified texts');
+    setActivePreset(null);
+    toast.info('Swapped Original and Modified text');
   };
 
-  // Clear all
-  const handleClear = () => {
-    setOriginalText('');
-    setModifiedText('');
-    toast.info('Cleared text inputs');
-  };
-
-  // Load sample code
+  // Reset Sample
   const handleLoadSample = () => {
     setOriginalText(SAMPLE_DIFF_ORIGINAL);
     setModifiedText(SAMPLE_DIFF_MODIFIED);
-    toast.success('Sample configuration diff loaded');
+    setActivePreset(null);
+    toast.success('Baseline sample code restored');
   };
 
-  // Generate Diff Report text
+  const handleClear = () => {
+    setOriginalText('');
+    setModifiedText('');
+    setActivePreset(null);
+    toast.info('Cleared inputs');
+  };
+
+  const handleSelectPreset = (preset) => {
+    setOriginalText(preset.orig);
+    setModifiedText(preset.mod);
+    setActivePreset(preset.id);
+    toast.success(`Loaded ${preset.label}`);
+  };
+
+  // Export Unified Patch Report
   const getReportText = () => {
-    const reportLines = [
-      `--- Original (${diffResult.stats.deletions} deletions)`,
-      `+++ Modified (${diffResult.stats.additions} additions)`,
-      `@@ Summary: ${diffResult.stats.additions} added, ${diffResult.stats.deletions} deleted, ${diffResult.stats.unchanged} unchanged @@\n`,
-    ];
-
-    diffResult.operations.forEach((op) => {
-      if (op.type === 'delete') {
-        reportLines.push(`- ${op.origLine}`);
-      } else if (op.type === 'insert') {
-        reportLines.push(`+ ${op.modLine}`);
-      } else {
-        reportLines.push(`  ${op.origLine}`);
-      }
-    });
-
-    return reportLines.join('\n');
-  };
-
-  // Download Patch file
-  const handleDownloadPatch = () => {
-    const patchContent = [
-      `# QuickFormat Hub Unified Diff Patch`,
-      `# Generated at: ${new Date().toISOString()}`,
-      `--- original.txt`,
-      `+++ modified.txt`,
-      `@@ -${diffResult.stats.deletions} +${diffResult.stats.additions} @@`,
+    return [
+      `--- Baseline`,
+      `+++ Target`,
+      `@@ -1,${diffResult.stats.origLines} +1,${diffResult.stats.modLines} @@`,
       ...diffResult.operations.map((op) => {
         if (op.type === 'delete') return `-${op.origLine}`;
         if (op.type === 'insert') return `+${op.modLine}`;
         return ` ${op.origLine}`;
       }),
     ].join('\n');
+  };
 
+  const handleDownloadPatch = () => {
+    const patchContent = getReportText();
     const blob = new Blob([patchContent], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -159,18 +176,18 @@ export function TextDiffTool() {
 
   return (
     <div className="space-y-6">
-      {/* Tool Header & Single H1 */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+      {/* Tool Header & Hero Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-500 mb-1">
-            <Sparkles className="w-4 h-4" />
-            <span>Myers LCS Diff Engine</span>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-500 mb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Myers LCS Diff Engine • Line & Word Intra-Line Tokens</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Text & Code Difference Checker
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Compare snippets side-by-side or inline with visual additions (green), deletions (red), and intra-line highlights.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            Compare source code and documents side-by-side or inline with visual additions (green), deletions (red), and synchronized viewport scrolling.
           </p>
         </div>
 
@@ -178,15 +195,15 @@ export function TextDiffTool() {
         <div className="flex items-center gap-2 flex-wrap">
           <CopyButton
             text={getReportText}
-            label="Copy Diff"
-            copiedLabel="Diff Copied!"
+            label="Copy Patch"
+            copiedLabel="Patch Copied!"
             variant="default"
           />
 
           <button
             onClick={handleDownloadPatch}
             id="btn-download-patch"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all hover:-translate-y-0.5"
           >
             <Download className="w-4 h-4" />
             <span>Download Patch</span>
@@ -195,7 +212,7 @@ export function TextDiffTool() {
           <button
             onClick={handleSwap}
             id="btn-swap-diff"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all shadow-xs"
             title="Swap Original and Modified texts"
           >
             <ArrowLeftRight className="w-3.5 h-3.5" />
@@ -204,44 +221,53 @@ export function TextDiffTool() {
         </div>
       </div>
 
+      {/* Preset Chips Bar */}
+      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+        <PresetChips
+          presets={DIFF_PRESETS}
+          onSelect={handleSelectPreset}
+          activeId={activePreset}
+          label="1-Click Presets"
+        />
+
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <span>Myers algorithm O((N+M)D)</span>
+        </div>
+      </div>
+
       {/* Difference Stats & Options Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-3.5 glass-panel rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800/80">
         {/* Statistics Badges */}
         <div className="flex items-center gap-3 text-xs font-mono">
-          <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold">
+          <span className="flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold shadow-xs">
             <Plus className="w-3.5 h-3.5" />
             {diffResult.stats.additions} Additions
           </span>
-          <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold">
+          <span className="flex items-center gap-1 px-3 py-1 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold shadow-xs">
             <Minus className="w-3.5 h-3.5" />
             {diffResult.stats.deletions} Deletions
           </span>
-          <span className="hidden sm:inline text-slate-500">
+          <span className="hidden sm:inline text-slate-400 font-mono text-[11px]">
             {diffResult.stats.unchanged} unchanged lines
           </span>
         </div>
 
         {/* View Mode & Diff Options */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
           {/* Synchronized Scroll Toggle */}
-          <button
-            onClick={() => setSyncScroll(!syncScroll)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-              syncScroll
-                ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/30'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 border-slate-200 dark:border-slate-800'
-            }`}
-            title={syncScroll ? 'Synchronized scroll active' : 'Independent scrolling'}
-          >
-            {syncScroll ? <Link2 className="w-3.5 h-3.5" /> : <Link2Off className="w-3.5 h-3.5 text-slate-400" />}
-            <span>Sync Scroll</span>
-          </button>
+          <ToggleSwitch
+            label="Sync Scroll"
+            checked={syncScroll}
+            onChange={setSyncScroll}
+            size="sm"
+          />
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-850 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+          {/* View Mode Switcher */}
+          <div className="flex items-center gap-1 bg-slate-200/60 dark:bg-slate-850 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
             <button
               onClick={() => setViewMode('split')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'split'
                   ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
@@ -252,48 +278,40 @@ export function TextDiffTool() {
             </button>
             <button
               onClick={() => setViewMode('unified')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'unified'
                   ? 'bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
               }`}
             >
               <AlignLeft className="w-3.5 h-3.5" />
-              <span>Inline (Unified)</span>
+              <span>Inline</span>
             </button>
           </div>
 
-          {/* Whitespace Toggle */}
-          <label className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={ignoreWhitespace}
-              onChange={(e) => setIgnoreWhitespace(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
-            />
-            <span>Ignore Whitespace</span>
-          </label>
+          <ToggleSwitch
+            label="Ignore Space"
+            checked={ignoreWhitespace}
+            onChange={setIgnoreWhitespace}
+            size="sm"
+          />
 
-          {/* Case Sensitivity */}
-          <label className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={ignoreCase}
-              onChange={(e) => setIgnoreCase(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-700 text-brand-500 focus:ring-brand-500 w-3.5 h-3.5"
-            />
-            <span>Ignore Case</span>
-          </label>
+          <ToggleSwitch
+            label="Ignore Case"
+            checked={ignoreCase}
+            onChange={setIgnoreCase}
+            size="sm"
+          />
         </div>
       </div>
 
-      {/* Inputs Section (Collapsible / Dual Textareas) */}
-      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-slate-900/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
+      {/* Inputs Section (Dual Textareas) */}
+      <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 items-start ${isZenMode ? 'fixed inset-4 z-50 bg-[#060911]/95 p-6 rounded-2xl shadow-2xl backdrop-blur-xl' : ''}`}>
         {/* Left: Original Text Input */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           <WindowHeader
-            title="Original Text"
-            badge="Baseline"
+            title="Original Baseline Text"
+            badge="Original"
             linesCount={originalText ? originalText.split('\n').length : 0}
             charsCount={originalText.length}
             fontSize={fontSize}
@@ -306,7 +324,10 @@ export function TextDiffTool() {
             onScroll={() => handleScroll('orig')}
             id="diff-original-textarea"
             value={originalText}
-            onChange={(e) => setOriginalText(e.target.value)}
+            onChange={(e) => {
+              setOriginalText(e.target.value);
+              setActivePreset(null);
+            }}
             placeholder="Paste baseline text or code here..."
             rows={8}
             className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y leading-relaxed ${fontSizeClass}`}
@@ -315,9 +336,9 @@ export function TextDiffTool() {
         </div>
 
         {/* Right: Modified Text Input */}
-        <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+        <div className="flex flex-col glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane focus-within:ring-2 focus-within:ring-sky-500/30 transition-all">
           <WindowHeader
-            title="Modified Text"
+            title="Modified Target Text"
             badge="Target"
             linesCount={modifiedText ? modifiedText.split('\n').length : 0}
             charsCount={modifiedText.length}
@@ -326,13 +347,13 @@ export function TextDiffTool() {
           >
             <button
               onClick={handleLoadSample}
-              className="text-[11px] text-brand-500 hover:text-brand-400 font-medium px-2 py-0.5 rounded hover:bg-brand-500/10 transition-colors"
+              className="text-xs text-brand-500 hover:text-brand-400 font-semibold px-2 py-0.5 rounded hover:bg-brand-500/10 transition-colors"
             >
-              Sample Data
+              Reset
             </button>
             <button
               onClick={handleClear}
-              className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
               title="Clear both inputs"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -343,7 +364,10 @@ export function TextDiffTool() {
             onScroll={() => handleScroll('mod')}
             id="diff-modified-textarea"
             value={modifiedText}
-            onChange={(e) => setModifiedText(e.target.value)}
+            onChange={(e) => {
+              setModifiedText(e.target.value);
+              setActivePreset(null);
+            }}
             placeholder="Paste modified text or code here..."
             rows={8}
             className={`w-full p-4 font-mono bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none resize-y leading-relaxed ${fontSizeClass}`}
@@ -353,157 +377,113 @@ export function TextDiffTool() {
       </div>
 
       {/* Rendered Diff Visualizer */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden editor-pane">
+      <div className="glass-panel rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl overflow-hidden editor-pane">
         <WindowHeader
           title="Diff Comparison View"
           badge={viewMode === 'split' ? 'Side-by-Side' : 'Inline Unified'}
           linesCount={diffResult.operations.length}
-          fontSize={fontSize}
-          onFontSizeChange={setFontSize}
-        />
+        >
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <span>+{diffResult.stats.additions}</span>
+            <span>/</span>
+            <span>-{diffResult.stats.deletions}</span>
+          </div>
+        </WindowHeader>
 
-        {/* DIFF CONTENT VIEW */}
-        <div className="overflow-x-auto max-h-[560px] font-mono text-xs leading-relaxed select-text">
+        {/* Diff Result List */}
+        <div className="overflow-x-auto max-h-[560px] p-2 bg-slate-50/50 dark:bg-[#060911]/80 font-mono">
           {viewMode === 'split' ? (
-            /* SIDE-BY-SIDE SPLIT VIEW */
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-slate-100 dark:bg-slate-850 text-slate-500 border-b border-slate-200 dark:border-slate-800 text-[11px]">
-                  <th className="w-12 text-center py-1.5 border-r border-slate-200 dark:border-slate-800 font-normal">
-                    Orig
-                  </th>
-                  <th className="w-1/2 text-left px-3 py-1.5 border-r border-slate-200 dark:border-slate-800 font-medium">
-                    Original
-                  </th>
-                  <th className="w-12 text-center py-1.5 border-r border-slate-200 dark:border-slate-800 font-normal">
-                    Mod
-                  </th>
-                  <th className="w-1/2 text-left px-3 py-1.5 font-medium">Modified</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
-                {diffResult.sideBySide.map((row, idx) => {
-                  const leftIsDel = row.leftType === 'delete';
-                  const rightIsIns = row.rightType === 'insert';
-
+            /* Split View */
+            <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-800">
+              {/* Left Column (Original) */}
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                {diffResult.operations.map((op, idx) => {
+                  const isDel = op.type === 'delete';
+                  const isIns = op.type === 'insert';
                   return (
-                    <tr key={idx} className="hover:brightness-95 dark:hover:brightness-110">
-                      {/* Left Line Number */}
-                      <td
-                        className={`text-center py-1 select-none border-r border-slate-200 dark:border-slate-800 text-[11px] ${
-                          leftIsDel
-                            ? 'bg-rose-500/15 text-rose-500 font-bold'
-                            : 'text-slate-400 bg-slate-50 dark:bg-slate-900/50'
-                        }`}
-                      >
-                        {row.leftNum || ''}
-                      </td>
-
-                      {/* Left Content */}
-                      <td
-                        className={`px-3 py-1 border-r border-slate-200 dark:border-slate-800 whitespace-pre-wrap break-all ${
-                          leftIsDel
-                            ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
-                            : 'text-slate-800 dark:text-slate-300'
-                        }`}
-                      >
-                        {row.wordDiff?.leftChunks ? (
-                          row.wordDiff.leftChunks.map((chunk, cIdx) => (
-                            <span
-                              key={cIdx}
-                              className={
-                                chunk.type === 'delete'
-                                  ? 'bg-rose-500/30 text-rose-900 dark:text-rose-100 rounded px-0.5 font-semibold'
-                                  : ''
-                              }
-                            >
-                              {chunk.text}
-                            </span>
-                          ))
-                        ) : (
-                          row.leftContent
-                        )}
-                      </td>
-
-                      {/* Right Line Number */}
-                      <td
-                        className={`text-center py-1 select-none border-r border-slate-200 dark:border-slate-800 text-[11px] ${
-                          rightIsIns
-                            ? 'bg-emerald-500/15 text-emerald-500 font-bold'
-                            : 'text-slate-400 bg-slate-50 dark:bg-slate-900/50'
-                        }`}
-                      >
-                        {row.rightNum || ''}
-                      </td>
-
-                      {/* Right Content */}
-                      <td
-                        className={`px-3 py-1 whitespace-pre-wrap break-all ${
-                          rightIsIns
-                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                            : 'text-slate-800 dark:text-slate-300'
-                        }`}
-                      >
-                        {row.wordDiff?.rightChunks ? (
-                          row.wordDiff.rightChunks.map((chunk, cIdx) => (
-                            <span
-                              key={cIdx}
-                              className={
-                                chunk.type === 'insert'
-                                  ? 'bg-emerald-500/30 text-emerald-900 dark:text-emerald-100 rounded px-0.5 font-semibold'
-                                  : ''
-                              }
-                            >
-                              {chunk.text}
-                            </span>
-                          ))
-                        ) : (
-                          row.rightContent
-                        )}
-                      </td>
-                    </tr>
+                    <div
+                      key={`left-${idx}`}
+                      className={`flex items-start text-xs ${
+                        isDel
+                          ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                          : isIns
+                          ? 'bg-slate-100/30 dark:bg-slate-900/20 opacity-40'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <span className="w-10 px-2 py-1 select-none text-[10px] text-slate-400 text-right shrink-0 bg-slate-100/60 dark:bg-slate-900/60 border-r border-slate-200/60 dark:border-slate-800">
+                        {op.origIndex || ''}
+                      </span>
+                      <span className="w-6 py-1 select-none text-center font-bold shrink-0">
+                        {isDel ? '-' : ''}
+                      </span>
+                      <pre className="py-1 px-2 overflow-x-auto font-mono flex-1 whitespace-pre-wrap break-all">
+                        {op.origLine || (isIns ? <span className="opacity-0">~</span> : '')}
+                      </pre>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Right Column (Modified) */}
+              <div className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                {diffResult.operations.map((op, idx) => {
+                  const isDel = op.type === 'delete';
+                  const isIns = op.type === 'insert';
+                  return (
+                    <div
+                      key={`right-${idx}`}
+                      className={`flex items-start text-xs ${
+                        isIns
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          : isDel
+                          ? 'bg-slate-100/30 dark:bg-slate-900/20 opacity-40'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <span className="w-10 px-2 py-1 select-none text-[10px] text-slate-400 text-right shrink-0 bg-slate-100/60 dark:bg-slate-900/60 border-r border-slate-200/60 dark:border-slate-800">
+                        {op.modIndex || ''}
+                      </span>
+                      <span className="w-6 py-1 select-none text-center font-bold shrink-0">
+                        {isIns ? '+' : ''}
+                      </span>
+                      <pre className="py-1 px-2 overflow-x-auto font-mono flex-1 whitespace-pre-wrap break-all">
+                        {op.modLine || (isDel ? <span className="opacity-0">~</span> : '')}
+                      </pre>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           ) : (
-            /* UNIFIED / INLINE VIEW */
+            /* Unified Inline View */
             <div className="divide-y divide-slate-100 dark:divide-slate-800/40">
               {diffResult.operations.map((op, idx) => {
-                const isAdd = op.type === 'insert';
                 const isDel = op.type === 'delete';
-
+                const isIns = op.type === 'insert';
                 return (
                   <div
                     key={idx}
-                    className={`flex items-start px-2 py-0.5 ${
-                      isAdd
+                    className={`flex items-start text-xs ${
+                      isIns
                         ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                         : isDel
                         ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300'
-                        : 'text-slate-800 dark:text-slate-300'
+                        : 'text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    <span className="w-10 shrink-0 text-right pr-2 select-none text-slate-400 text-[11px]">
+                    <span className="w-10 px-2 py-1 select-none text-[10px] text-slate-400 text-right shrink-0 bg-slate-100/60 dark:bg-slate-900/60 border-r border-slate-200/60 dark:border-slate-800">
                       {op.origIndex || ''}
                     </span>
-                    <span className="w-10 shrink-0 text-right pr-3 select-none text-slate-400 text-[11px]">
+                    <span className="w-10 px-2 py-1 select-none text-[10px] text-slate-400 text-right shrink-0 bg-slate-100/60 dark:bg-slate-900/60 border-r border-slate-200/60 dark:border-slate-800">
                       {op.modIndex || ''}
                     </span>
-                    <span
-                      className={`w-5 shrink-0 text-center select-none font-bold ${
-                        isAdd
-                          ? 'text-emerald-500'
-                          : isDel
-                          ? 'text-rose-500'
-                          : 'text-slate-300 dark:text-slate-700'
-                      }`}
-                    >
-                      {isAdd ? '+' : isDel ? '-' : ' '}
+                    <span className="w-6 py-1 select-none text-center font-bold shrink-0">
+                      {isIns ? '+' : isDel ? '-' : ' '}
                     </span>
-                    <span className="flex-1 whitespace-pre-wrap break-all">
-                      {isAdd ? op.modLine : op.origLine}
-                    </span>
+                    <pre className="py-1 px-2 overflow-x-auto font-mono flex-1 whitespace-pre-wrap break-all">
+                      {isIns ? op.modLine : op.origLine}
+                    </pre>
                   </div>
                 );
               })}
