@@ -995,5 +995,145 @@ export const TOOL_METADATA = {
       ],
     },
   },
+  '/cert-inspector': {
+    id: 'cert-inspector',
+    path: '/cert-inspector',
+    title: 'X.509 Certificate & CSR Inspector',
+    badge: 'SSL/TLS & ASN.1',
+    h1: 'X.509 Certificate & CSR Decoder (Client-Side & Air-Gapped)',
+    description: 'Inspect SSL/TLS certificates and CSRs online. Decode Subject Common Name, SANs, validity window, expiration countdown, issuer, and SHA-256 fingerprints 100% in-browser.',
+    seoOverview: {
+      intro: 'QuickFormat Hub’s X.509 Certificate & CSR Inspector decodes PEM-encoded SSL/TLS certificates and Certificate Signing Requests directly in your browser. With complete ASN.1 DER parsing executed locally, your private certificates and internal infrastructure configurations are never uploaded to any third party.',
+      features: [
+        'Full ASN.1 DER Decoder: Parses PEM certificates (-----BEGIN CERTIFICATE-----) and CSRs instantly.',
+        'Expiration Countdown Badge: Highlights remaining validity days with Healthy, Expiring Soon, and Expired indicators.',
+        'Subject Alternative Names (SANs): Enumerates all wildcard and multi-domain DNS entries and IP addresses.',
+        'Cryptographic Fingerprints: Computes SHA-256 and SHA-1 certificate digests using native Web Crypto.',
+        'Zero-Transmission Guarantee: Parse internal enterprise and Kubernetes certificates with complete air-gapped security.',
+      ],
+      howTo: [
+        '1. Paste your PEM certificate or CSR into the left pane, or upload a .crt/.pem file.',
+        '2. Review the Common Name, Issuer CA, and validity start and end dates.',
+        '3. Check the SANs badge list to verify all covered subdomains and services.',
+        '4. Copy the certificate summary or SHA-256 fingerprint with 1-click.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Certificate Chain Validation',
+          desc: 'If inspecting a bundle with multiple certificates, the parser decodes the primary leaf certificate first.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Is it safe to paste private infrastructure certificates here?',
+          a: 'Yes. The parser runs 100% in your local browser JavaScript engine. No certificate data is sent across the internet.',
+        },
+      ],
+    },
+  },
+  '/cors-analyzer': {
+    id: 'cors-analyzer',
+    path: '/cors-analyzer',
+    title: 'CORS Policy Builder & Vulnerability Auditor',
+    badge: 'OWASP & Preflight',
+    h1: 'CORS Policy Builder, OWASP Security Auditor & Preflight Simulator',
+    description: 'Build hardened Cross-Origin Resource Sharing (CORS) rules. Audit OWASP credential leak vulnerabilities, simulate browser preflight OPTIONS requests, and export server snippets.',
+    seoOverview: {
+      intro: 'Configure and audit Cross-Origin Resource Sharing (CORS) headers with precision. Detect dangerous misconfigurations like wildcard origins paired with credentials, test preflight OPTIONS behavior, and generate production-ready code for Express, Nginx, FastAPI, Spring Boot, and Cloudflare Workers.',
+      features: [
+        'OWASP Misconfiguration Audit: Identifies illegal wildcard origins with credentials, dangerous null-origin reflection, and insecure HTTP endpoints.',
+        'Interactive Preflight Simulator: Test how Chrome, Firefox, and Safari will evaluate your CORS rules for specific origins and methods.',
+        'Multi-Framework Snippets: Export hardened middleware for Express.js, Nginx, FastAPI, Spring Boot, Cloudflare Workers, and Go Gin.',
+        'Cache Optimization: Configures Access-Control-Max-Age to reduce unnecessary preflight roundtrips.',
+      ],
+      howTo: [
+        '1. Enter your allowed origin domains and select permitted HTTP methods and headers.',
+        '2. Review the real-time Security Audit tab for any OWASP vulnerability warnings.',
+        '3. Test your configuration in the Preflight Simulator by entering a test origin.',
+        '4. Copy the generated server configuration snippet for your backend framework.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Wildcard Origin with Credentials Error',
+          desc: 'Browsers reject Access-Control-Allow-Origin: * when Access-Control-Allow-Credentials is true. Specify explicit domains instead.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'What causes CORS preflight network errors?',
+          a: 'Preflight errors occur when the server returns 403 or omits Access-Control-Allow-Origin, Allow-Methods, or Allow-Headers on the initial OPTIONS request.',
+        },
+      ],
+    },
+  },
+  '/key-generator': {
+    id: 'key-generator',
+    path: '/key-generator',
+    title: 'RSA & ECC Key Pair Generator',
+    badge: 'WebCrypto & JWK',
+    h1: 'RSA & ECC Key Pair Generator and PEM / JWK Converter',
+    description: 'Generate cryptographically secure RSA (2048/4096-bit) and Elliptic Curve (ECDSA P-256/P-384) key pairs in-browser using WebCrypto. Export to PEM or JSON Web Key (JWK).',
+    seoOverview: {
+      intro: 'Generate cryptographic key pairs instantly in your browser without terminal commands or OpenSSL installations. Using native Web Crypto API (crypto.subtle), private keys are generated in local device memory and can be exported as PEM, PKCS#8, or JWK format.',
+      features: [
+        'Native WebCrypto Generation: Hardware-backed CSPRNG key generation directly inside your browser.',
+        'RSA & Elliptic Curve: Supports RSA 2048-bit, 4096-bit, and ECDSA P-256, P-384 curves.',
+        'Dual Format Export: 1-click toggle between PEM (PKCS#8/SPKI) and JWK (JSON Web Key).',
+        'Public Key Deriver: Reconstruct matching public keys from existing PKCS#8 private keys.',
+      ],
+      howTo: [
+        '1. Select your desired algorithm (e.g. RSA 2048-bit or ECDSA P-256).',
+        '2. Click "Generate New" to generate a cryptographically fresh key pair.',
+        '3. Choose your format (PEM or JWK) and copy or download the public and private keys.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Are private keys stored anywhere?',
+          desc: 'No. Keys exist only in temporary JavaScript memory and are discarded as soon as the tab is closed.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Which key type should I choose for modern web APIs?',
+          a: 'ECDSA P-256 is recommended for high-performance JWT signing due to its compact key size and fast verification. RSA 2048/4096-bit is ideal for legacy compatibility.',
+        },
+      ],
+    },
+  },
+  '/sri-generator': {
+    id: 'sri-generator',
+    path: '/sri-generator',
+    title: 'Subresource Integrity (SRI) Hash & Tag Generator',
+    badge: 'W3C SRI & CSP',
+    h1: 'Subresource Integrity (SRI) Hash and HTML Tag Generator',
+    description: 'Generate sha384-, sha256-, and sha512- Subresource Integrity (SRI) hashes and ready-to-use <script> and <link> HTML tags. Validate CDN resources against supply chain tampering.',
+    seoOverview: {
+      intro: 'Subresource Integrity (SRI) is a critical web security standard that enables browsers to verify that resources fetched from CDNs (such as scripts and stylesheets) have not been modified or compromised by third-party attackers.',
+      features: [
+        'Multi-Algorithm Hashes: Generates base64-encoded sha384- (W3C recommended standard), sha256-, and sha512- digests.',
+        'Ready-to-Paste HTML: Generates production <script integrity="..." crossorigin="anonymous"> and <link rel="stylesheet"> tags.',
+        'Integrity Validator: Paste existing tags and source files to verify that hashes match and prevent CDN supply chain attacks.',
+        'Zero-Upload Processing: Hashes are calculated locally using crypto.subtle.digest.',
+      ],
+      howTo: [
+        '1. Paste your JavaScript or CSS file contents into the generator, or upload the file.',
+        '2. Provide your CDN asset URL and select tag type (<script> or <link>).',
+        '3. Copy the W3C Recommended SHA-384 hash or copy the complete HTML tag.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Crossorigin Attribute Required',
+          desc: 'Browsers require crossorigin="anonymous" on subresource elements that have an integrity attribute when served from external domains.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Why is SHA-384 the recommended algorithm for SRI?',
+          a: 'The W3C SRI specification recommends SHA-384 because it provides strong collision resistance and resistance against length extension attacks.',
+        },
+      ],
+    },
+  },
 };
+
 

@@ -16,6 +16,9 @@ import {
   ShieldCheck,
   Fingerprint,
   Database,
+  Key,
+  Globe,
+  Tag,
 } from 'lucide-react';
 
 export const ALL_TOOLS = [
@@ -65,6 +68,38 @@ export const ALL_TOOLS = [
     desc: 'OWASP header evaluator & server config generator',
     badge: 'NEW',
     icon: ShieldCheck,
+    category: 'Security',
+  },
+  {
+    path: '/cert-inspector',
+    label: 'X.509 Cert & CSR',
+    desc: 'Decode SSL certificates, expiration countdown & SANs',
+    badge: 'NEW',
+    icon: ShieldCheck,
+    category: 'Security',
+  },
+  {
+    path: '/cors-analyzer',
+    label: 'CORS Policy & Auditor',
+    desc: 'Build CORS rules, audit credential leaks & preflight',
+    badge: 'NEW',
+    icon: Globe,
+    category: 'Security',
+  },
+  {
+    path: '/key-generator',
+    label: 'RSA & ECC Key Gen',
+    desc: 'Generate RSA & ECC key pairs, PEM & JWK in WebCrypto',
+    badge: 'NEW',
+    icon: Key,
+    category: 'Security',
+  },
+  {
+    path: '/sri-generator',
+    label: 'SRI Hash & Tags',
+    desc: 'Subresource integrity sha384 hashes & CDN HTML tags',
+    badge: 'NEW',
+    icon: Tag,
     category: 'Security',
   },
   {

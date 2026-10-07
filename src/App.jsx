@@ -58,6 +58,18 @@ const JsonViewerTool = lazy(() =>
 const SecurityHeadersTool = lazy(() =>
   import('./components/tools/SecurityHeadersTool').then((m) => ({ default: m.SecurityHeadersTool }))
 );
+const CertInspectorTool = lazy(() =>
+  import('./components/tools/CertInspectorTool').then((m) => ({ default: m.CertInspectorTool }))
+);
+const CorsAnalyzerTool = lazy(() =>
+  import('./components/tools/CorsAnalyzerTool').then((m) => ({ default: m.CorsAnalyzerTool }))
+);
+const KeyGeneratorTool = lazy(() =>
+  import('./components/tools/KeyGeneratorTool').then((m) => ({ default: m.KeyGeneratorTool }))
+);
+const SriGeneratorTool = lazy(() =>
+  import('./components/tools/SriGeneratorTool').then((m) => ({ default: m.SriGeneratorTool }))
+);
 const HashGeneratorTool = lazy(() =>
   import('./components/tools/HashGeneratorTool').then((m) => ({ default: m.HashGeneratorTool }))
 );
@@ -203,6 +215,10 @@ function QuickFormatApp() {
                 {currentPath === '/text-diff' && <TextDiffTool />}
                 {currentPath === '/base64-tool' && <Base64Tool />}
                 {currentPath === '/security-headers' && <SecurityHeadersTool />}
+                {currentPath === '/cert-inspector' && <CertInspectorTool />}
+                {currentPath === '/cors-analyzer' && <CorsAnalyzerTool />}
+                {currentPath === '/key-generator' && <KeyGeneratorTool />}
+                {currentPath === '/sri-generator' && <SriGeneratorTool />}
                 {currentPath === '/hash-generator' && <HashGeneratorTool />}
                 {currentPath === '/url-parser' && <UrlParserTool />}
                 {currentPath === '/pii-redactor' && <PiiRedactorTool />}

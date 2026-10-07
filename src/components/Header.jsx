@@ -246,10 +246,10 @@ export function Header({
   const CurrentIcon = currentTool.icon;
 
   const categories = [
-    { id: 'Data', label: 'Data', count: 5 },
-    { id: 'Security', label: 'Security', count: 4 },
-    { id: 'Docs', label: 'Docs', count: 3 },
-    { id: 'Dev', label: 'Dev & API', count: 7 },
+    { id: 'Data', label: 'Data', count: ALL_TOOLS.filter((t) => t.category === 'Data').length },
+    { id: 'Security', label: 'Security', count: ALL_TOOLS.filter((t) => t.category === 'Security').length },
+    { id: 'Docs', label: 'Docs', count: ALL_TOOLS.filter((t) => t.category === 'Docs').length },
+    { id: 'Dev', label: 'Dev & API', count: ALL_TOOLS.filter((t) => t.category === 'Dev').length },
   ];
 
   const categoryThemes = {
@@ -328,7 +328,7 @@ export function Header({
                     </span>
                   </div>
                   <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 hidden sm:block -mt-0.5">
-                    19 In-Browser Utilities
+                    {ALL_TOOLS.length} In-Browser Utilities
                   </span>
                 </div>
               </a>
@@ -526,7 +526,7 @@ export function Header({
                 className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] text-xs text-slate-500 dark:text-slate-400 hover:border-sky-500/50 hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 transition-all shadow-xs group cursor-pointer"
               >
                 <Search className="w-3.5 h-3.5 text-sky-500 group-hover:scale-110 transition-transform shrink-0" />
-                <span className="flex-1 text-left font-normal truncate">Search 19 tools...</span>
+                <span className="flex-1 text-left font-normal truncate">Search {ALL_TOOLS.length} tools...</span>
                 <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-xs shrink-0">
                   <Command className="w-2.5 h-2.5 inline" />K
                 </span>
@@ -765,7 +765,7 @@ export function Header({
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                     QuickFormat <span className="gradient-text">Hub</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">19 Developer Utilities</div>
+                  <div className="text-[10px] text-slate-400 font-mono">{ALL_TOOLS.length} Developer Utilities</div>
                 </div>
               </div>
               <button
@@ -788,7 +788,7 @@ export function Header({
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] text-xs text-slate-500 dark:text-slate-400"
               >
                 <Search className="w-3.5 h-3.5 text-sky-500" />
-                <span>Search all 19 tools...</span>
+                <span>Search all {ALL_TOOLS.length} tools...</span>
                 <span className="ml-auto font-mono text-[10px] bg-white dark:bg-white/[0.1] px-1 rounded">⌘K</span>
               </button>
 
