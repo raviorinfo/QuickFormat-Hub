@@ -399,7 +399,7 @@ export function Header({
                                       {tool.label}
                                     </span>
                                     {tool.badge && (
-                                      <span className="text-[8px] font-mono font-bold px-1 py-0.2 rounded bg-sky-500/10 text-sky-500 dark:text-sky-400 border border-sky-500/20">
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 dark:text-sky-400 border border-sky-500/20">
                                         {tool.badge}
                                       </span>
                                     )}
@@ -521,7 +521,7 @@ export function Header({
               >
                 <Search className="w-3.5 h-3.5 text-sky-500 group-hover:scale-110 transition-transform shrink-0" />
                 <span className="flex-1 text-left font-normal truncate">Search {ALL_TOOLS.length} tools...</span>
-                <span className="flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-2xs shrink-0">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-2xs shrink-0">
                   <Command className="w-2.5 h-2.5 inline" />K
                 </span>
               </button>

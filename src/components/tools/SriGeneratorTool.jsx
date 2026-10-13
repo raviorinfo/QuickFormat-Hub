@@ -253,7 +253,7 @@ export function SriGeneratorTool() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-bold text-slate-900 dark:text-white">SHA-384</span>
-                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-emerald-500 text-white">
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white">
                           W3C Recommended
                         </span>
                       </div>
@@ -342,7 +342,7 @@ export function SriGeneratorTool() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs font-bold text-slate-900 dark:text-white">Progressive Fallback</span>
-                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-purple-500/15 text-purple-500 border border-purple-500/20 font-bold">
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-500 border border-purple-500/20 font-bold">
                           SHA-384 + SHA-512
                         </span>
                       </div>

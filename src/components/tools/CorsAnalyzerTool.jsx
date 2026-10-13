@@ -318,7 +318,7 @@ export function CorsAnalyzerTool() {
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Audit</span>
               {auditIssues.length > 0 && (
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-rose-500 text-white">
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-bold">
                   {auditIssues.length}
                 </span>
               )}
@@ -541,7 +541,7 @@ export function CorsAnalyzerTool() {
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900 dark:text-slate-100">{test.attackType}</span>
-                        <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-black/10 dark:bg-white/10 text-slate-600 dark:text-slate-300">
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 text-slate-600 dark:text-slate-300">
                           {test.testOrigin}
                         </span>
                       </div>
