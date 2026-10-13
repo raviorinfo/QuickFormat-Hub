@@ -64,8 +64,13 @@ export function Header({
 
   // Active dropdown states (only one open at a time)
   const [activeDropdown, setActiveDropdown] = useState(null); // 'Data' | 'Security' | 'Docs' | 'Dev' | 'Pinned' | 'Settings' | null
+  const [selectedRibbonCategory, setSelectedRibbonCategory] = useState(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [sampleLoaded, setSampleLoaded] = useState(false);
+
+  useEffect(() => {
+    setSelectedRibbonCategory(null);
+  }, [currentPath]);
 
   // Dynamic Scroll & Progress Bar state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -253,26 +258,56 @@ export function Header({
     { id: 'Dev', label: 'Dev & API', count: ALL_TOOLS.filter((t) => t.category === 'Dev').length },
   ];
 
+  const activeRibbonCategory = selectedRibbonCategory || currentTool.category;
+  const displayedRibbonTools = activeRibbonCategory === 'Pinned'
+    ? ALL_TOOLS.filter((t) => pinnedPaths.includes(t.path))
+    : ALL_TOOLS.filter((t) => t.category === activeRibbonCategory);
+
   const categoryThemes = {
     Data: {
-      color: 'text-sky-500 dark:text-sky-400',
+      color: 'text-sky-600 dark:text-sky-400',
       bg: 'bg-sky-500/10 dark:bg-sky-500/15',
       badge: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      dotColor: 'bg-sky-500',
+      activeBg: 'bg-sky-500/15 dark:bg-sky-500/20',
+      borderColor: 'border-sky-500/30',
+      activePillBg: 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-500/25',
     },
     Security: {
-      color: 'text-emerald-500 dark:text-emerald-400',
+      color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-500/10 dark:bg-emerald-500/15',
       badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      dotColor: 'bg-emerald-500',
+      activeBg: 'bg-emerald-500/15 dark:bg-emerald-500/20',
+      borderColor: 'border-emerald-500/30',
+      activePillBg: 'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/25',
     },
     Docs: {
-      color: 'text-purple-500 dark:text-purple-400',
+      color: 'text-purple-600 dark:text-purple-400',
       bg: 'bg-purple-500/10 dark:bg-purple-500/15',
       badge: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      dotColor: 'bg-purple-500',
+      activeBg: 'bg-purple-500/15 dark:bg-purple-500/20',
+      borderColor: 'border-purple-500/30',
+      activePillBg: 'bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/25',
     },
     Dev: {
-      color: 'text-amber-500 dark:text-amber-400',
+      color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-500/10 dark:bg-amber-500/15',
       badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      dotColor: 'bg-amber-500',
+      activeBg: 'bg-amber-500/15 dark:bg-amber-500/20',
+      borderColor: 'border-amber-500/30',
+      activePillBg: 'bg-gradient-to-r from-amber-500 to-orange-600 shadow-amber-500/25',
+    },
+    Pinned: {
+      color: 'text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-500/10 dark:bg-amber-500/15',
+      badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      dotColor: 'bg-amber-500',
+      activeBg: 'bg-amber-500/15 dark:bg-amber-500/20',
+      borderColor: 'border-amber-500/30',
+      activePillBg: 'bg-gradient-to-r from-amber-500 to-orange-600 shadow-amber-500/25',
     },
   };
 
@@ -733,6 +768,103 @@ export function Header({
               >
                 <Menu className="w-4 h-4" />
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Compact Sub-Navigation Ribbon (Instant Category & Tool Switcher) */}
+        <div className="border-t border-slate-200/70 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#050813]/80 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-9 gap-3">
+              
+              {/* Left: Category Switcher Tabs */}
+              <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+                {pinnedPaths.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClickSound();
+                      setSelectedRibbonCategory('Pinned');
+                    }}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                      activeRibbonCategory === 'Pinned'
+                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold shadow-2xs'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                    <span>Favorites</span>
+                    <span className="text-[9px] font-mono px-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold">
+                      {pinnedPaths.length}
+                    </span>
+                  </button>
+                )}
+
+                {categories.map((cat) => {
+                  const isCatActive = activeRibbonCategory === cat.id;
+                  const toolsInCat = ALL_TOOLS.filter((t) => t.category === cat.id);
+                  const theme = categoryThemes[cat.id];
+
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setSelectedRibbonCategory(cat.id);
+                      }}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                        isCatActive
+                          ? `${theme.activeBg} ${theme.color} border ${theme.borderColor} font-bold shadow-2xs`
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${theme.dotColor}`} />
+                      <span>{cat.label}</span>
+                      <span className="text-[9px] font-mono opacity-60">
+                        {toolsInCat.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Vertical Separator */}
+              <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0 hidden sm:block" />
+
+              {/* Right: Tools in Active Category (Fast 1-Click Jumping) */}
+              <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+                {displayedRibbonTools.map((tool) => {
+                  const isToolActive = tool.path === currentPath;
+                  const Icon = tool.icon;
+                  const theme = categoryThemes[tool.category] || categoryThemes['Data'];
+
+                  return (
+                    <button
+                      key={tool.path}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        onNavigate(tool.path);
+                      }}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap ${
+                        isToolActive
+                          ? `${theme.activePillBg} text-white font-bold shadow-xs`
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-white/[0.06] font-medium'
+                      }`}
+                    >
+                      <Icon className="w-3 h-3 shrink-0" />
+                      <span>{tool.label}</span>
+                      {tool.badge && !isToolActive && (
+                        <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                          {tool.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
             </div>
           </div>
         </div>
