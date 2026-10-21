@@ -1134,6 +1134,194 @@ export const TOOL_METADATA = {
       ],
     },
   },
+  '/barcode-generator': {
+    id: 'barcode-generator',
+    path: '/barcode-generator',
+    title: 'Barcode Generator & Product Label Creator',
+    badge: 'E-Commerce & Retail',
+    h1: 'Free Online Barcode Generator (Code 128, EAN-13, UPC-A, A4 Label Sheets)',
+    description: 'Generate high-resolution barcodes online for retail products, shipping cartons, and inventory. Supports Code 128, EAN-13, UPC-A, Code 39, ITF-14, check digits, and multi-label A4 sheet printing.',
+    seoOverview: {
+      intro: 'QuickFormat Hub’s Barcode Generator is an industrial-grade in-browser tool engineered for e-commerce sellers on Amazon, Shopify, Flipkart, and physical retail stores. It generates compliant barcodes across all standard symbologies (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, and ITF-14) with real-time check digit calculation, customizable label dimensions, and automated A4 sticker sheet tiling.',
+      features: [
+        'Multi-Symbology Support: Full compliance for Code 128 (alphanumeric logistics), EAN-13 (international retail), EAN-8, UPC-A (North American retail), Code 39, and ITF-14.',
+        'Real-Time Check Digit Validator: Automatically verifies modulo-10 check digits and offers 1-click auto-fix to prevent scanning rejections.',
+        'Custom Product Labels: Accompany your barcode with product name, SKU, price tag, brand header, and human-readable text.',
+        'A4 Sheet Printing & Gang Layouts: Print 24, 32, or custom grids of labels on standard A4 sticker paper with scissor cut guides.',
+        'Vector SVG & 300 DPI Exports: Download crisp vector SVGs or print-ready PNGs and PDFs with zero pixelation.',
+        'Bulk CSV Import: Generate hundreds of sequential or batch barcodes from a CSV spreadsheet instantly.',
+      ],
+      howTo: [
+        '1. Select your target barcode format (e.g. EAN-13 for retail products, Code 128 for general inventory).',
+        '2. Enter your product code or SKU number. The validator checks required lengths and check digits in real time.',
+        '3. Add optional product name, SKU, price, and brand name to generate a complete product packaging sticker.',
+        '4. Download high-resolution PNG, SVG, or click "A4 Sheet" to print an entire page of sticker labels.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Invalid Check Digit in EAN-13 / UPC-A',
+          desc: 'The last digit of an EAN or UPC barcode is a mathematical check digit. Click the "Auto-Fix Check Digit" button to automatically compute and append the correct digit.',
+        },
+        {
+          title: 'Code 39 Invalid Characters',
+          desc: 'Code 39 only supports uppercase letters (A-Z), numbers (0-9), and specific punctuation (- . $ / + % [space]). Lowercase letters are automatically normalized to uppercase.',
+        },
+        {
+          title: 'Barcode Too Small to Scan',
+          desc: 'For physical scanning with laser or CCD scanners, maintain a minimum bar width of 2px and leave sufficient quiet zone (margins) around the barcode.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'What barcode format should I use for retail items?',
+          a: 'Use EAN-13 for products sold internationally or in India/Europe. Use UPC-A for products sold primarily in the United States and Canada. Use Code 128 for internal inventory and warehouse management.',
+        },
+        {
+          q: 'Can I print multiple barcode labels on a single A4 page?',
+          a: 'Yes. Switch to the "A4 Sheet Print Preview" tab to configure your grid (e.g. 3 columns × 9 rows = 27 labels per sheet) and download a print-ready A4 PDF.',
+        },
+        {
+          q: 'Are these barcodes generated on a server or locally?',
+          a: 'All barcode rendering executes 100% locally in your browser memory. Your proprietary product SKUs and prices are never uploaded to any remote server.',
+        },
+      ],
+    },
+  },
+  '/price-tag-creator': {
+    id: 'price-tag-creator',
+    path: '/price-tag-creator',
+    title: 'Price Tag & Shelf Talker Creator',
+    badge: 'Retail & Supermarket',
+    h1: 'Online Price Tag Creator & Shelf Talker Designer',
+    description: 'Design customizable retail price tags, hanging apparel tags, and supermarket shelf talkers with automatic discount calculation, embedded barcodes, and multi-up A4 printing.',
+    seoOverview: {
+      intro: 'The Price Tag Creator by QuickFormat Hub enables retailers, boutique owners, and supermarket managers to design eye-catching price tags, shelf talkers, and hanging apparel tags in seconds. Featuring 8 category templates, automatic savings calculation, embedded live barcodes or QR codes, and multi-tag A4 sheet layouts.',
+      features: [
+        'Ready Category Templates: Pre-built curated designs for Electronics, Clothing Boutiques, Supermarkets, Toys, Jewelry, and Clearance Sales.',
+        'Automatic Discount Computation: Instantly computes discount percentages and monetary savings when MRP and selling price are entered.',
+        'Embedded Machine Codes: Seamlessly embeds scannable Code 128 barcodes or QR codes directly onto the face of the price tag.',
+        'Diverse Tag Shapes: Rectangular shelf tags (70x45mm), compact talkers (50x30mm), square tags (50x50mm), and apparel tags with punch holes.',
+        'Bulk CSV Generation: Import spreadsheets with product names, prices, and SKUs to produce complete batches of price tags.',
+        'A4 Sheet Export: Fit up to 32 price tags on a single A4 sheet with dashed scissor cut guides for effortless trimming.',
+      ],
+      howTo: [
+        '1. Choose a category template (e.g. Clothing Boutique, Supermarket, or Electronics).',
+        '2. Enter your product name, selling price, MRP, and optional SKU / description.',
+        '3. Select your preferred tag shape (shelf tag, square, or hanging apparel tag with punch hole).',
+        '4. Download high-res PNG, single tag PDF, or click "A4 Sheet Setup" to print multiple tags on cardstock.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Discount Percentage Not Appearing',
+          desc: 'Ensure the MRP is higher than the selling price. The discount percentage and savings badge calculate automatically only when MRP exceeds the offer price.',
+        },
+        {
+          title: 'Currency Symbol Customization',
+          desc: 'You can choose between INR (₹), USD ($), EUR (€), GBP (£), AED, JPY, and other global currencies using the currency dropdown.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Can I print these price tags on standard A4 paper or cardstock?',
+          a: 'Yes. The tool features an A4 Sheet Print preview that formats tags into a multi-column grid with dashed scissor cut lines. For best results, use 200–250 GSM heavy cardstock.',
+        },
+        {
+          q: 'Can the embedded barcode be scanned at checkout?',
+          a: 'Yes. The tag renders standard Code 128 barcodes from your SKU number, which can be scanned by any standard POS barcode reader or smartphone camera.',
+        },
+      ],
+    },
+  },
+  '/qr-code-generator': {
+    id: 'qr-code-generator',
+    path: '/qr-code-generator',
+    title: 'Advanced QR Code Generator Studio',
+    badge: 'Static & Secure',
+    h1: 'Free High-Resolution QR Code Generator (URL, UPI, vCard, Wi-Fi, Social)',
+    description: 'Create static QR codes with embedded logos, call-to-action frames, custom colors, and scan reliability checks. Supports URLs, UPI payments, vCards, Wi-Fi, and batch generation.',
+    seoOverview: {
+      intro: 'QuickFormat Hub’s Advanced QR Code Generator Studio is a privacy-first utility for generating permanent, static QR codes without expiration dates or redirects. Featuring support for 11 data types (including NPCI UPI payments for India, digital vCard business cards, Wi-Fi auto-connect, and social channels) with center logo embedding and contrast reliability safeguards.',
+      features: [
+        '11 Payload Types: Website URLs, Indian UPI payment intent URIs, vCard 3.0 contacts, Wi-Fi auto-connect, SMS, email, phone, and social handles.',
+        'Center Logo Embedding: Upload your brand logo with an automated quiet-zone protective mask and scan-safe error correction lock.',
+        'Call-to-Action Frames: Add stylish bottom banners ("SCAN ME"), top pill tags, or framed cards with instructions.',
+        'WCAG Contrast Analyzer: Live verification of foreground-to-background contrast ratio to prevent scanning issues on older devices.',
+        'Static QR Guarantee: 100% direct-encoding with zero tracking, zero middleman redirects, and zero expiration risk.',
+        'Ultra High-Res Exports: Download up to 2048px PNGs, vector SVGs, and print-ready PDFs.',
+      ],
+      howTo: [
+        '1. Select your QR type (e.g. Website URL, UPI Payment, vCard, or Wi-Fi).',
+        '2. Fill in the required fields (e.g. payee VPA and amount for UPI, or Wi-Fi network name and password).',
+        '3. Customize colors, choose a frame style ("SCAN ME"), or upload a center brand logo.',
+        '4. Download high-resolution PNG, vector SVG, or print-ready PDF.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Low Contrast Warning',
+          desc: 'If your foreground and background colors do not have enough contrast, scanning may fail in dim lighting. Choose dark foreground colors on light backgrounds for maximum readability.',
+        },
+        {
+          title: 'UPI Payment App Compatibility',
+          desc: 'The UPI QR encodes the standard upi://pay URI defined by NPCI. It opens natively in Google Pay, PhonePe, Paytm, and BHIM on mobile devices.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Do these QR codes ever expire?',
+          a: 'No. These are 100% static QR codes. The destination data is encoded directly into the pixel matrix, meaning they will continue to work forever without recurring fees or subscription locks.',
+        },
+        {
+          q: 'Will embedding a logo make the QR code unreadable?',
+          a: 'No. When a logo is uploaded, the tool automatically enforces high error correction (Level Q or H), allowing up to 30% of the code to be covered while remaining fully readable.',
+        },
+      ],
+    },
+  },
+  '/thank-you-card-maker': {
+    id: 'thank-you-card-maker',
+    path: '/thank-you-card-maker',
+    title: 'Thank You Card & Packaging Insert Maker',
+    badge: 'Packaging & Branding',
+    h1: 'Free Thank You Card Maker for E-Commerce Sellers & Small Businesses',
+    description: 'Design custom thank you cards, packaging slips, and discount voucher inserts with front-and-back designs, embedded QR review codes, and A4 gang sheet printing.',
+    seoOverview: {
+      intro: 'The Thank You Card Maker is designed for e-commerce brands, handmade artisans, and small business owners seeking to enhance customer unboxing experiences. Create branded thank you cards, coupon inserts, review requests, and care instructions with front-and-back editing, embedded QR codes, and multi-up A4 gang sheet printing.',
+      features: [
+        '8 Curated Brand Themes: Minimalist Modern, Luxury Gold, Kraft Artisan, Pastel Boutique, Festive Sparkle, Ecommerce Packing Insert, and Eco Botanical.',
+        'Front & Back Card Studio: Design both sides of the card with 1-click interactive flip preview.',
+        'Ready Message Suggestions Library: Pre-written copy for customer appreciation, repeat purchase incentives, review requests, and holiday greetings.',
+        'Promo Voucher Block: Dedicated coupon code badge ("10% OFF NEXT ORDER") to drive repeat purchases.',
+        'Embedded QR Code: Let customers scan directly to your Instagram profile, website, or Google review page.',
+        'A4 Gang Sheet Layout: Print 4, 8, or 10 cards per A4 cardstock sheet with guillotine scissor crop marks.',
+      ],
+      howTo: [
+        '1. Select your card size (Business Card 3.5"x2", A6 Postcard, or 4"x4" Square Insert).',
+        '2. Choose a curated theme or customize colors, fonts, brand name, and appreciation message.',
+        '3. Add a promo code voucher and toggle an embedded QR code linking to your store or review page.',
+        '4. Download high-res PNGs of both sides or export a print-ready multi-card A4 PDF.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Guillotine Crop Marks',
+          desc: 'Toggle "Show Guillotine Crop Marks" to display corner cutting guides that ensure straight, professional trims when using a paper cutter or scissors.',
+        },
+        {
+          title: 'Paper Type Recommendation',
+          desc: 'For packaging inserts, print on 250–350 GSM matte or kraft cardstock for a premium unboxing feel.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'What is the most popular size for packaging inserts?',
+          a: 'The Business Card size (3.5" × 2" / 89 × 51 mm) is the most economical and compact, fitting neatly inside small jewelry boxes or garment polybags. For detailed care instructions, the A6 Postcard (148 × 105 mm) is standard.',
+        },
+        {
+          q: 'Can I print multiple cards on an A4 sheet at home?',
+          a: 'Yes. Switch to the "A4 Gang Sheet Layout" tab to view 8–10 cards formatted cleanly on an A4 page, then click "Download A4 PDF" or "Print Page".',
+        },
+      ],
+    },
+  },
 };
 
 

@@ -24,19 +24,15 @@
   }
 }
 
-/* Subtle Modern Grid Texture */
+/* Subtle Modern Precision Dot Grid Texture */
 .bg-grid-pattern {
-  background-size: 36px 36px;
-  background-image: 
-    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-image: radial-gradient(circle, rgba(100, 116, 139, 0.14) 1px, transparent 1px);
 }
 
 .dark .bg-grid-pattern {
-  background-size: 36px 36px;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.065) 1px, transparent 1px);
 }
 
 /* Radial Vignette Mask for soft background fade */
@@ -45,53 +41,51 @@
   -webkit-mask-image: radial-gradient(ellipse at center 20%, black 45%, transparent 85%);
 }
 
-/* Studio-Grade Glassmorphic Container */
+/* Studio-Grade High-Contrast Elevation Container */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.95);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 1px 3px 0 rgba(0, 0, 0, 0.03);
 }
 
 .dark .glass-panel {
-  background: rgba(11, 17, 32, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  background: #0d1322;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 42px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Glass Card with Hover Lift & Rim Light */
 .glass-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
 .glass-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 35px -8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 35px -8px rgba(15, 23, 42, 0.14);
+  border-color: rgba(2, 132, 199, 0.4);
 }
 
 .dark .glass-card-hover:hover {
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(56, 189, 248, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.85), 0 0 25px -5px rgba(56, 189, 248, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
 }
 
-/* Studio Buttons */
+/* Studio High-Visibility Buttons */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.45rem 0.875rem;
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
   color: #ffffff;
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  box-shadow: 0 2px 8px -2px rgba(2, 132, 199, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 2px 10px -2px rgba(2, 132, 199, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
@@ -99,7 +93,7 @@
 
 .btn-primary:hover {
   background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  box-shadow: 0 4px 14px -2px rgba(2, 132, 199, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 16px -2px rgba(2, 132, 199, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
 }
 
@@ -113,37 +107,40 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.45rem 0.875rem;
   border-radius: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #0f172a;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(203, 213, 225, 0.8);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
 }
 
 .dark .btn-secondary {
-  color: #f1f5f9;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  background: #141b2c;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .btn-secondary:hover {
-  background: rgba(241, 245, 249, 1);
-  border-color: rgba(148, 163, 184, 0.8);
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0284c7;
   transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
 .dark .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: #1b243b;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #38bdf8;
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
 }
 
 .btn-secondary:active {
@@ -186,11 +183,15 @@
   left: 25%;
   width: 800px;
   height: 550px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 70%);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.035) 0%, rgba(56, 189, 248, 0) 70%);
   border-radius: 9999px;
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
+}
+
+.dark .ambient-glow-cyan {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%);
 }
 
 .ambient-glow-purple {
@@ -199,11 +200,15 @@
   right: 5%;
   width: 700px;
   height: 500px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.025) 0%, rgba(168, 85, 247, 0) 70%);
   border-radius: 9999px;
   filter: blur(110px);
   pointer-events: none;
   z-index: 0;
+}
+
+.dark .ambient-glow-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0) 70%);
 }
 
 /* Custom Scrollbars */
@@ -281,6 +286,238 @@
 
 .animate-scale-bounce {
   animation: scaleBounce 0.25s ease-out forwards;
+}
+
+/* ==========================================================
+   ULTRA-PREMIUM STUDIO DESIGN SYSTEM & 3D LIGHTING TOKENS
+   ========================================================== */
+
+/* 1. Realistic Studio Lighting Stage */
+.studio-desk-stage {
+  position: relative;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.14) 0%, rgba(99, 102, 241, 0.04) 45%, transparent 75%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.9) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 
+    0 10px 30px -5px rgba(0, 0, 0, 0.04),
+    0 1px 3px 0 rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.dark .studio-desk-stage {
+  background: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 80%),
+    linear-gradient(180deg, #090e1a 0%, #030712 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 25px 60px -15px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* 2. Realistic 3D Card Depth & Specular Rim Light */
+.studio-card-3d {
+  position: relative;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 20px 45px -12px rgba(15, 23, 42, 0.2),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+.studio-card-3d:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 
+    0 8px 16px -2px rgba(0, 0, 0, 0.08),
+    0 30px 60px -15px rgba(15, 23, 42, 0.28),
+    0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.dark .studio-card-3d {
+  box-shadow: 
+    0 25px 60px -12px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 0 40px -10px rgba(56, 189, 248, 0.15);
+}
+
+.dark .studio-card-3d:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 
+    0 35px 80px -15px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(255, 255, 255, 0.25),
+    0 0 50px -5px rgba(56, 189, 248, 0.28);
+}
+
+/* 3. Luxury Input Field Elevation */
+.luxury-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: 0.625rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  color: #0f172a;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.luxury-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dark .luxury-input {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.dark .luxury-input:focus {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* 4. Luxury Custom Range Slider */
+.luxury-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dark .luxury-range {
+  background: #1e293b;
+}
+
+.luxury-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.luxury-range::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.dark .luxury-range::-webkit-slider-thumb {
+  border-color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 0 8px rgba(56, 189, 248, 0.5);
+}
+
+/* 4b. Studio High-Contrast Universal Inputs */
+textarea, input[type="text"], input[type="number"], input[type="search"], select {
+  color: #0f172a;
+}
+.dark textarea, .dark input[type="text"], .dark input[type="number"], .dark input[type="search"], .dark select {
+  color: #f8fafc;
+}
+
+/* High-Contrast Placeholders */
+::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+.dark ::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* Studio Precision High-Contrast Tables */
+.studio-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.studio-table th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 2px solid #cbd5e1;
+}
+.dark .studio-table th {
+  background-color: #0c1222;
+  color: #ffffff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+.studio-table td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.dark .studio-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+}
+.studio-table tr:hover td {
+  background-color: rgba(2, 132, 199, 0.05);
+}
+.dark .studio-table tr:hover td {
+  background-color: rgba(56, 189, 248, 0.07);
+}
+
+/* 5. Laser Scanline Animation */
+@keyframes laserSweep {
+  0% { top: 2%; opacity: 0; }
+  15% { opacity: 0.9; }
+  85% { opacity: 0.9; }
+  100% { top: 96%; opacity: 0; }
+}
+
+.animate-laser {
+  animation: laserSweep 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 6. Shimmer Sheen on Primary Actions */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 65%
+  );
+  transform: rotate(25deg);
+  animation: buttonShimmer 4s infinite linear;
+}
+
+@keyframes buttonShimmer {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(100%) rotate(25deg); }
 }
 
 /* Markdown preview prose styles */

@@ -77,8 +77,8 @@ export function StatCard({
   return (
     <div
       onClick={copyable ? handleCopy : undefined}
-      className={`glass-panel p-3 rounded-xl relative overflow-hidden transition-all duration-200 group border border-slate-200/80 dark:border-white/[0.08] ${
-        copyable ? 'cursor-pointer hover:border-slate-400 dark:hover:border-sky-500/50 hover:-translate-y-0.5 shadow-2xs hover:shadow-lg dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.7)]' : ''
+      className={`glass-panel p-3 rounded-xl relative overflow-hidden transition-all duration-200 group border border-slate-300 dark:border-white/10 shadow-xs ${
+        copyable ? 'cursor-pointer hover:border-sky-500 dark:hover:border-sky-500/50 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.7)]' : ''
       } ${className}`}
     >
       {/* Top Luminous Accent Line */}
@@ -94,14 +94,14 @@ export function StatCard({
               <Icon className={`w-3 h-3 ${theme.badgeText}`} />
             </div>
           )}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono truncate">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono truncate">
             {label}
           </span>
         </div>
 
         {/* Copy Indicator */}
         {copyable && (
-          <div className="text-slate-400 opacity-40 group-hover:opacity-100 transition-opacity shrink-0">
+          <div className="text-slate-500 dark:text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
             {copied ? (
               <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 animate-scale-bounce">
                 <Check className="w-3 h-3" />
@@ -116,22 +116,22 @@ export function StatCard({
 
       {/* Main Value */}
       <div className="flex items-baseline gap-1.5 relative z-10">
-        <span className={`text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate block ${
+        <span className={`text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate block ${
           typeof value === 'number' || (typeof value === 'string' && /^[0-9\s.,BKMGTbkmgt/x×\-%]+$/.test(value))
             ? 'font-mono'
-            : 'font-sans font-extrabold'
+            : 'font-sans font-black'
         }`}>
           {value !== null && value !== undefined && value !== '' ? value : '—'}
         </span>
         {badge && (
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 shrink-0">
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/15 text-slate-900 dark:text-slate-100 shrink-0">
             {badge}
           </span>
         )}
       </div>
 
       {subtext && (
-        <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5 truncate relative z-10">
+        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium block mt-0.5 truncate relative z-10">
           {subtext}
         </span>
       )}

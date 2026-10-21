@@ -7,8 +7,9 @@ import { CommandPalette } from './components/CommandPalette';
 import { HistoryDrawer } from './components/HistoryDrawer';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { GlobalDropzone } from './components/GlobalDropzone';
+import { SidebarNav } from './components/SidebarNav';
 import { useRouter } from './utils/useRouter';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { Loader2 } from 'lucide-react';
 
@@ -82,6 +83,18 @@ const SqlFormatterTool = lazy(() =>
 const UuidGeneratorTool = lazy(() =>
   import('./components/tools/UuidGeneratorTool').then((m) => ({ default: m.UuidGeneratorTool }))
 );
+const BarcodeGeneratorTool = lazy(() =>
+  import('./components/tools/BarcodeGeneratorTool').then((m) => ({ default: m.BarcodeGeneratorTool }))
+);
+const PriceTagCreatorTool = lazy(() =>
+  import('./components/tools/PriceTagCreatorTool').then((m) => ({ default: m.PriceTagCreatorTool }))
+);
+const QrCodeGeneratorTool = lazy(() =>
+  import('./components/tools/QrCodeGeneratorTool').then((m) => ({ default: m.QrCodeGeneratorTool }))
+);
+const ThankYouCardMakerTool = lazy(() =>
+  import('./components/tools/ThankYouCardMakerTool').then((m) => ({ default: m.ThankYouCardMakerTool }))
+);
 const PrivacyPolicyPage = lazy(() =>
   import('./components/pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
 );
@@ -110,6 +123,7 @@ function ToolSkeletonLoader() {
 
 function QuickFormatApp() {
   const { currentPath, navigate, toolMeta } = useRouter();
+  const { navView } = useTheme();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
@@ -193,57 +207,71 @@ function QuickFormatApp() {
       {/* Top Banner Ad Container (728x90) */}
       {!isLegalRoute && <AdSlot type="top-banner" />}
 
-      {/* Main Workspace */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 relative z-10">
-        {isLegalRoute ? (
-          <Suspense fallback={<ToolSkeletonLoader />}>
-            {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}
-            {currentPath === '/terms-of-service' && <TermsOfServicePage />}
-            {currentPath === '/about' && <AboutUsPage onNavigate={navigate} />}
-            {currentPath === '/contact' && <ContactUsPage />}
-          </Suspense>
-        ) : (
-          <>
-            {/* Full-Width Tool Workspace */}
-            <div className="w-full">
-              <Suspense fallback={<ToolSkeletonLoader />}>
-                {currentPath === '/json-to-csv' && <JsonToCsvTool />}
-                {currentPath === '/csv-to-json' && <CsvToJsonTool />}
-                {currentPath === '/json-viewer' && <JsonViewerTool />}
-                {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
-                {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
-                {currentPath === '/text-diff' && <TextDiffTool />}
-                {currentPath === '/base64-tool' && <Base64Tool />}
-                {currentPath === '/security-headers' && <SecurityHeadersTool />}
-                {currentPath === '/cert-inspector' && <CertInspectorTool />}
-                {currentPath === '/cors-analyzer' && <CorsAnalyzerTool />}
-                {currentPath === '/key-generator' && <KeyGeneratorTool />}
-                {currentPath === '/sri-generator' && <SriGeneratorTool />}
-                {currentPath === '/hash-generator' && <HashGeneratorTool />}
-                {currentPath === '/url-parser' && <UrlParserTool />}
-                {currentPath === '/pii-redactor' && <PiiRedactorTool />}
-                {currentPath === '/curl-converter' && <CurlConverterTool />}
-                {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
-                {currentPath === '/json-to-types' && <JsonToTypesTool />}
-                {currentPath === '/timestamp-converter' && <TimestampConverterTool />}
-                {currentPath === '/sql-formatter' && <SqlFormatterTool />}
-                {currentPath === '/uuid-generator' && <UuidGeneratorTool />}
-                {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
-                {currentPath === '/regex-tester' && <RegexTesterTool />}
-              </Suspense>
-            </div>
-
-            {/* Architecture & Privacy Guarantee Ribbon */}
-            <TrustGuaranteeBar />
-
-            {/* Optional Sidebar Ad Slot when active */}
-            <AdSlot type="sidebar" />
-
-            {/* In-Depth Interactive Tools Overview & SEO FAQ Section */}
-            <ToolsOverview toolMeta={toolMeta} />
-          </>
+      {/* Main Workspace Body with conditional Sidebar Studio */}
+      <div className={`flex-1 w-full relative z-10 flex ${navView === 'sidebar' && !isLegalRoute ? 'flex-row' : 'flex-col'}`}>
+        {navView === 'sidebar' && !isLegalRoute && (
+          <SidebarNav currentPath={currentPath} onNavigate={navigate} />
         )}
-      </main>
+
+        <main className={`flex-1 w-full py-3 sm:py-4 ${
+          navView === 'sidebar' && !isLegalRoute 
+            ? 'px-4 sm:px-6 lg:px-8 max-w-7xl' 
+            : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+        }`}>
+          {isLegalRoute ? (
+            <Suspense fallback={<ToolSkeletonLoader />}>
+              {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}
+              {currentPath === '/terms-of-service' && <TermsOfServicePage />}
+              {currentPath === '/about' && <AboutUsPage onNavigate={navigate} />}
+              {currentPath === '/contact' && <ContactUsPage />}
+            </Suspense>
+          ) : (
+            <>
+              {/* Full-Width Tool Workspace */}
+              <div className="w-full">
+                <Suspense fallback={<ToolSkeletonLoader />}>
+                  {currentPath === '/json-to-csv' && <JsonToCsvTool />}
+                  {currentPath === '/csv-to-json' && <CsvToJsonTool />}
+                  {currentPath === '/json-viewer' && <JsonViewerTool />}
+                  {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
+                  {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
+                  {currentPath === '/text-diff' && <TextDiffTool />}
+                  {currentPath === '/base64-tool' && <Base64Tool />}
+                  {currentPath === '/security-headers' && <SecurityHeadersTool />}
+                  {currentPath === '/cert-inspector' && <CertInspectorTool />}
+                  {currentPath === '/cors-analyzer' && <CorsAnalyzerTool />}
+                  {currentPath === '/key-generator' && <KeyGeneratorTool />}
+                  {currentPath === '/sri-generator' && <SriGeneratorTool />}
+                  {currentPath === '/hash-generator' && <HashGeneratorTool />}
+                  {currentPath === '/url-parser' && <UrlParserTool />}
+                  {currentPath === '/pii-redactor' && <PiiRedactorTool />}
+                  {currentPath === '/curl-converter' && <CurlConverterTool />}
+                  {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
+                  {currentPath === '/json-to-types' && <JsonToTypesTool />}
+                  {currentPath === '/timestamp-converter' && <TimestampConverterTool />}
+                  {currentPath === '/sql-formatter' && <SqlFormatterTool />}
+                  {currentPath === '/uuid-generator' && <UuidGeneratorTool />}
+                  {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
+                  {currentPath === '/regex-tester' && <RegexTesterTool />}
+                  {currentPath === '/barcode-generator' && <BarcodeGeneratorTool />}
+                  {currentPath === '/price-tag-creator' && <PriceTagCreatorTool />}
+                  {currentPath === '/qr-code-generator' && <QrCodeGeneratorTool />}
+                  {currentPath === '/thank-you-card-maker' && <ThankYouCardMakerTool />}
+                </Suspense>
+              </div>
+
+              {/* Architecture & Privacy Guarantee Ribbon */}
+              <TrustGuaranteeBar />
+
+              {/* Optional Sidebar Ad Slot when active */}
+              <AdSlot type="sidebar" />
+
+              {/* In-Depth Interactive Tools Overview & SEO FAQ Section */}
+              <ToolsOverview toolMeta={toolMeta} />
+            </>
+          )}
+        </main>
+      </div>
 
       {/* Bottom Responsive Ad Unit */}
       {!isLegalRoute && <AdSlot type="bottom-banner" />}

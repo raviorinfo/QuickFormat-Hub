@@ -19,6 +19,10 @@ import {
   Key,
   Globe,
   Tag,
+  Barcode,
+  QrCode,
+  Heart,
+  ShoppingBag,
 } from 'lucide-react';
 
 export const ALL_TOOLS = [
@@ -202,5 +206,39 @@ export const ALL_TOOLS = [
     desc: 'Test regex patterns with syntax highlighting & tokens',
     icon: Search,
     category: 'Dev',
+  },
+
+  // Commerce & Retail
+  {
+    path: '/barcode-generator',
+    label: 'Barcode Generator',
+    desc: 'Code 128, EAN-13, UPC-A, check digit validator & A4 labels',
+    badge: 'NEW',
+    icon: Barcode,
+    category: 'Commerce',
+  },
+  {
+    path: '/price-tag-creator',
+    label: 'Price Tag Creator',
+    desc: 'Customizable retail price tags, discounts & shelf talkers',
+    badge: 'NEW',
+    icon: Tag,
+    category: 'Commerce',
+  },
+  {
+    path: '/qr-code-generator',
+    label: 'QR Code Generator',
+    desc: 'Static QR for URLs, UPI pay, vCard, Wi-Fi & social links',
+    badge: 'POPULAR',
+    icon: QrCode,
+    category: 'Commerce',
+  },
+  {
+    path: '/thank-you-card-maker',
+    label: 'Thank You Card Maker',
+    desc: 'Ecommerce package inserts, coupon vouchers & A4 prints',
+    badge: 'NEW',
+    icon: Heart,
+    category: 'Commerce',
   },
 ];

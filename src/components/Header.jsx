@@ -40,9 +40,13 @@ import {
   GitCompare,
   Database,
   Terminal,
-  Link2
+  Link2,
+  LayoutGrid,
+  PanelLeft,
+  Rows3,
+  ShoppingBag
 } from 'lucide-react';
-import { useTheme, ACCENT_THEMES } from '../context/ThemeContext';
+import { useTheme, ACCENT_THEMES, NAV_VIEWS } from '../context/ThemeContext';
 import { ALL_TOOLS } from '../utils/toolsList';
 import { BrandLogo } from './BrandLogo';
 import {
@@ -60,16 +64,26 @@ export function Header({
   onOpenHistory,
   onOpenShortcuts,
 }) {
-  const { isDark, toggleTheme, accentTheme, setAccentTheme, accentConfig } = useTheme();
+  const { isDark, toggleTheme, accentTheme, setAccentTheme, accentConfig, navView, setNavView } = useTheme();
 
   // Active dropdown states (only one open at a time)
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'Data' | 'Security' | 'Docs' | 'Dev' | 'Pinned' | 'Settings' | null
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'Pinned' | 'Settings' | null
   const [selectedRibbonCategory, setSelectedRibbonCategory] = useState(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [sampleLoaded, setSampleLoaded] = useState(false);
 
+  // New Navigation View Controls
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [isViewSwitcherOpen, setIsViewSwitcherOpen] = useState(false);
+  const [isSiblingSwitcherOpen, setIsSiblingSwitcherOpen] = useState(false);
+  const [megaSearchQuery, setMegaSearchQuery] = useState('');
+
   useEffect(() => {
     setSelectedRibbonCategory(null);
+    setIsMegaMenuOpen(false);
+    setIsViewSwitcherOpen(false);
+    setIsSiblingSwitcherOpen(false);
+    setActiveDropdown(null);
   }, [currentPath]);
 
   // Dynamic Scroll & Progress Bar state
@@ -147,6 +161,15 @@ export function Header({
   // Click outside listener to close any open dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
+      if (!e.target.closest('#qfh-mega-menu-modal') && !e.target.closest('#qfh-explore-suites-btn')) {
+        setIsMegaMenuOpen(false);
+      }
+      if (!e.target.closest('#qfh-view-switcher-btn') && !e.target.closest('#qfh-view-switcher-popover')) {
+        setIsViewSwitcherOpen(false);
+      }
+      if (!e.target.closest('#qfh-sibling-switcher-btn') && !e.target.closest('#qfh-sibling-switcher-popover')) {
+        setIsSiblingSwitcherOpen(false);
+      }
       if (headerRef.current && !headerRef.current.contains(e.target)) {
         setActiveDropdown(null);
       }
@@ -154,6 +177,9 @@ export function Header({
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setActiveDropdown(null);
+        setIsMegaMenuOpen(false);
+        setIsViewSwitcherOpen(false);
+        setIsSiblingSwitcherOpen(false);
         setIsMobileDrawerOpen(false);
       }
     };
@@ -256,6 +282,7 @@ export function Header({
     { id: 'Security', label: 'Security', count: ALL_TOOLS.filter((t) => t.category === 'Security').length },
     { id: 'Docs', label: 'Docs', count: ALL_TOOLS.filter((t) => t.category === 'Docs').length },
     { id: 'Dev', label: 'Dev & API', count: ALL_TOOLS.filter((t) => t.category === 'Dev').length },
+    { id: 'Commerce', label: 'Commerce', count: ALL_TOOLS.filter((t) => t.category === 'Commerce').length },
   ];
 
   const activeRibbonCategory = selectedRibbonCategory || currentTool.category;
@@ -299,6 +326,15 @@ export function Header({
       activeBg: 'bg-amber-500/15 dark:bg-amber-500/20',
       borderColor: 'border-amber-500/30',
       activePillBg: 'bg-gradient-to-r from-amber-500 to-orange-600 shadow-amber-500/25',
+    },
+    Commerce: {
+      color: 'text-rose-600 dark:text-rose-400',
+      bg: 'bg-rose-500/10 dark:bg-rose-500/15',
+      badge: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      dotColor: 'bg-rose-500',
+      activeBg: 'bg-rose-500/15 dark:bg-rose-500/20',
+      borderColor: 'border-rose-500/30',
+      activePillBg: 'bg-gradient-to-r from-rose-500 to-pink-600 shadow-rose-500/25',
     },
     Pinned: {
       color: 'text-amber-600 dark:text-amber-400',
@@ -363,185 +399,105 @@ export function Header({
               </a>
             </div>
 
-            {/* 2. Primary Category Dropdowns Navigation (Clean, Organized, Zero-Redundancy) */}
-            <nav className="hidden lg:flex items-center gap-1 shrink-0">
-              {categories.map((cat) => {
-                const isOpen = activeDropdown === cat.id;
-                const isCurrentCategory = currentTool.category === cat.id;
-                const toolsInCat = ALL_TOOLS.filter((t) => t.category === cat.id);
-                const theme = categoryThemes[cat.id];
-
-                return (
-                  <div key={cat.id} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => toggleDropdown(cat.id)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        isOpen
-                          ? 'bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white shadow-2xs'
-                          : isCurrentCategory
-                          ? 'text-sky-600 dark:text-sky-400 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
-                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      {isCurrentCategory && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-500 ring-2 ring-sky-500/20 shrink-0" />
-                      )}
-                      <span>{cat.label}</span>
-                      <ChevronDown
-                        className={`w-3.5 h-3.5 opacity-50 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 opacity-100' : ''
-                        }`}
-                      />
-                    </button>
-
-                    {/* Category Dropdown Popover */}
-                    {isOpen && (
-                      <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 p-2.5 rounded-2xl bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl z-50 animate-slide-up">
-                        <div className="flex items-center justify-between px-2.5 py-1.5 mb-1 border-b border-slate-100 dark:border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>{cat.id === 'Docs' ? 'Docs & Text' : cat.id === 'Dev' ? 'Dev & API' : cat.id} Suite</span>
-                          <span className="font-mono">{toolsInCat.length} tools</span>
-                        </div>
-
-                        <div className="space-y-1">
-                          {toolsInCat.map((tool) => {
-                            const Icon = tool.icon;
-                            const isSelected = tool.path === currentPath;
-                            const isPinned = pinnedPaths.includes(tool.path);
-
-                            return (
-                              <div
-                                key={tool.path}
-                                onClick={() => {
-                                  playClickSound();
-                                  setActiveDropdown(null);
-                                  onNavigate(tool.path);
-                                }}
-                                className={`group flex items-start gap-2.5 p-2 rounded-xl text-left cursor-pointer transition-all ${
-                                  isSelected
-                                    ? 'bg-sky-500/10 border border-sky-500/40 text-sky-600 dark:text-sky-400'
-                                    : 'hover:bg-slate-100/80 dark:hover:bg-white/[0.06] border border-transparent'
-                                }`}
-                              >
-                                <div
-                                  className={`w-7 h-7 rounded-lg ${theme.bg} ${theme.color} flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform`}
-                                >
-                                  <Icon className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                      {tool.label}
-                                    </span>
-                                    {tool.badge && (
-                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 dark:text-sky-400 border border-sky-500/20">
-                                        {tool.badge}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug mt-0.5">
-                                    {tool.desc}
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => togglePin(tool.path, e)}
-                                  className={`p-1 rounded-md transition-all ${
-                                    isPinned
-                                      ? 'text-amber-500 opacity-100'
-                                      : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-amber-500'
-                                  }`}
-                                  title={isPinned ? 'Unpin favorite' : 'Pin to favorites'}
-                                >
-                                  <Star className={`w-3 h-3 ${isPinned ? 'fill-amber-500' : ''}`} />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Pinned Favorites Dropdown Trigger */}
-              <div className="relative ml-1">
+            {/* 2. Adaptive Navigation Center: Streamlined Mega-Menu, Breadcrumb & Sibling Switcher */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* "Explore Suites" Button in Streamlined Mode */}
+              {navView === 'streamlined' && (
                 <button
+                  id="qfh-explore-suites-btn"
                   type="button"
-                  onClick={() => toggleDropdown('Pinned')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeDropdown === 'Pinned'
-                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-amber-500 hover:bg-slate-100/70 dark:hover:bg-white/[0.04]'
+                  onClick={() => {
+                    playClickSound();
+                    setIsMegaMenuOpen((prev) => !prev);
+                    setIsViewSwitcherOpen(false);
+                    setIsSiblingSwitcherOpen(false);
+                    setActiveDropdown(null);
+                  }}
+                  className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-xs ${
+                    isMegaMenuOpen
+                      ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
+                      : 'bg-slate-100 dark:bg-white/[0.05] text-slate-900 dark:text-slate-100 border-slate-300 dark:border-white/15 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-500'
                   }`}
-                  title="Your Pinned Favorite Utilities"
+                  title="Explore All Tool Suites"
                 >
-                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  <span>Favorites</span>
-                  <span className="text-[9px] font-mono px-1 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">
-                    {pinnedPaths.length}
-                  </span>
+                  <LayoutGrid className="w-3.5 h-3.5 text-sky-500 group-hover:rotate-90 transition-transform" />
+                  <span>Explore Suites</span>
+                  <span className="text-[10px] font-mono opacity-70">({ALL_TOOLS.length})</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+
+              {/* Contextual Sibling Tool Breadcrumb (Shows active category + current tool with quick-switch dropdown) */}
+              <div className="relative hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-white/[0.05] border border-slate-300 dark:border-white/15 shadow-xs">
+                <span className={`text-[11px] font-extrabold ${categoryThemes[currentTool.category]?.color || 'text-sky-500'}`}>
+                  {currentTool.category === 'Commerce' ? 'Commerce' : currentTool.category === 'Docs' ? 'Docs' : currentTool.category === 'Dev' ? 'Dev & API' : currentTool.category}
+                </span>
+                <span className="text-slate-400 dark:text-slate-500 text-xs font-bold">/</span>
+                <button
+                  id="qfh-sibling-switcher-btn"
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setIsSiblingSwitcherOpen((prev) => !prev);
+                    setIsMegaMenuOpen(false);
+                    setIsViewSwitcherOpen(false);
+                    setActiveDropdown(null);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
+                  title="Click to jump to another tool in this suite"
+                >
+                  <CurrentIcon className="w-3.5 h-3.5 text-sky-500" />
+                  <span className="max-w-[120px] lg:max-w-[170px] truncate">{currentTool.label}</span>
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isSiblingSwitcherOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Pinned Utilities Popover */}
-                {activeDropdown === 'Pinned' && (
-                  <div className="absolute left-0 top-full mt-2 w-72 p-2 rounded-2xl bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-2xl border border-slate-200 dark:border-white/[0.1] shadow-2xl z-50 animate-slide-up">
-                    <div className="flex items-center justify-between px-2.5 py-1.5 mb-1 border-b border-slate-100 dark:border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-amber-500">
-                      <span>Pinned Utilities</span>
-                      <span className="font-mono text-slate-400">Alt+1..5</span>
+                {/* Sibling Tools Dropdown Popover */}
+                {isSiblingSwitcherOpen && (
+                  <div
+                    id="qfh-sibling-switcher-popover"
+                    className="absolute left-0 top-full mt-2 w-72 p-2 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-300 dark:border-white/15 shadow-2xl z-50 animate-slide-up space-y-1"
+                  >
+                    <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-white/10 mb-1 font-mono">
+                      <span>{currentTool.category} Suite Tools</span>
+                      <span className="font-mono">{ALL_TOOLS.filter((t) => t.category === currentTool.category).length} tools</span>
                     </div>
-
-                    <div className="space-y-1">
-                      {ALL_TOOLS.filter((t) => pinnedPaths.includes(t.path)).map((tool, idx) => {
-                        const Icon = tool.icon;
-                        const isSelected = tool.path === currentPath;
-
-                        return (
-                          <div
-                            key={tool.path}
-                            onClick={() => {
-                              playClickSound();
-                              setActiveDropdown(null);
-                              onNavigate(tool.path);
-                            }}
-                            className={`group flex items-center justify-between p-2 rounded-xl text-left cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-amber-500/10 border border-amber-500/40 text-amber-600 dark:text-amber-400 font-bold'
-                                : 'hover:bg-slate-100/80 dark:hover:bg-white/[0.06]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <div className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                                <Icon className="w-3.5 h-3.5" />
-                              </div>
-                              <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
-                                {tool.label}
-                              </span>
+                    {ALL_TOOLS.filter((t) => t.category === currentTool.category).map((tool) => {
+                      const Icon = tool.icon;
+                      const isCurrent = tool.path === currentPath;
+                      const theme = categoryThemes[tool.category] || categoryThemes['Data'];
+                      return (
+                        <button
+                          key={tool.path}
+                          type="button"
+                          onClick={() => {
+                            playClickSound();
+                            setIsSiblingSwitcherOpen(false);
+                            onNavigate(tool.path);
+                          }}
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-xs text-left transition-all ${
+                            isCurrent
+                              ? 'bg-sky-500/10 border border-sky-500/30 text-sky-600 dark:text-sky-400 font-bold'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${theme.bg} ${theme.color}`}>
+                              <Icon className="w-3.5 h-3.5" />
                             </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {idx < 5 && (
-                                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/[0.08] text-slate-500">
-                                  ⌥{idx + 1}
-                                </span>
-                              )}
-                              <button
-                                type="button"
-                                onClick={(e) => togglePin(tool.path, e)}
-                                className="p-1 text-amber-500 hover:text-slate-400"
-                                title="Unpin from favorites"
-                              >
-                                <Star className="w-3 h-3 fill-amber-500" />
-                              </button>
-                            </div>
+                            <span className="truncate">{tool.label}</span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          {tool.badge && (
+                            <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20 shrink-0">
+                              {tool.badge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            </nav>
+            </div>
 
             {/* 3. Search Bar Spotlight Trigger (⌘K) */}
             <div className="flex-1 max-w-xs md:max-w-sm hidden sm:block">
@@ -550,28 +506,102 @@ export function Header({
                 onClick={() => {
                   playClickSound();
                   setActiveDropdown(null);
+                  setIsMegaMenuOpen(false);
+                  setIsViewSwitcherOpen(false);
+                  setIsSiblingSwitcherOpen(false);
                   onOpenCommandPalette();
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-1 rounded-lg border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] text-xs text-slate-500 dark:text-slate-400 hover:border-sky-500/50 hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 transition-all shadow-2xs group cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-white/[0.05] text-xs text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:bg-white dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs group cursor-pointer font-medium"
               >
                 <Search className="w-3.5 h-3.5 text-sky-500 group-hover:scale-110 transition-transform shrink-0" />
-                <span className="flex-1 text-left font-normal truncate">Search {ALL_TOOLS.length} tools...</span>
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-white dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.1] text-slate-600 dark:text-slate-300 shadow-2xs shrink-0">
+                <span className="flex-1 text-left font-medium truncate">Search {ALL_TOOLS.length} tools...</span>
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 text-slate-800 dark:text-slate-200 shadow-xs shrink-0">
                   <Command className="w-2.5 h-2.5 inline" />K
                 </span>
               </button>
             </div>
 
+            {/* 4. Navigation View Switcher Control (1-Click Layout Transformation) */}
+            <div className="relative shrink-0">
+              <button
+                id="qfh-view-switcher-btn"
+                type="button"
+                onClick={() => {
+                  playClickSound();
+                  setIsViewSwitcherOpen((prev) => !prev);
+                  setActiveDropdown(null);
+                  setIsMegaMenuOpen(false);
+                  setIsSiblingSwitcherOpen(false);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-white/[0.05] text-xs font-bold text-slate-900 dark:text-slate-100 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-500 hover:bg-white dark:hover:bg-white/10 transition-all cursor-pointer shadow-xs"
+                title="Change Navigation View"
+              >
+                {navView === 'streamlined' && <LayoutGrid className="w-3.5 h-3.5 text-sky-500" />}
+                {navView === 'sidebar' && <PanelLeft className="w-3.5 h-3.5 text-emerald-500" />}
+                {navView === 'ribbon' && <Rows3 className="w-3.5 h-3.5 text-purple-500" />}
+                <span className="hidden lg:inline capitalize font-semibold">{navView} View</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isViewSwitcherOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* View Switcher Dropdown Popover */}
+              {isViewSwitcherOpen && (
+                <div
+                  id="qfh-view-switcher-popover"
+                  className="absolute right-0 top-full mt-2 w-64 p-2.5 rounded-2xl bg-white dark:bg-[#0b1120] border border-slate-300 dark:border-white/15 shadow-2xl z-50 animate-slide-up space-y-1"
+                >
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-white/10 mb-1 font-mono">
+                    Choose Navigation View
+                  </div>
+                  {NAV_VIEWS.map((view) => {
+                    const isSelected = navView === view.id;
+                    const Icon = view.id === 'streamlined' ? LayoutGrid : view.id === 'sidebar' ? PanelLeft : Rows3;
+                    return (
+                      <button
+                        id={`qfh-view-opt-${view.id}`}
+                        key={view.id}
+                        type="button"
+                        onClick={() => {
+                          playClickSound();
+                          setNavView(view.id);
+                          setIsViewSwitcherOpen(false);
+                        }}
+                        className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-sky-500/10 border border-sky-500/30 text-sky-600 dark:text-sky-400 font-bold'
+                            : 'hover:bg-slate-100 dark:hover:bg-white/[0.06] border border-transparent text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                          isSelected ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-white/[0.08] text-slate-500'
+                        }`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold">{view.label}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-sky-500" />}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-normal leading-tight mt-0.5">
+                            {view.sublabel}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* 4. Streamlined Actions & Controls Deck */}
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               {/* Load Sample Data Button */}
               <button
                 type="button"
                 onClick={handleLoadSample}
-                className={`hidden md:flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-xs ${
                   sampleLoaded
-                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
-                    : 'bg-slate-100/80 dark:bg-white/[0.04] hover:bg-sky-500 hover:text-white hover:border-sky-500 border-slate-200/90 dark:border-white/[0.08] text-slate-700 dark:text-slate-300'
+                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+                    : 'bg-white dark:bg-white/[0.05] hover:bg-sky-500 hover:text-white hover:border-sky-500 border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200'
                 }`}
                 title="Quickly load sample data into active tool"
               >
@@ -582,7 +612,7 @@ export function Header({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                     <span>Sample</span>
                   </>
                 )}
@@ -592,10 +622,10 @@ export function Header({
               <button
                 type="button"
                 onClick={(e) => togglePin(currentPath, e)}
-                className={`p-1.5 rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] transition-colors hidden sm:flex ${
+                className={`p-1.5 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-white/[0.05] transition-colors hidden sm:flex cursor-pointer shadow-xs ${
                   pinnedPaths.includes(currentPath)
                     ? 'text-amber-500 hover:text-amber-600'
-                    : 'text-slate-400 hover:text-amber-500 hover:bg-white dark:hover:bg-white/[0.08]'
+                    : 'text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-white/10'
                 }`}
                 title={pinnedPaths.includes(currentPath) ? 'Unpin current tool' : 'Pin current tool to favorites'}
               >
@@ -610,7 +640,7 @@ export function Header({
                   toggleTheme();
                 }}
                 aria-label="Toggle Color Theme"
-                className="p-1.5 rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-slate-100/80 dark:bg-white/[0.03] text-slate-600 dark:text-slate-400 hover:text-amber-500 hover:bg-white dark:hover:bg-white/[0.08] transition-all"
+                className="p-1.5 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-white/[0.05] text-slate-700 dark:text-slate-200 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer shadow-xs"
                 title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {isDark ? (
@@ -670,6 +700,38 @@ export function Header({
                                 style={{ background: theme.color }}
                               />
                               <span className="truncate max-w-[50px]">{theme.label.split(' ')[0]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Navigation Layout Preference */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>Navigation Layout</span>
+                        <span className="text-[10px] font-mono text-sky-500 capitalize">{navView}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {NAV_VIEWS.map((v) => {
+                          const isSelected = navView === v.id;
+                          const Icon = v.id === 'streamlined' ? LayoutGrid : v.id === 'sidebar' ? PanelLeft : Rows3;
+                          return (
+                            <button
+                              key={v.id}
+                              type="button"
+                              onClick={() => {
+                                playClickSound();
+                                setNavView(v.id);
+                              }}
+                              className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border text-[10px] font-semibold transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-xs'
+                                  : 'border-slate-200/60 dark:border-white/[0.04] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.02]'
+                              }`}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                              <span className="truncate">{v.label.split(' ')[0]}</span>
                             </button>
                           );
                         })}
@@ -772,103 +834,235 @@ export function Header({
           </div>
         </div>
 
-        {/* Compact Sub-Navigation Ribbon (Instant Category & Tool Switcher) */}
-        <div className="border-t border-slate-200/70 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#050813]/80 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-9 gap-3">
-              
-              {/* Left: Category Switcher Tabs */}
-              <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
-                {pinnedPaths.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      playClickSound();
-                      setSelectedRibbonCategory('Pinned');
-                    }}
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                      activeRibbonCategory === 'Pinned'
-                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold shadow-2xs'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                    <span>Favorites</span>
-                    <span className="text-[9px] font-mono px-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold">
-                      {pinnedPaths.length}
-                    </span>
-                  </button>
-                )}
-
-                {categories.map((cat) => {
-                  const isCatActive = activeRibbonCategory === cat.id;
-                  const toolsInCat = ALL_TOOLS.filter((t) => t.category === cat.id);
-                  const theme = categoryThemes[cat.id];
-
-                  return (
+        {/* Compact Sub-Navigation Ribbon (Only in 'ribbon' view for zero-redundancy) */}
+        {navView === 'ribbon' && (
+          <div className="border-t border-slate-200/70 dark:border-white/[0.06] bg-slate-50/70 dark:bg-[#050813]/80 backdrop-blur-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-9 gap-3">
+                
+                {/* Left: Category Switcher Tabs */}
+                <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+                  {pinnedPaths.length > 0 && (
                     <button
-                      key={cat.id}
                       type="button"
                       onClick={() => {
                         playClickSound();
-                        setSelectedRibbonCategory(cat.id);
+                        setSelectedRibbonCategory('Pinned');
                       }}
-                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                        isCatActive
-                          ? `${theme.activeBg} ${theme.color} border ${theme.borderColor} font-bold shadow-2xs`
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                        activeRibbonCategory === 'Pinned'
+                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold shadow-2xs'
                           : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
                       }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${theme.dotColor}`} />
-                      <span>{cat.label}</span>
-                      <span className="text-[9px] font-mono opacity-60">
-                        {toolsInCat.length}
+                      <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                      <span>Favorites</span>
+                      <span className="text-[9px] font-mono px-1 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold">
+                        {pinnedPaths.length}
                       </span>
                     </button>
-                  );
-                })}
-              </div>
+                  )}
 
-              {/* Vertical Separator */}
-              <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0 hidden sm:block" />
+                  {categories.map((cat) => {
+                    const isCatActive = activeRibbonCategory === cat.id;
+                    const toolsInCat = ALL_TOOLS.filter((t) => t.category === cat.id);
+                    const theme = categoryThemes[cat.id];
 
-              {/* Right: Tools in Active Category (Fast 1-Click Jumping) */}
-              <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
-                {displayedRibbonTools.map((tool) => {
-                  const isToolActive = tool.path === currentPath;
-                  const Icon = tool.icon;
-                  const theme = categoryThemes[tool.category] || categoryThemes['Data'];
-
-                  return (
-                    <button
-                      key={tool.path}
-                      type="button"
-                      onClick={() => {
-                        playClickSound();
-                        onNavigate(tool.path);
-                      }}
-                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap ${
-                        isToolActive
-                          ? `${theme.activePillBg} text-white font-bold shadow-xs`
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-white/[0.06] font-medium'
-                      }`}
-                    >
-                      <Icon className="w-3 h-3 shrink-0" />
-                      <span>{tool.label}</span>
-                      {tool.badge && !isToolActive && (
-                        <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20">
-                          {tool.badge}
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          playClickSound();
+                          setSelectedRibbonCategory(cat.id);
+                        }}
+                        className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                          isCatActive
+                            ? `${theme.activeBg} ${theme.color} border ${theme.borderColor} font-bold shadow-2xs`
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${theme.dotColor}`} />
+                        <span>{cat.label}</span>
+                        <span className="text-[9px] font-mono opacity-60">
+                          {toolsInCat.length}
                         </span>
-                      )}
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Vertical Separator */}
+                <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0 hidden sm:block" />
+
+                {/* Right: Tools in Active Category (Fast 1-Click Jumping) */}
+                <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
+                  {displayedRibbonTools.map((tool) => {
+                    const isToolActive = tool.path === currentPath;
+                    const Icon = tool.icon;
+                    const theme = categoryThemes[tool.category] || categoryThemes['Data'];
+
+                    return (
+                      <button
+                        key={tool.path}
+                        type="button"
+                        onClick={() => {
+                          playClickSound();
+                          onNavigate(tool.path);
+                        }}
+                        className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] transition-all cursor-pointer whitespace-nowrap ${
+                          isToolActive
+                            ? `${theme.activePillBg} text-white font-bold shadow-xs`
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-white/[0.06] font-medium'
+                        }`}
+                      >
+                        <Icon className="w-3 h-3 shrink-0" />
+                        <span>{tool.label}</span>
+                        {tool.badge && !isToolActive && (
+                          <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                            {tool.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Full Bento Mega-Menu Modal / Popover Overlay (for Streamlined View) */}
+      {isMegaMenuOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-14 sm:pt-16 px-3 sm:px-6 pb-6 overflow-y-auto no-print">
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
+            onClick={() => setIsMegaMenuOpen(false)}
+          />
+          <div
+            id="qfh-mega-menu-modal"
+            className="relative w-full max-w-6xl rounded-3xl bg-white dark:bg-[#080d19] border border-slate-300 dark:border-white/15 shadow-2xl p-5 sm:p-7 z-10 animate-slide-up space-y-5"
+          >
+            {/* Mega-Menu Top Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-300 dark:border-white/10">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40">
+                    All {ALL_TOOLS.length} Utilities
+                  </span>
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                    Platform Tool Suite Directory
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                  100% private, client-side browser utilities with zero latency.
+                </p>
               </div>
 
+              <div className="flex items-center gap-2">
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder={`Filter ${ALL_TOOLS.length} tools...`}
+                    value={megaSearchQuery}
+                    onChange={(e) => setMegaSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-slate-100 dark:bg-[#0c1222] border border-slate-300 dark:border-white/15 text-slate-900 dark:text-white placeholder-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMegaMenuOpen(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Close Directory (Esc)"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* 5-Column Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {categories.map((cat) => {
+                const theme = categoryThemes[cat.id];
+                const toolsInCat = ALL_TOOLS.filter((t) => {
+                  if (t.category !== cat.id) return false;
+                  if (!megaSearchQuery) return true;
+                  const q = megaSearchQuery.toLowerCase();
+                  return t.label.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+                });
+
+                if (toolsInCat.length === 0) return null;
+
+                return (
+                  <div
+                    key={cat.id}
+                    className="flex flex-col p-3 rounded-2xl bg-slate-100/70 dark:bg-[#0b1020] border border-slate-300 dark:border-white/10 shadow-xs"
+                  >
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-white/10">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${theme.dotColor}`} />
+                        <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                          {cat.id === 'Docs' ? 'Docs & Text' : cat.id === 'Dev' ? 'Dev & API' : cat.id === 'Commerce' ? 'Commerce' : cat.id}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-white/10 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/10">
+                        {toolsInCat.length}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 flex-1">
+                      {toolsInCat.map((tool) => {
+                        const Icon = tool.icon;
+                        const isCurrent = tool.path === currentPath;
+
+                        return (
+                          <button
+                            key={tool.path}
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              setIsMegaMenuOpen(false);
+                              onNavigate(tool.path);
+                            }}
+                            className={`w-full group text-left flex items-start gap-2 p-1.5 rounded-xl transition-all cursor-pointer ${
+                              isCurrent
+                                ? 'bg-sky-500/15 border border-sky-500/40 text-sky-700 dark:text-sky-300 font-bold'
+                                : 'hover:bg-white dark:hover:bg-white/10 border border-transparent hover:border-slate-300 dark:hover:border-white/15 text-slate-900 dark:text-slate-100 hover:shadow-xs'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 rounded-lg ${theme.bg} ${theme.color} flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform`}>
+                              <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-bold truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                                  {tool.label}
+                                </span>
+                                {tool.badge && (
+                                  <span className="text-[8px] font-mono font-bold px-1 rounded bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 shrink-0">
+                                    {tool.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-600 dark:text-slate-400 line-clamp-1 leading-tight mt-0.5 font-medium">
+                                {tool.desc}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Clean Mobile Slide-Out Drawer */}
       {isMobileDrawerOpen && (
@@ -945,6 +1139,37 @@ export function Header({
                   </button>
                 </div>
               </div>
+
+              {/* Navigation View Switcher in Mobile Drawer */}
+              <div className="pt-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 px-1">
+                  Navigation Layout
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {NAV_VIEWS.map((v) => {
+                    const isSelected = navView === v.id;
+                    const Icon = v.id === 'streamlined' ? LayoutGrid : v.id === 'sidebar' ? PanelLeft : Rows3;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => {
+                          playClickSound();
+                          setNavView(v.id);
+                        }}
+                        className={`flex flex-col items-center gap-1 p-1.5 rounded-xl border text-[10px] font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-xs'
+                            : 'border-slate-200/80 dark:border-white/[0.06] text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        <span>{v.label.split(' ')[0]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Categorized Tools List */}
@@ -1000,7 +1225,7 @@ export function Header({
                 return (
                   <div key={cat.id}>
                     <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 px-1">
-                      <span>{cat.id === 'Docs' ? 'Docs & Text' : cat.id === 'Dev' ? 'Dev & API' : cat.id}</span>
+                      <span>{cat.id === 'Docs' ? 'Docs & Text' : cat.id === 'Dev' ? 'Dev & API' : cat.id === 'Commerce' ? 'Commerce & Retail' : cat.id}</span>
                       <span className="font-mono text-[9px]">{toolsInCat.length}</span>
                     </div>
 

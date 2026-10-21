@@ -7,12 +7,20 @@ export const ACCENT_THEMES = [
   { id: 'amber', label: 'Solar Amber', color: '#f59e0b', gradient: 'from-amber-500 to-orange-400', ring: 'ring-amber-400' },
 ];
 
+export const NAV_VIEWS = [
+  { id: 'streamlined', label: 'Streamlined', sublabel: 'Single Bar + Mega-Menu' },
+  { id: 'sidebar', label: 'Sidebar Studio', sublabel: 'Collapsible Left Rail' },
+  { id: 'ribbon', label: 'De-duplicated Ribbon', sublabel: 'Category Sub-Nav' },
+];
+
 const ThemeContext = createContext({
   isDark: true,
   toggleTheme: () => {},
   accentTheme: 'sky',
   setAccentTheme: () => {},
   accentConfig: ACCENT_THEMES[0],
+  navView: 'streamlined',
+  setNavView: () => {},
 });
 
 export function ThemeProvider({ children }) {
@@ -28,6 +36,16 @@ export function ThemeProvider({ children }) {
     const saved = localStorage.getItem('qfh_accent');
     return saved && ACCENT_THEMES.some((a) => a.id === saved) ? saved : 'sky';
   });
+
+  const [navView, setNavViewState] = useState(() => {
+    const saved = localStorage.getItem('qfh_nav_view');
+    return saved && ['streamlined', 'sidebar', 'ribbon'].includes(saved) ? saved : 'streamlined';
+  });
+
+  const setNavView = (view) => {
+    setNavViewState(view);
+    localStorage.setItem('qfh_nav_view', view);
+  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -53,7 +71,17 @@ export function ThemeProvider({ children }) {
   const accentConfig = ACCENT_THEMES.find((a) => a.id === accentTheme) || ACCENT_THEMES[0];
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, accentTheme, setAccentTheme, accentConfig }}>
+    <ThemeContext.Provider
+      value={{
+        isDark,
+        toggleTheme,
+        accentTheme,
+        setAccentTheme,
+        accentConfig,
+        navView,
+        setNavView,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
@@ -62,4 +90,3 @@ export function ThemeProvider({ children }) {
 export function useTheme() {
   return useContext(ThemeContext);
 }
-
