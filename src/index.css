@@ -254,6 +254,12 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.dark .aurora-sky-container {
+  opacity: 1;
 }
 
 .aurora-sky-curtain-1 {
@@ -313,8 +319,8 @@
 /* Aurora Luxe Signature Neon Pill & Air-Gapped Card */
 .aurora-neon-pill {
   background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(52, 211, 153, 0.4);
-  box-shadow: 0 0 16px -2px rgba(16, 185, 129, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.35);
+  box-shadow: 0 1px 4px 0 rgba(5, 150, 105, 0.15);
   transition: all 0.2s ease;
 }
 
@@ -326,33 +332,56 @@
 
 /* Direction 3 Signature [ 0ms AIR-GAPPED SANDBOX ] Illuminated Cockpit Container */
 .aurora-cockpit-card {
-  background: rgba(6, 78, 59, 0.25);
-  border: 2px solid rgba(52, 211, 153, 0.85);
-  box-shadow: 0 0 28px -2px rgba(16, 185, 129, 0.45), inset 0 0 14px rgba(16, 185, 129, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #059669;
+  box-shadow: 0 4px 20px -2px rgba(5, 150, 105, 0.18), 0 1px 3px rgba(0, 0, 0, 0.05);
   border-radius: 1rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.dark .aurora-cockpit-card {
+  background: rgba(6, 78, 59, 0.25);
+  border: 2px solid rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 28px -2px rgba(16, 185, 129, 0.45), inset 0 0 14px rgba(16, 185, 129, 0.2);
+}
+
 .aurora-cockpit-card:hover {
+  border-color: #047857;
+  box-shadow: 0 6px 24px -2px rgba(5, 150, 105, 0.28);
+  transform: translateY(-1px);
+}
+
+.dark .aurora-cockpit-card:hover {
   border-color: rgba(52, 211, 153, 1);
   box-shadow: 0 0 38px 0 rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.3);
-  transform: translateY(-1px);
 }
 
 /* Spatial Telemetry Glass Cards */
 .aurora-telemetry-panel {
-  background: rgba(13, 20, 36, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   border-radius: 1rem;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
-/* Sidebar Dock Active Glow */
+.dark .aurora-telemetry-panel {
+  background: rgba(13, 20, 36, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Sidebar Dock Active Glow with High-Contrast Light and Dark Themes */
 .dock-item-active-data {
+  background: linear-gradient(90deg, rgba(2, 132, 199, 0.12) 0%, rgba(2, 132, 199, 0.02) 100%) !important;
+  border-left: 3px solid #0284c7 !important;
+  color: #0369a1 !important;
+}
+
+.dark .dock-item-active-data {
   background: linear-gradient(90deg, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0.04) 100%) !important;
   border-left: 3px solid #38bdf8 !important;
   color: #38bdf8 !important;
@@ -360,6 +389,12 @@
 }
 
 .dock-item-active-security {
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.12) 0%, rgba(5, 150, 105, 0.02) 100%) !important;
+  border-left: 3px solid #059669 !important;
+  color: #047857 !important;
+}
+
+.dark .dock-item-active-security {
   background: linear-gradient(90deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
   border-left: 3px solid #34d399 !important;
   color: #34d399 !important;
@@ -367,6 +402,12 @@
 }
 
 .dock-item-active-commerce {
+  background: linear-gradient(90deg, rgba(225, 29, 72, 0.12) 0%, rgba(225, 29, 72, 0.02) 100%) !important;
+  border-left: 3px solid #e11d48 !important;
+  color: #be123c !important;
+}
+
+.dark .dock-item-active-commerce {
   background: linear-gradient(90deg, rgba(244, 63, 94, 0.18) 0%, rgba(244, 63, 94, 0.04) 100%) !important;
   border-left: 3px solid #fb7185 !important;
   color: #fb7185 !important;
@@ -374,6 +415,12 @@
 }
 
 .dock-item-active-docs {
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.12) 0%, rgba(124, 58, 237, 0.02) 100%) !important;
+  border-left: 3px solid #7c3aed !important;
+  color: #6d28d9 !important;
+}
+
+.dark .dock-item-active-docs {
   background: linear-gradient(90deg, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0.04) 100%) !important;
   border-left: 3px solid #c084fc !important;
   color: #c084fc !important;
@@ -381,6 +428,12 @@
 }
 
 .dock-item-active-dev {
+  background: linear-gradient(90deg, rgba(217, 119, 6, 0.12) 0%, rgba(217, 119, 6, 0.02) 100%) !important;
+  border-left: 3px solid #d97706 !important;
+  color: #b45309 !important;
+}
+
+.dark .dock-item-active-dev {
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
   border-left: 3px solid #fbbf24 !important;
   color: #fbbf24 !important;
