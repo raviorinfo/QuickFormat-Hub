@@ -143,7 +143,7 @@ export function SidebarNav({ currentPath, onNavigate }) {
 
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 border-r border-slate-200 dark:border-white/[0.08] bg-white/95 dark:bg-[#040814]/95 backdrop-blur-xl transition-all duration-300 no-print select-none shadow-xl relative z-30 ${
+      className={`hidden md:flex flex-col shrink-0 border-r border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#040814] transition-all duration-300 no-print select-none shadow-xl relative z-40 ${
         isCollapsed ? 'w-[72px]' : 'w-64'
       }`}
     >
@@ -248,7 +248,7 @@ export function SidebarNav({ currentPath, onNavigate }) {
 
               return (
                 <div key={suite.id} className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 font-mono">
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 px-2 font-mono">
                     <span className="flex items-center gap-1.5">
                       <Icon className={`w-3.5 h-3.5 ${suite.color}`} />
                       {suite.fullLabel}
@@ -272,14 +272,14 @@ export function SidebarNav({ currentPath, onNavigate }) {
                           className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-xs transition-all cursor-pointer relative ${
                             isSelected
                               ? `${suite.activeClass} font-bold shadow-md`
-                              : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
+                              : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] font-medium'
                           }`}
                         >
-                          <ToolIcon className="w-4 h-4 shrink-0" />
+                          <ToolIcon className="w-4 h-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
                           <div className="flex items-center justify-between flex-1 min-w-0">
-                            <span className="truncate text-left">{tool.label}</span>
+                            <span className={`truncate text-left ${isSelected ? 'text-inherit font-bold' : 'text-slate-800 dark:text-slate-200'}`}>{tool.label}</span>
                             {tool.badge && (
-                              <span className="text-[8px] font-mono font-bold px-1 rounded bg-white/10 text-slate-300">
+                              <span className="text-[8px] font-mono font-bold px-1 rounded bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-300">
                                 {tool.badge}
                               </span>
                             )}
@@ -300,18 +300,18 @@ export function SidebarNav({ currentPath, onNavigate }) {
         <button
           type="button"
           onClick={toggleCollapse}
-          className="w-10 h-10 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors flex items-center justify-center cursor-pointer group"
+          className="w-10 h-10 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-center cursor-pointer group"
           title={isCollapsed ? 'Expand Studio Sidebar' : 'Collapse to Command Dock'}
         >
           {isCollapsed ? (
-            <PanelLeftOpen className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+            <PanelLeftOpen className="w-5 h-5 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform" />
           ) : (
-            <PanelLeftClose className="w-5 h-5 text-slate-400 group-hover:text-white transition-transform" />
+            <PanelLeftClose className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-transform" />
           )}
         </button>
 
         {!isCollapsed && (
-          <div className="w-full text-center text-[10px] font-mono text-slate-400">
+          <div className="w-full text-center text-[10px] font-mono text-slate-500 dark:text-slate-400 font-semibold">
             Aurora Luxe Hub v3.0
           </div>
         )}
@@ -321,15 +321,19 @@ export function SidebarNav({ currentPath, onNavigate }) {
       {isCollapsed && activeSuitePopover && (
         <div
           ref={popoverRef}
-          className="absolute left-[76px] top-16 w-64 p-3 rounded-2xl bg-white/98 dark:bg-[#090f1f]/95 border border-slate-200 dark:border-white/[0.12] shadow-2xl backdrop-blur-2xl z-50 animate-slide-right space-y-2 text-slate-900 dark:text-white"
+          style={{
+            top: `${Math.max(16, Math.min(280, 60 + suites.findIndex((s) => s.id === activeSuitePopover) * 64))}px`,
+          }}
+          className="absolute left-[76px] w-72 p-3.5 rounded-2xl bg-white dark:bg-[#090f1f] border border-slate-200 dark:border-white/[0.15] shadow-2xl shadow-slate-900/20 dark:shadow-black/80 z-50 animate-slide-right space-y-2.5 text-slate-900 dark:text-white"
         >
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.08]">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/[0.08]">
             <span className="text-xs font-black font-mono uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
               {suites.find((s) => s.id === activeSuitePopover)?.fullLabel}
             </span>
             <button
               onClick={() => setActiveSuitePopover(null)}
-              className="p-1 rounded text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors"
+              title="Close menu"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -352,12 +356,12 @@ export function SidebarNav({ currentPath, onNavigate }) {
                   className={`w-full flex items-center gap-2.5 p-2 rounded-xl text-xs transition-all text-left cursor-pointer ${
                     isSelected
                       ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-bold border border-cyan-300 dark:border-cyan-500/40 shadow-xs'
-                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08]'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.08]'
                   }`}
                 >
                   <ToolIcon className="w-4 h-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
                   <div className="flex-1 min-w-0">
-                    <div className="truncate font-semibold">{tool.label}</div>
+                    <div className="truncate font-semibold text-slate-900 dark:text-white">{tool.label}</div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-normal">{tool.desc}</div>
                   </div>
                 </button>
