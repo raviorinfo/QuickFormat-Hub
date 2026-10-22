@@ -669,15 +669,41 @@ export function PriceTagCreatorTool() {
   };
 
   // Route items to Module 3 Sheet Layout Engine
-  const handleSendToSheet = (items) => {
+  const handleSendToSheet = (itemOrItems, options = {}) => {
     playClickSound();
-    if (Array.isArray(items)) {
-      setItemsToPrint(items);
-    } else if (items) {
-      setItemsToPrint([items]);
+    const isArr = Array.isArray(itemOrItems);
+    const rawItems = isArr ? itemOrItems : (itemOrItems ? [itemOrItems] : []);
+    const firstItem = rawItems[0] || null;
+
+    setItemsToPrint(rawItems);
+
+    if (firstItem) {
+      const w = firstItem.widthMm || options.labelWidthMm || sheetConfig.labelWidthMm || 70;
+      const h = firstItem.heightMm || options.labelHeightMm || sheetConfig.labelHeightMm || 36;
+
+      setSheetConfig((prev) => {
+        const isLandscape = prev.orientation === 'landscape';
+        const paperW = isLandscape ? 297 : 210;
+        const paperH = isLandscape ? 210 : 297;
+        const usableW = Math.max(10, paperW - (prev.marginLeftMm || 0) - (prev.marginRightMm || 0));
+        const usableH = Math.max(10, paperH - (prev.marginTopMm || 0) - (prev.marginBottomMm || 0));
+        const autoCols = Math.max(1, Math.floor((usableW + (prev.gapXmm || 0)) / (w + (prev.gapXmm || 0))));
+        const autoRows = Math.max(1, Math.floor((usableH + (prev.gapYmm || 0)) / (h + (prev.gapYmm || 0))));
+
+        return {
+          ...prev,
+          labelWidthMm: w,
+          labelHeightMm: h,
+          cols: autoCols,
+          rows: autoRows,
+          selectedPresetId: 'custom-grid',
+          printQuantityMode: isArr && rawItems.length > 1 ? 'from-items' : 'fill-sheet',
+        };
+      });
     }
+
     setMainModule('sheet-arrangement');
-    toast.success('Sent to Automatic Sheet Layout Engine!');
+    toast.success('Sent to Automatic Sheet Layout Engine (Auto-fitted to sheet)!');
   };
 
   return (
@@ -1959,12 +1985,24 @@ export function PriceTagCreatorTool() {
         <SheetLayoutModule
           sheetConfig={sheetConfig}
           setSheetConfig={setSheetConfig}
-          itemsToPrint={itemsToPrint.length > 0 ? itemsToPrint : bulkProducts}
+          itemsToPrint={itemsToPrint.length > 0 ? itemsToPrint : [mrpState]}
           fallbackItem={{
             name: mrpState.name || name,
             sku: mrpState.sku || sku,
             mrp: mrpState.mrp || mrp,
             sellingPrice: mrpState.sellingPrice || sellingPrice,
+            brand: mrpState.brand,
+            variant: mrpState.variant,
+            packSize: mrpState.packSize,
+            customText: mrpState.customText,
+            barcodeValue: mrpState.barcodeValue || sku,
+            codeType: mrpState.codeType || 'barcode',
+            headerBg: mrpState.headerBg || '#0f172a',
+            headerText: mrpState.headerText || 'MAXIMUM RETAIL PRICE',
+            bg: mrpState.bg || '#ffffff',
+            borderColor: mrpState.borderColor || '#e2e8f0',
+            borderStyle: mrpState.borderStyle || 'solid',
+            fontFamily: mrpState.fontFamily || 'sans-serif',
           }}
         />
       )}

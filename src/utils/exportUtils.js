@@ -467,6 +467,63 @@ export function exportMultiPageSheetPdf({
           } catch (err) {
             console.warn('PDF image rendering skipped for slot', err);
           }
+        } else {
+          // Render crisp vector card for each label
+          const item = label.item || {};
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(label.xMm, label.yMm, label.widthMm, label.heightMm, 'F');
+
+          // Optional header banner
+          if (item.headerBg || item.badgeText || item.headerTitle) {
+            pdf.setFillColor(15, 23, 42);
+            pdf.rect(label.xMm, label.yMm, label.widthMm, 4, 'F');
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(6);
+            pdf.setTextColor(255, 255, 255);
+            const title = item.headerTitle || item.badgeText || 'MAXIMUM RETAIL PRICE';
+            pdf.text(String(title).slice(0, 26).toUpperCase(), label.xMm + label.widthMm / 2, label.yMm + 3, { align: 'center' });
+          }
+
+          const contentStartY = (item.headerBg || item.badgeText || item.headerTitle) ? label.yMm + 7 : label.yMm + 4;
+
+          // Brand
+          if (item.brand) {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(5);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text(String(item.brand).slice(0, 24).toUpperCase(), label.xMm + 2, contentStartY);
+          }
+
+          // Product Name
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(15, 23, 42);
+          const nameY = item.brand ? contentStartY + 3.5 : contentStartY;
+          pdf.text(String(item.name || item.productName || 'Product Label').slice(0, 26), label.xMm + 2, nameY);
+
+          // Barcode / SKU text
+          const bVal = item.barcodeValue || item.barcode || item.sku || '';
+          if (bVal) {
+            pdf.setFont('courier', 'bold');
+            pdf.setFontSize(6);
+            pdf.setTextColor(71, 85, 105);
+            pdf.text(String(bVal).slice(0, 20), label.xMm + label.widthMm / 2, label.yMm + label.heightMm - 6, { align: 'center' });
+          }
+
+          // Price line
+          pdf.setDrawColor(226, 232, 240);
+          pdf.setLineWidth(0.2);
+          pdf.line(label.xMm + 1.5, label.yMm + label.heightMm - 4.5, label.xMm + label.widthMm - 1.5, label.yMm + label.heightMm - 4.5);
+
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(7);
+          pdf.setTextColor(15, 23, 42);
+          pdf.text(`MRP: Rs.${item.mrp || 0}`, label.xMm + 2, label.yMm + label.heightMm - 1.5);
+
+          if (item.sellingPrice) {
+            pdf.setTextColor(5, 150, 105);
+            pdf.text(`Offer: Rs.${item.sellingPrice}`, label.xMm + label.widthMm - 2, label.yMm + label.heightMm - 1.5, { align: 'right' });
+          }
         }
 
         if (showCutGuides) {

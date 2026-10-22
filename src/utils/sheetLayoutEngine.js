@@ -164,6 +164,8 @@ export function calculateSheetArrangement({
   items = [], // array of items, each can have .quantity
   repeatItem = null, // single item repeated to fill or totalCount
   repeatCount = null,
+  printQuantityMode = 'auto', // 'auto' | 'fill-sheet' | 'custom-copies' | 'from-items' | 'single'
+  customCopies = null,
   alignment = 'center', // 'center' | 'left'
   readingOrder = 'row-first', // 'row-first' | 'col-first'
   showCutGuides = true,
@@ -195,6 +197,11 @@ export function calculateSheetArrangement({
       pages: [],
       totalLabels: 0,
       totalPages: 0,
+      maxFittingCols: 1,
+      maxFittingRows: 1,
+      recommendedCols: 1,
+      recommendedRows: 1,
+      isOverflown: false,
       warnings: ['Invalid label width or height.'],
     };
   }
@@ -206,11 +213,12 @@ export function calculateSheetArrangement({
   // Use explicit cols/rows if provided and valid, else fitting max
   const activeCols = cols && cols > 0 ? cols : maxFittingCols;
   const activeRows = rows && rows > 0 ? rows : maxFittingRows;
-  const capacityPerPage = activeCols * activeRows;
+  const capacityPerPage = Math.max(1, activeCols * activeRows);
 
   // Footprint check
   const totalGridWidthMm = activeCols * labelWidthMm + (activeCols - 1) * gapXmm;
   const totalGridHeightMm = activeRows * labelHeightMm + (activeRows - 1) * gapYmm;
+  const isOverflown = totalGridWidthMm > usableWidthMm || totalGridHeightMm > usableHeightMm;
 
   if (totalGridWidthMm > usableWidthMm) {
     warnings.push(`Total columns width (${totalGridWidthMm.toFixed(1)}mm) exceeds usable page width (${usableWidthMm.toFixed(1)}mm). Labels will clip or spill.`);
@@ -229,29 +237,79 @@ export function calculateSheetArrangement({
     startY = marginTopMm + (usableHeightMm - totalGridHeightMm) / 2;
   }
 
-  // Expand items array respecting .quantity
+  // Determine source list of items
+  const sourceItems = (items && items.length > 0) ? items : (repeatItem ? [repeatItem] : []);
+
+  // Expand items array respecting printQuantityMode
   let expandedList = [];
-  if (items && items.length > 0) {
-    items.forEach((item, itemIdx) => {
-      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
-      for (let q = 0; q < qty; q++) {
+
+  if (printQuantityMode === 'single') {
+    // Only 1 single label
+    if (sourceItems.length > 0) {
+      expandedList.push({
+        ...sourceItems[0],
+        _instanceIndex: 0,
+        _copyNumber: 1,
+        _totalCopies: 1,
+      });
+    }
+  } else if (printQuantityMode === 'fill-sheet') {
+    // Fill every slot of the sheet
+    const targetCount = capacityPerPage;
+    if (sourceItems.length > 0) {
+      for (let i = 0; i < targetCount; i++) {
+        const base = sourceItems[i % sourceItems.length];
         expandedList.push({
-          ...item,
-          _instanceIndex: expandedList.length,
-          _copyNumber: q + 1,
-          _totalCopies: qty,
-          _sourceItemIndex: itemIdx,
+          ...base,
+          _instanceIndex: i,
+          _copyNumber: i + 1,
+          _totalCopies: targetCount,
         });
       }
-    });
-  } else if (repeatItem) {
-    const count = repeatCount && repeatCount > 0 ? repeatCount : capacityPerPage;
-    for (let i = 0; i < count; i++) {
-      expandedList.push({
-        ...repeatItem,
-        _instanceIndex: i,
-        _copyNumber: i + 1,
-        _totalCopies: count,
+    }
+  } else if (printQuantityMode === 'custom-copies' && customCopies && customCopies > 0) {
+    // Custom number of copies
+    if (sourceItems.length > 0) {
+      for (let i = 0; i < customCopies; i++) {
+        const base = sourceItems[i % sourceItems.length];
+        expandedList.push({
+          ...base,
+          _instanceIndex: i,
+          _copyNumber: i + 1,
+          _totalCopies: customCopies,
+        });
+      }
+    }
+  } else if (sourceItems.length > 0) {
+    // 'auto' or 'from-items'
+    if (
+      sourceItems.length === 1 &&
+      (!sourceItems[0].quantity || sourceItems[0].quantity === 1) &&
+      printQuantityMode !== 'from-items'
+    ) {
+      // Single product without explicit multi-quantity => default to filling the sheet!
+      const targetCount = repeatCount && repeatCount > 0 ? repeatCount : capacityPerPage;
+      for (let i = 0; i < targetCount; i++) {
+        expandedList.push({
+          ...sourceItems[0],
+          _instanceIndex: i,
+          _copyNumber: i + 1,
+          _totalCopies: targetCount,
+        });
+      }
+    } else {
+      // Expand each item by its .quantity
+      sourceItems.forEach((item, itemIdx) => {
+        const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+        for (let q = 0; q < qty; q++) {
+          expandedList.push({
+            ...item,
+            _instanceIndex: expandedList.length,
+            _copyNumber: q + 1,
+            _totalCopies: qty,
+            _sourceItemIndex: itemIdx,
+          });
+        }
       });
     }
   }
@@ -331,6 +389,11 @@ export function calculateSheetArrangement({
     usableHeightMm,
     cols: activeCols,
     rows: activeRows,
+    maxFittingCols,
+    maxFittingRows,
+    recommendedCols: maxFittingCols,
+    recommendedRows: maxFittingRows,
+    isOverflown,
     capacityPerPage,
     totalLabels,
     totalPages,

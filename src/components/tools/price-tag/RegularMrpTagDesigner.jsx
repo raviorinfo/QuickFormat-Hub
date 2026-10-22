@@ -702,7 +702,7 @@ export function RegularMrpTagDesigner({
               </button>
               <button
                 type="button"
-                onClick={() => onSendToSheet(tagPreviewRef.current)}
+                onClick={() => onSendToSheet(mrpState)}
                 className="btn-secondary py-2 px-3 text-xs flex items-center justify-center gap-1.5 border-sky-400 text-sky-600 dark:text-sky-400 font-bold"
               >
                 <Layers className="w-4 h-4" />
