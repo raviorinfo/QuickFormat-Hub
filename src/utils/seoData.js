@@ -1322,6 +1322,51 @@ export const TOOL_METADATA = {
       ],
     },
   },
+  '/product-label-studio': {
+    id: 'product-label-studio',
+    path: '/product-label-studio',
+    title: 'Product Label & Packaging Studio',
+    badge: 'Ecommerce & Retail',
+    h1: 'Unified Product Label & Packaging Studio for Multi-Channel Sellers',
+    description: 'Enter product data once to generate synchronized Barcode Labels, Retail Price Tags, Product QR Codes, and Thank You Packaging Inserts in print-ready PDF formats.',
+    seoOverview: {
+      intro: 'The Product Label & Packaging Studio is a unified workspace engineered for Amazon, Shopify, Flipkart, and physical retail merchants. Enter product details once—name, SKU, GTIN/barcode, selling price, MRP, description, and URLs—and instantly produce matching barcode labels, retail price tags, QR codes, and thank-you inserts.',
+      features: [
+        'Single Master Entry: Enter SKU, barcode, price, and specs once to update all four assets in real-time.',
+        'Synchronized 4-in-1 Suite: Simultaneously generates Barcode Sticker, Shelf Price Tag, Product QR Code, and Packaging Insert.',
+        'Complete Packaging Kit PDF: One-click export of a consolidated, multi-page print dossier with exact physical production dimensions.',
+        'Shared Brand Kit Integration: Synchronizes business name, primary accent colors, social handles, and logos across all packaging materials.',
+        'Deep Tool Handoff: Seamlessly transition any asset to its specialized editor for granular adjustments.',
+        '100% Client-Side Privacy: Air-gapped generation ensures sensitive SKU, pricing, and customer data never leaves your browser.',
+      ],
+      howTo: [
+        '1. Enter your master product data in Step 1 (Title, SKU, EAN/UPC barcode, Selling Price, and MRP).',
+        '2. Verify that the retail GTIN check-digit and discount calculations are green.',
+        '3. Customize the customer thank you note, coupon code, and promotional validity date.',
+        '4. Download individual high-resolution PNGs or click "Export Complete Packaging Kit (PDF)" for the complete 4-in-1 dossier.',
+      ],
+      troubleshooting: [
+        {
+          title: 'Check Digit Validation',
+          desc: 'If entering a 12-digit number for EAN-13, the studio automatically calculates and appends the 13th modulo-10 check digit.',
+        },
+        {
+          title: 'Printing Considerations',
+          desc: 'For thermal adhesive labels, print the barcode at 100% scale without fit-to-page scaling to preserve barcode scan-line proportions.',
+        },
+      ],
+      faqs: [
+        {
+          q: 'Why use the Unified Studio instead of individual tools?',
+          a: 'The Unified Studio eliminates repetitive copy-pasting of product names, SKUs, and pricing across four separate tools. Updating your price or SKU in the studio automatically synchronizes the barcode sticker, shelf tag, QR code, and thank you insert.',
+        },
+        {
+          q: 'Can I export the whole packaging kit at once?',
+          a: 'Yes. Click "Export Complete Packaging Kit (PDF)" to generate an executive multi-page dossier containing an overview sheet followed by individual exact-dimension production pages for printing.',
+        },
+      ],
+    },
+  },
 };
 
 

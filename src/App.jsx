@@ -96,6 +96,9 @@ const QrCodeGeneratorTool = lazy(() =>
 const ThankYouCardMakerTool = lazy(() =>
   import('./components/tools/ThankYouCardMakerTool').then((m) => ({ default: m.ThankYouCardMakerTool }))
 );
+const ProductLabelStudioTool = lazy(() =>
+  import('./components/tools/ProductLabelStudioTool').then((m) => ({ default: m.ProductLabelStudioTool }))
+);
 const PrivacyPolicyPage = lazy(() =>
   import('./components/pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
 );
@@ -261,6 +264,7 @@ function QuickFormatApp() {
                     {currentPath === '/price-tag-creator' && <PriceTagCreatorTool />}
                     {currentPath === '/qr-code-generator' && <QrCodeGeneratorTool />}
                     {currentPath === '/thank-you-card-maker' && <ThankYouCardMakerTool />}
+                    {currentPath === '/product-label-studio' && <ProductLabelStudioTool />}
                   </Suspense>
                 </div>
 

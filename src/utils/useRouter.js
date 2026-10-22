@@ -29,6 +29,7 @@ export const VALID_PATHS = [
   '/price-tag-creator',
   '/qr-code-generator',
   '/thank-you-card-maker',
+  '/product-label-studio',
   '/privacy-policy',
   '/terms-of-service',
   '/about',

@@ -241,4 +241,12 @@ export const ALL_TOOLS = [
     icon: Heart,
     category: 'Commerce',
   },
+  {
+    path: '/product-label-studio',
+    label: 'Product Label Studio',
+    desc: 'Unified multi-asset studio: Barcode, Price Tag, QR Code & Packaging Inserts',
+    badge: 'STUDIO',
+    icon: Layers,
+    category: 'Commerce',
+  },
 ];

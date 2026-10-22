@@ -178,6 +178,57 @@ const parsedCards = parseCardPersonalizationCsv(sampleCardCsv);
 assert(parsedCards.length === 2, 'Personalization CSV parses 2 customer rows');
 assert(parsedCards[0].customerName === 'Priya Sharma' && parsedCards[0].couponCode === 'HAND10', 'Personalization row maps name and coupon accurately');
 
+console.log('\n======================================================');
+console.log('--- 5. BARCODE & QR ADVANCED COMPLIANCE & DECODING ---');
+console.log('======================================================');
+
+import { inspectBarcodeCompliance } from '../src/utils/barcodeUtils.js';
+import { decodeQrPayload } from '../src/utils/qrUtils.js';
+import { detectDelimiter, parseDelimitedText } from '../src/utils/spreadsheetImportUtils.js';
+import { DEFAULT_BRAND_KIT } from '../src/utils/brandKitUtils.js';
+
+// Test 20: Barcode Compliance & Quiet Zone
+const barcodeAudit = inspectBarcodeCompliance({
+  format: 'EAN13',
+  value: '8901030365737',
+  barWidth: 2,
+  lineColor: '#000000',
+  bgColor: '#ffffff',
+});
+assert(barcodeAudit.isValid && barcodeAudit.status === 'EXCELLENT', 'EAN-13 barcode passes compliance audit with EXCELLENT status');
+assert(barcodeAudit.quietZoneMm > 0, `Barcode quiet zone calculated accurately: ~${barcodeAudit.quietZoneMm}mm`);
+
+// Test 21: QR Payload Decoder - UPI URI
+const decodedUpi = decodeQrPayload('upi://pay?pa=store@okaxis&pn=Acme+Store&am=799.00&cu=INR&tn=Invoice-108');
+assert(decodedUpi.type === 'upi' && decodedUpi.isVerified, 'decodeQrPayload accurately identifies verified UPI URI');
+assert(decodedUpi.params.pa === 'store@okaxis' && decodedUpi.params.am === '799.00', 'decodeQrPayload extracts UPI payee and amount params');
+
+// Test 22: QR Payload Decoder - vCard
+const sampleVcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:Ravi Raj\nTEL;TYPE=CELL:+919876543210\nEMAIL:ravi@quickformat.com\nEND:VCARD';
+const decodedVcard = decodeQrPayload(sampleVcard);
+assert(decodedVcard.type === 'vcard' && decodedVcard.isVerified, 'decodeQrPayload accurately identifies and verifies vCard contact');
+assert(decodedVcard.params.name === 'Ravi Raj' && decodedVcard.params.email === 'ravi@quickformat.com', 'decodeQrPayload extracts vCard contact fields');
+
+// Test 23: QR Payload Decoder - Wi-Fi
+const decodedWifi = decodeQrPayload('WIFI:S:Guest_Office;T:WPA;P:Secret2026;H:false;;');
+assert(decodedWifi.type === 'wifi' && decodedWifi.isVerified, 'decodeQrPayload accurately identifies and verifies Wi-Fi network credentials');
+assert(decodedWifi.params.ssid === 'Guest_Office' && decodedWifi.params.password === 'Secret2026', 'decodeQrPayload extracts Wi-Fi SSID and password');
+
+// Test 24: Universal Spreadsheet Parser - Auto-Delimiter Detection
+const tabText = 'Product\tSKU\tPrice\nLaptop\tSKU-10\t49999\nMouse\tSKU-11\t999';
+assert(detectDelimiter(tabText) === '\t', 'detectDelimiter correctly identifies Tab delimiter from Excel/Sheets copy-paste');
+const csvText = 'Product,SKU,Price\nLaptop,SKU-10,49999\nMouse,SKU-11,999';
+assert(detectDelimiter(csvText) === ',', 'detectDelimiter correctly identifies Comma delimiter');
+
+// Test 25: Universal Spreadsheet Parser - Quoted Cell with Commas
+const complexCsv = 'SKU,Title,Description\nSKU-01,"Coffee, Dark Roast","Organic, shade-grown Arabica"';
+const parsedDelimited = parseDelimitedText(complexCsv, ',');
+assert(parsedDelimited.length === 2, 'parseDelimitedText parses 2 rows');
+assert(parsedDelimited[1][1] === 'Coffee, Dark Roast', 'parseDelimitedText preserves commas within quoted cells');
+
+// Test 26: Shared Brand Kit Defaults
+assert(DEFAULT_BRAND_KIT.brandName && DEFAULT_BRAND_KIT.primaryColor, 'Shared Brand Kit contains required default fields');
+
 console.log('\n========================================');
 console.log(`TOTAL TESTS: ${passedTests + failedTests}`);
 console.log(`PASSED: ${passedTests}`);
@@ -187,6 +238,6 @@ console.log('========================================\n');
 if (failedTests > 0) {
   process.exit(1);
 } else {
-  console.log('ALL COMMERCE SUITE VERIFICATION TESTS PASSED!\n');
+  console.log('ALL 39 ADVANCED COMMERCE SUITE VERIFICATION TESTS PASSED!\n');
   process.exit(0);
 }

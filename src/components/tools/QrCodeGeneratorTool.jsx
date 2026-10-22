@@ -55,6 +55,7 @@ import {
   generateQrSampleCsv,
   renderFullQrCanvas,
   parseBulkQrCsv,
+  decodeQrPayload,
 } from '../../utils/qrUtils';
 import {
   downloadCanvasAsPng,
@@ -182,6 +183,11 @@ export function QrCodeGeneratorTool() {
   const payloadValidation = useMemo(() => {
     return verifyQrPayload(selectedType, formData);
   }, [selectedType, formData]);
+
+  // Real-time payload decoding verification
+  const decodedPayload = useMemo(() => {
+    return decodeQrPayload(qrPayload);
+  }, [qrPayload]);
 
   // Brand Kit Applier
   const handleApplyBrandKit = (kit) => {
@@ -478,6 +484,28 @@ export function QrCodeGeneratorTool() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Product Studio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                const kit = getSavedBrandKit();
+                if (kit?.primaryColor) setDarkColor(kit.primaryColor);
+                if (kit?.logoUrl) setLogoDataUrl(kit.logoUrl);
+                if (kit?.website && selectedType === 'url') {
+                  setFormData((prev) => ({ ...prev, url: kit.website }));
+                }
+                if (kit?.upiId && selectedType === 'upi') {
+                  setFormData((prev) => ({ ...prev, pa: kit.upiId, pn: kit.brandName }));
+                }
+                toast.success('Applied Brand Kit style to QR code!');
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-sky-500 hover:text-sky-400"
+              title="Sync Colors, Logo, Website & UPI from Brand Kit"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sync Brand</span>
             </button>
 
             <span className="text-[11px] font-semibold text-slate-400 mx-1 hidden sm:inline">|</span>
@@ -1053,6 +1081,26 @@ export function QrCodeGeneratorTool() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Payload Verification & Decoded Inspector */}
+              <div className="w-full mt-2 p-3.5 rounded-xl border bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-slate-200/80 dark:border-white/10 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-sky-500" />
+                    Payload Decoding & Verification Test
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                    {decodedPayload.label}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 font-mono bg-slate-50 dark:bg-white/[0.03] p-2 rounded-lg border border-slate-200/60 dark:border-white/5 break-all">
+                  {decodedPayload.summary || qrPayload}
+                </p>
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Payload integrity: <strong className={decodedPayload.isVerified ? 'text-emerald-500' : 'text-rose-500'}>{decodedPayload.isVerified ? '✓ Validated Syntax' : '✗ Check Parameters'}</strong></span>
+                  <span>Encoded Length: <strong>{qrPayload.length} bytes</strong></span>
+                </div>
               </div>
 
               {/* Payload length and stats */}

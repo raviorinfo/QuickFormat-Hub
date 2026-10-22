@@ -78,6 +78,7 @@ export function PriceTagCreatorTool() {
   const [badgeText, setBadgeText] = useState('HOT DEAL');
   const [currency, setCurrency] = useState('INR');
   const [productLogo, setProductLogo] = useState(null);
+  const [offerValidUntil, setOfferValidUntil] = useState('31 Dec 2026');
 
   // Embedded Code
   const [codeType, setCodeType] = useState('barcode'); // 'barcode' | 'qr' | 'none'
@@ -507,6 +508,28 @@ export function PriceTagCreatorTool() {
               <span>Product Studio</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                const kit = getSavedBrandKit();
+                if (kit?.brandName) setBadgeText(kit.brandName.toUpperCase());
+                if (kit?.primaryColor) {
+                  setHeaderBg(kit.primaryColor);
+                  setBorderColor(kit.primaryColor);
+                  setPriceColor(kit.primaryColor);
+                }
+                if (kit?.fontFamily) setFontFamily(kit.fontFamily);
+                if (kit?.currency) setCurrency(kit.currency);
+                toast.success('Applied Brand Kit styles to Price Tag!');
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-sky-500 hover:text-sky-400"
+              title="Sync Colors, Brand & Currency from Brand Kit"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sync Brand</span>
+            </button>
+
             <span className="text-[11px] font-semibold text-slate-400 mx-1 hidden sm:inline">|</span>
 
             <button
@@ -769,6 +792,20 @@ export function PriceTagCreatorTool() {
                 />
               </div>
 
+              {/* Offer Validity Date */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1">
+                  Offer Validity Date
+                </label>
+                <input
+                  type="text"
+                  value={offerValidUntil}
+                  onChange={(e) => setOfferValidUntil(e.target.value)}
+                  placeholder="e.g. 31 Dec 2026 or Limited Stock"
+                  className="w-full text-xs p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+                />
+              </div>
+
               {/* Embedded Code Type (Barcode vs QR vs None) */}
               <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06]">
                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -1006,6 +1043,11 @@ export function PriceTagCreatorTool() {
                       {description && (
                         <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5 leading-snug">
                           {description}
+                        </p>
+                      )}
+                      {offerValidUntil && (
+                        <p className="text-[9px] font-mono text-amber-600 dark:text-amber-500 font-semibold mt-0.5">
+                          Offer Valid: {offerValidUntil}
                         </p>
                       )}
                     </div>

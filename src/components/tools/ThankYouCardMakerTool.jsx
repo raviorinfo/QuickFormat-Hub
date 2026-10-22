@@ -49,6 +49,7 @@ import {
   downloadCsv,
   exportSinglePdf,
   exportSinglePdfWithBleed,
+  exportDualSidedPdfWithBleed,
   exportA4SheetPdf,
   printHtmlElement,
 } from '../../utils/exportUtils';
@@ -476,6 +477,30 @@ export function ThankYouCardMakerTool() {
     }
   };
 
+  const handleDownloadDualSidedPdf = async () => {
+    playClickSound();
+    try {
+      const frontCanvas = await renderCardToCanvas('front', 3);
+      const backCanvas = await renderCardToCanvas('back', 3);
+      const frontDataUrl = frontCanvas.toDataURL('image/png');
+      const backDataUrl = backCanvas.toDataURL('image/png');
+
+      exportDualSidedPdfWithBleed({
+        frontDataUrl,
+        backDataUrl,
+        widthMm: currentSize.widthMm,
+        heightMm: currentSize.heightMm,
+        bleedMm: usePrintBleed ? 3 : 0,
+        showCropMarks,
+        filename: `${(brandName || 'Brand').replace(/\\s+/g, '_')}_DualSided_Card.pdf`,
+      });
+      toast.success('Exported 2-Page Dual-Sided Print PDF (Front + Back)!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export dual-sided PDF');
+    }
+  };
+
   const handleDownloadA4SheetPdf = async () => {
     playClickSound();
     try {
@@ -557,6 +582,25 @@ export function ThankYouCardMakerTool() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Product Studio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                const kit = getSavedBrandKit();
+                if (kit.brandName) setBrandName(kit.brandName);
+                if (kit.primaryColor) setAccentColor(kit.primaryColor);
+                if (kit.website) setWebsite(kit.website);
+                if (kit.social) setSocial(kit.social);
+                if (kit.logoUrl) setLogoImage(kit.logoUrl);
+                toast.success('Applied Brand Kit to Thank You Card!');
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-sky-500 hover:text-sky-400"
+              title="Sync Business Name, Colors and Links from Brand Kit"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sync Brand</span>
             </button>
 
             <span className="text-[11px] font-semibold text-slate-400 mx-1 hidden sm:inline">|</span>
@@ -1143,19 +1187,19 @@ export function ThankYouCardMakerTool() {
                   <Scissors className="w-4 h-4 text-amber-300" />
                   <div className="text-left">
                     <span className="block leading-tight">Export Commercial Print PDF</span>
-                    <span className="text-[10px] text-sky-200 font-normal">With 3mm bleed & crop marks</span>
+                    <span className="text-[10px] text-sky-200 font-normal">Active side with 3mm bleed & crop marks</span>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={handleDownloadPng}
-                  className="btn-secondary py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:border-sky-500/50 hover:scale-[1.01] transition-transform"
+                  onClick={handleDownloadDualSidedPdf}
+                  className="py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.01] transition-transform cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5 text-sky-500" />
+                  <RotateCw className="w-4 h-4 text-amber-200" />
                   <div className="text-left">
-                    <span className="block leading-tight">Download High-Res PNG</span>
-                    <span className="text-[10px] text-slate-400 font-normal">300 DPI raster for digital sharing</span>
+                    <span className="block leading-tight">Export 2-Page PDF (Front + Back)</span>
+                    <span className="text-[10px] text-rose-100 font-normal">Dual-sided commercial print package</span>
                   </div>
                 </button>
               </div>

@@ -607,3 +607,167 @@ export function generateQrSampleCsv() {
   ].join('\n');
 }
 
+/**
+ * Decodes and verifies any raw QR payload string into its semantic schema and parameters.
+ * Validates integrity for URLs, UPI payment URIs, vCard contacts, Wi-Fi credentials, etc.
+ */
+export function decodeQrPayload(rawPayload) {
+  if (!rawPayload || !rawPayload.trim()) {
+    return {
+      type: 'empty',
+      label: 'Empty Payload',
+      params: {},
+      isVerified: false,
+      error: 'Payload is empty.',
+    };
+  }
+
+  const clean = rawPayload.trim();
+
+  // 1. UPI Payment URI
+  if (clean.startsWith('upi://pay')) {
+    try {
+      const url = new URL(clean);
+      const params = {
+        pa: url.searchParams.get('pa') || '',
+        pn: url.searchParams.get('pn') || '',
+        am: url.searchParams.get('am') || '',
+        cu: url.searchParams.get('cu') || 'INR',
+        tn: url.searchParams.get('tn') || '',
+      };
+      const isVerified = Boolean(params.pa && params.pa.includes('@'));
+      return {
+        type: 'upi',
+        label: 'UPI Payment Request (India Standard)',
+        params,
+        isVerified,
+        summary: `Pay ${params.am ? params.cu + ' ' + params.am : 'any amount'} to ${params.pa} (${params.pn || 'Merchant'})`,
+      };
+    } catch {
+      return { type: 'upi', label: 'Malformed UPI URI', params: {}, isVerified: false };
+    }
+  }
+
+  // 2. vCard Contact
+  if (clean.includes('BEGIN:VCARD')) {
+    const lines = clean.split(/\r?\n/);
+    const params = {};
+    for (const l of lines) {
+      if (l.startsWith('FN:')) params.name = l.slice(3).trim();
+      else if (l.startsWith('ORG:')) params.org = l.slice(4).trim();
+      else if (l.startsWith('TITLE:')) params.title = l.slice(6).trim();
+      else if (l.startsWith('TEL')) params.phone = l.split(':').slice(1).join(':').trim();
+      else if (l.startsWith('EMAIL')) params.email = l.split(':').slice(1).join(':').trim();
+      else if (l.startsWith('URL:')) params.url = l.slice(4).trim();
+      else if (l.startsWith('ADR:')) params.address = l.split(':').slice(1).join(':').replace(/;/g, ' ').trim();
+    }
+    return {
+      type: 'vcard',
+      label: 'vCard 3.0 Digital Contact Card',
+      params,
+      isVerified: Boolean(params.name),
+      summary: `${params.name || 'Contact'} (${params.phone || params.email || 'No phone/email'})`,
+    };
+  }
+
+  // 3. Wi-Fi Credentials
+  if (clean.startsWith('WIFI:')) {
+    const ssidMatch = clean.match(/S:([^;]+)/);
+    const typeMatch = clean.match(/T:([^;]+)/);
+    const passMatch = clean.match(/P:([^;]+)/);
+    const hiddenMatch = clean.match(/H:([^;]+)/);
+    const params = {
+      ssid: ssidMatch ? ssidMatch[1] : '',
+      encryption: typeMatch ? typeMatch[1] : 'WPA',
+      password: passMatch ? passMatch[1] : '',
+      hidden: hiddenMatch ? hiddenMatch[1] === 'true' : false,
+    };
+    return {
+      type: 'wifi',
+      label: 'Wi-Fi Network Auto-Connect',
+      params,
+      isVerified: Boolean(params.ssid),
+      summary: `SSID: "${params.ssid}" (${params.encryption}, ${params.password ? 'Password Protected' : 'Open'})`,
+    };
+  }
+
+  // 4. Email URI
+  if (clean.startsWith('mailto:')) {
+    try {
+      const parts = clean.slice(7).split('?');
+      const email = parts[0];
+      const search = new URLSearchParams(parts[1] || '');
+      const params = {
+        email,
+        subject: search.get('subject') || '',
+        body: search.get('body') || '',
+      };
+      return {
+        type: 'email',
+        label: 'Pre-filled Email Link',
+        params,
+        isVerified: Boolean(email && email.includes('@')),
+        summary: `Mail to ${email}`,
+      };
+    } catch {
+      return { type: 'email', label: 'Email URI', params: {}, isVerified: false };
+    }
+  }
+
+  // 5. Phone Call
+  if (clean.startsWith('tel:')) {
+    const phone = clean.slice(4).trim();
+    return {
+      type: 'phone',
+      label: 'Click-to-Call Phone URI',
+      params: { phone },
+      isVerified: phone.length >= 3,
+      summary: `Call ${phone}`,
+    };
+  }
+
+  // 6. SMS
+  if (clean.startsWith('smsto:')) {
+    const parts = clean.slice(6).split(':');
+    const phone = parts[0] || '';
+    const message = parts.slice(1).join(':') || '';
+    return {
+      type: 'sms',
+      label: 'Pre-filled SMS URI',
+      params: { phone, message },
+      isVerified: phone.length >= 3,
+      summary: `SMS to ${phone}`,
+    };
+  }
+
+  // 7. Web URL
+  if (/^https?:\/\//i.test(clean)) {
+    try {
+      const parsed = new URL(clean);
+      return {
+        type: 'url',
+        label: 'Hyperlink / Web URL',
+        params: {
+          url: clean,
+          host: parsed.hostname,
+          protocol: parsed.protocol,
+          path: parsed.pathname,
+        },
+        isVerified: true,
+        summary: `Navigate to ${parsed.hostname}${parsed.pathname}`,
+      };
+    } catch {
+      return { type: 'url', label: 'Invalid URL', params: { url: clean }, isVerified: false };
+    }
+  }
+
+  // 8. Plain Text fallback
+  return {
+    type: 'text',
+    label: 'Plain Text / Raw Payload',
+    params: { text: clean },
+    isVerified: true,
+    summary: `${clean.length} characters: "${clean.slice(0, 40)}${clean.length > 40 ? '...' : ''}"`,
+  };
+}
+
