@@ -640,15 +640,15 @@ export function ThankYouCardMakerTool() {
       </div>
 
       {/* Ready Template Studio Bar */}
-      <div className="glass-panel p-3.5 rounded-2xl space-y-2 border border-slate-200/90 dark:border-white/[0.08] shadow-xs">
+      <div className="bg-white dark:bg-[#0c1220] p-3 sm:p-3.5 rounded-xl space-y-2 border border-slate-200 dark:border-white/10 shadow-xs">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
               Curated Designer Themes ({THANK_YOU_TEMPLATES.length})
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">1-Click Theme Switcher</span>
+          <span className="text-[11px] text-slate-400 hidden sm:inline">1-Click Theme Switcher</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {THANK_YOU_TEMPLATES.map((tmpl) => {
@@ -658,10 +658,10 @@ export function ThankYouCardMakerTool() {
                 key={tmpl.id}
                 type="button"
                 onClick={() => handleSelectTemplate(tmpl.id)}
-                className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden group ${
+                className={`p-2.5 rounded-lg border text-left transition-all duration-150 flex flex-col justify-between gap-1.5 cursor-pointer relative overflow-hidden group ${
                   isSelected
-                    ? 'border-sky-500 bg-sky-500/10 dark:bg-sky-500/15 shadow-sm ring-2 ring-sky-500/20'
-                    : 'border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.02]'
+                    ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 shadow-xs ring-1 ring-sky-500'
+                    : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.04]'
                 }`}
               >
                 <div className="flex items-center gap-1.5">

@@ -13,23 +13,23 @@ export function WindowHeader({
   children,
 }) {
   return (
-    <div className="flex items-center justify-between px-3 sm:px-3.5 py-1.5 bg-[#f1f5f9] dark:bg-[#090e1a] border-b border-slate-300 dark:border-white/10 select-none relative z-10 gap-2">
+    <div className="flex items-center justify-between px-3 sm:px-3.5 py-2 bg-slate-50/90 dark:bg-[#0a0f1d] border-b border-slate-200 dark:border-slate-800 select-none relative z-10 gap-2">
       {/* Left: Window status & Title */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-        {/* Subtle Traffic Light Window Dots */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.5)] block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.5)] block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)] block"></span>
+        {/* Clean Window Dots */}
+        <div className="flex items-center gap-1.5 shrink-0 opacity-80 hover:opacity-100 transition-opacity">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500/90 block"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/90 block"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/90 block"></span>
         </div>
 
         {/* Title & Format Pill */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-black tracking-wider text-slate-900 dark:text-white uppercase whitespace-nowrap">
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 tracking-tight whitespace-nowrap">
             {title}
           </span>
           {badge && (
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 shrink-0 shadow-xs">
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300 border border-sky-200 dark:border-sky-500/30 shrink-0">
               {badge}
             </span>
           )}
@@ -37,7 +37,7 @@ export function WindowHeader({
 
         {/* Counts (Chars / Lines) */}
         {(charsCount !== null || linesCount !== null) && (
-          <div className="hidden xl:flex items-center gap-1 text-[9px] font-mono font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-300 dark:border-white/10 shrink-0 shadow-xs">
+          <div className="hidden xl:flex items-center gap-1 text-[9px] font-mono font-medium text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800 shrink-0">
             {linesCount !== null && <span>{linesCount.toLocaleString()} L</span>}
             {linesCount !== null && charsCount !== null && <span className="opacity-40">•</span>}
             {charsCount !== null && <span>{charsCount.toLocaleString()} C</span>}
@@ -54,7 +54,7 @@ export function WindowHeader({
 
         {/* Font size adjuster */}
         {onFontSizeChange && (
-          <div className="hidden sm:flex items-center bg-slate-200 dark:bg-white/10 p-0.5 rounded-lg text-xs border border-slate-300 dark:border-white/10">
+          <div className="hidden sm:flex items-center bg-slate-200 dark:bg-slate-800 p-0.5 rounded-lg text-xs border border-slate-300 dark:border-slate-700">
             <button
               onClick={() => onFontSizeChange('small')}
               className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
@@ -95,7 +95,7 @@ export function WindowHeader({
         {onToggleZen && (
           <button
             onClick={onToggleZen}
-            className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-slate-300 dark:hover:border-white/10 cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer"
             title={isZenMode ? 'Exit Zen Focus (Esc)' : 'Zen Fullscreen Focus'}
           >
             {isZenMode ? (

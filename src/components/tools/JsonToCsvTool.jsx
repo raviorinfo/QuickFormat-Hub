@@ -288,7 +288,7 @@ export function JsonToCsvTool() {
       />
 
       {/* Preset Chips Bar */}
-      <div className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-2xl glass-panel">
+      <div className="flex items-center justify-between gap-4 flex-wrap px-3.5 py-2 rounded-xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 shadow-xs">
         <PresetChips
           presets={PRESETS}
           onSelect={handlePresetSelect}
@@ -296,8 +296,8 @@ export function JsonToCsvTool() {
           label="1-Click Presets"
         />
 
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span>Zero network latency</span>
         </div>
       </div>

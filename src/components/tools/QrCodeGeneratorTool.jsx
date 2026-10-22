@@ -539,8 +539,8 @@ export function QrCodeGeneratorTool() {
           {/* Left Panel: Type selector & Inputs (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
             {/* QR Type Pills */}
-            <div className="glass-panel p-3 rounded-2xl space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+            <div className="bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 p-3.5 rounded-xl space-y-2.5 shadow-xs">
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 block">
                 Select QR Code Type
               </span>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-xs">

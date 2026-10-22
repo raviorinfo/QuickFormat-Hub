@@ -87,7 +87,7 @@ export function ToolsOverview({ toolMeta }) {
   ];
 
   return (
-    <section className="mt-8 pt-5 border-t border-slate-200/80 dark:border-white/[0.08] max-w-5xl mx-auto px-4 tools-overview no-print space-y-4">
+    <section className="mt-8 pt-5 border-t border-slate-200 dark:border-slate-800 max-w-5xl mx-auto px-4 tools-overview no-print space-y-4">
       {/* Header & Title Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -108,9 +108,11 @@ export function ToolsOverview({ toolMeta }) {
           <Layers className="w-3.5 h-3.5 text-sky-500" />
           <span>{showAllSections ? 'Tabbed View' : 'Expand All'}</span>
         </button>
-      </div>      {/* Modern Segmented Navigation Tabs */}
+      </div>
+
+      {/* Modern Segmented Navigation Tabs */}
       {!showAllSections && (
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-200/80 dark:bg-white/[0.05] border border-slate-300 dark:border-white/10 overflow-x-auto no-scrollbar shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-[#070b14] border border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar shadow-xs">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -136,7 +138,7 @@ export function ToolsOverview({ toolMeta }) {
       {(showAllSections || activeTab === 'guide') && (
         <div className="space-y-4 animate-fade-in">
           {/* Technical Intro Box */}
-          <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-white/10 space-y-2 shadow-xs">
+          <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-2 shadow-xs">
             <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5 font-mono">
               <BookOpen className="w-3.5 h-3.5 text-sky-500" />
               <span>Architectural Overview</span>
@@ -149,7 +151,7 @@ export function ToolsOverview({ toolMeta }) {
           {/* Grid: Core Capabilities & How to Use */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Core Capabilities */}
-            <div className="glass-panel p-4 rounded-xl border border-slate-300 dark:border-white/10 space-y-3 shadow-xs">
+            <div className="glass-panel p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-3 shadow-xs">
               <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-sky-500" />
                 <span>Engine Capabilities & Specs</span>
@@ -165,14 +167,14 @@ export function ToolsOverview({ toolMeta }) {
             </div>
 
             {/* How to Use Step-by-Step */}
-            <div className="glass-panel p-4 rounded-xl border border-slate-300 dark:border-white/10 space-y-3 shadow-xs">
+            <div className="glass-panel p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-3 shadow-xs">
               <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5 font-mono">
                 <ArrowRight className="w-3.5 h-3.5 text-sky-500" />
                 <span>Step-by-Step Instructions</span>
               </h3>
               <ol className="space-y-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
                 {howTo.map((step, idx) => (
-                  <li key={idx} className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.04] leading-normal border border-slate-200 dark:border-white/10">
+                  <li key={idx} className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#070b14] leading-normal border border-slate-200 dark:border-slate-800">
                     {step}
                   </li>
                 ))}
@@ -184,7 +186,7 @@ export function ToolsOverview({ toolMeta }) {
 
       {/* Tab Content: 2. Security & Architecture */}
       {(showAllSections || activeTab === 'security') && (
-        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-white/10 space-y-3.5 animate-fade-in shadow-xs">
+        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-3.5 animate-fade-in shadow-xs">
           <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-wider font-mono">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Client-Side Security vs Cloud Uploads</span>
@@ -193,16 +195,16 @@ export function ToolsOverview({ toolMeta }) {
             QuickFormat Hub executes all algorithms inside your browser sandbox. Your proprietary data never touches external network pipelines or third-party servers.
           </p>
 
-          <div className="overflow-x-auto rounded-lg border border-slate-300 dark:border-white/15">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 dark:bg-[#0c1222] border-b border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 text-[10px] uppercase tracking-wider font-mono">
+                <tr className="bg-slate-50 dark:bg-[#070b14] border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-[10px] uppercase tracking-wider font-mono">
                   <th className="py-2.5 px-3 font-bold">Evaluation Metric</th>
                   <th className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400 font-extrabold">QuickFormat Hub (In-Browser)</th>
                   <th className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-semibold">Legacy Server Utilities</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-white/[0.06] text-slate-800 dark:text-slate-200 bg-white dark:bg-[#080d1a]">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0c1324]">
                 <tr>
                   <td className="py-2.5 px-3 font-bold">Data Privacy & Storage</td>
                   <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400 font-semibold">100% In-Memory. Zero server upload.</td>
@@ -231,7 +233,7 @@ export function ToolsOverview({ toolMeta }) {
 
       {/* Tab Content: 3. Troubleshooting */}
       {(showAllSections || activeTab === 'troubleshoot') && troubleshooting && troubleshooting.length > 0 && (
-        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-white/10 space-y-3 animate-fade-in shadow-xs">
+        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-3 animate-fade-in shadow-xs">
           <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5 font-mono">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
             <span>Common Pitfalls & Troubleshooting</span>
@@ -239,7 +241,7 @@ export function ToolsOverview({ toolMeta }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {troubleshooting.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 space-y-1">
+              <div key={idx} className="p-3 rounded-lg bg-slate-50 dark:bg-[#070b14] border border-slate-200 dark:border-slate-800 space-y-1">
                 <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   {item.title}
@@ -255,7 +257,7 @@ export function ToolsOverview({ toolMeta }) {
 
       {/* Tab Content: 4. FAQs Accordion */}
       {(showAllSections || activeTab === 'faqs') && (
-        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-300 dark:border-white/10 space-y-3.5 animate-fade-in shadow-xs">
+        <div className="glass-panel p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1324] space-y-3.5 animate-fade-in shadow-xs">
           <div>
             <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-sky-700 dark:text-sky-400 mb-0.5 font-mono">
               <HelpCircle className="w-3.5 h-3.5 text-sky-500" />
@@ -272,11 +274,11 @@ export function ToolsOverview({ toolMeta }) {
               return (
                 <div
                   key={index}
-                  className="border border-slate-300 dark:border-white/10 rounded-lg overflow-hidden transition-all duration-200 shadow-xs"
+                  className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden transition-all duration-200 shadow-xs"
                 >
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? -1 : index)}
-                    className="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 bg-slate-50 dark:bg-[#0b1020] hover:bg-slate-100 dark:hover:bg-[#121a30] transition-colors cursor-pointer"
+                    className="w-full text-left px-3.5 py-2.5 flex items-center justify-between gap-3 bg-slate-50 dark:bg-[#070b14] hover:bg-slate-100 dark:hover:bg-[#0f172a] transition-colors cursor-pointer"
                   >
                     <span className="text-xs font-bold text-slate-900 dark:text-white">
                       {faq.q}
@@ -288,7 +290,7 @@ export function ToolsOverview({ toolMeta }) {
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-3.5 py-3 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-[#070b16] leading-relaxed border-t border-slate-200 dark:border-white/10 font-medium">
+                    <div className="px-3.5 py-3 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0c1324] leading-relaxed border-t border-slate-200 dark:border-slate-800 font-medium">
                       {faq.a}
                     </div>
                   )}

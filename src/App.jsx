@@ -165,8 +165,8 @@ function QuickFormatApp() {
   ].includes(currentPath);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#060911] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
-      {/* Subtle Developer Grid Texture & Ambient Radiant Glows */}
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#080c16] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
+      {/* Subtle Developer Grid Texture & Ambient Horizon Glow */}
       <div className="fixed inset-0 bg-grid-pattern bg-radial-vignette pointer-events-none z-0" aria-hidden="true" />
       <div className="ambient-glow-cyan" aria-hidden="true" />
       <div className="ambient-glow-purple" aria-hidden="true" />

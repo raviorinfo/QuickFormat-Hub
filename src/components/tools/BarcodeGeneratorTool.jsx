@@ -482,13 +482,13 @@ export function BarcodeGeneratorTool() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Left Panel: Inputs & Settings (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="glass-panel p-4 rounded-2xl space-y-3.5">
+            <div className="bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 p-4 rounded-xl space-y-3.5 shadow-xs">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06]">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-sky-500" />
                   Barcode Configuration
                 </span>
-                <span className="text-[10px] font-mono text-slate-400">Standard Specs</span>
+                <span className="text-[10px] text-slate-400">Standard Specs</span>
               </div>
 
               {/* Format Selector */}

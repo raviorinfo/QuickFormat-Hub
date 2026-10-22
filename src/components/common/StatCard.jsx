@@ -77,38 +77,35 @@ export function StatCard({
   return (
     <div
       onClick={copyable ? handleCopy : undefined}
-      className={`glass-panel p-3 rounded-xl relative overflow-hidden transition-all duration-200 group border border-slate-300 dark:border-white/10 shadow-xs ${
-        copyable ? 'cursor-pointer hover:border-sky-500 dark:hover:border-sky-500/50 hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-[0_8px_20px_rgba(0,0,0,0.7)]' : ''
+      className={`p-3 rounded-xl relative overflow-hidden transition-all duration-150 group bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-slate-800 shadow-xs ${
+        copyable ? 'cursor-pointer hover:border-sky-500/70 dark:hover:border-sky-400/50 hover:shadow-sm' : ''
       } ${className}`}
     >
       {/* Top Luminous Accent Line */}
-      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${theme.topBorder} opacity-80 group-hover:opacity-100 transition-opacity`} />
+      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${theme.topBorder} opacity-90`} />
 
-      {/* Subtle Ambient Bottom Corner Glow */}
-      <div className={`absolute -bottom-6 -right-6 w-20 h-20 rounded-full ${theme.cornerGlow} blur-lg pointer-events-none group-hover:scale-125 transition-transform duration-300`} />
-
-      <div className="flex items-center justify-between gap-1.5 mb-1.5 relative z-10">
+      <div className="flex items-center justify-between gap-1.5 mb-1 relative z-10">
         <div className="flex items-center gap-1.5 min-w-0">
           {Icon && (
-            <div className={`w-5 h-5 rounded-md flex items-center justify-center border shrink-0 ${theme.badgeBg}`}>
-              <Icon className={`w-3 h-3 ${theme.badgeText}`} />
+            <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${theme.badgeBg}`}>
+              <Icon className={`w-2.5 h-2.5 ${theme.badgeText}`} />
             </div>
           )}
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono truncate">
+          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 truncate">
             {label}
           </span>
         </div>
 
         {/* Copy Indicator */}
         {copyable && (
-          <div className="text-slate-500 dark:text-slate-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
+          <div className="text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
             {copied ? (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 animate-scale-bounce">
+              <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-500">
                 <Check className="w-3 h-3" />
                 <span className="hidden sm:inline">Copied</span>
               </span>
             ) : (
-              <Copy className="w-3 h-3 group-hover:text-brand-500 transition-colors" />
+              <Copy className="w-3 h-3 hover:text-sky-500 transition-colors" />
             )}
           </div>
         )}
@@ -116,22 +113,18 @@ export function StatCard({
 
       {/* Main Value */}
       <div className="flex items-baseline gap-1.5 relative z-10">
-        <span className={`text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate block ${
-          typeof value === 'number' || (typeof value === 'string' && /^[0-9\s.,BKMGTbkmgt/x×\-%]+$/.test(value))
-            ? 'font-mono'
-            : 'font-sans font-black'
-        }`}>
+        <span className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate block">
           {value !== null && value !== undefined && value !== '' ? value : '—'}
         </span>
         {badge && (
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-white/15 text-slate-900 dark:text-slate-100 shrink-0">
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
             {badge}
           </span>
         )}
       </div>
 
       {subtext && (
-        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium block mt-0.5 truncate relative z-10">
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal block mt-0.5 truncate relative z-10">
           {subtext}
         </span>
       )}

@@ -582,15 +582,15 @@ export function PriceTagCreatorTool() {
       </div>
 
       {/* Category Templates Bar */}
-      <div className="glass-panel p-3.5 rounded-2xl space-y-2 border border-slate-200/90 dark:border-white/[0.08] shadow-xs">
+      <div className="bg-white dark:bg-[#0c1220] p-3 sm:p-3.5 rounded-xl space-y-2 border border-slate-200 dark:border-slate-800 shadow-xs">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
               Retail Category Templates ({CATEGORY_TEMPLATES.length})
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">1-Click Industry Styles</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">1-Click Industry Styles</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {CATEGORY_TEMPLATES.map((tmpl) => {
@@ -600,27 +600,27 @@ export function PriceTagCreatorTool() {
                 key={tmpl.id}
                 type="button"
                 onClick={() => handleSelectTemplate(tmpl.id)}
-                className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between gap-2 cursor-pointer relative overflow-hidden group ${
+                className={`p-2.5 rounded-lg border text-left transition-all duration-150 flex flex-col justify-between gap-1.5 cursor-pointer relative overflow-hidden group ${
                   isSelected
-                    ? 'border-sky-500 bg-sky-500/10 dark:bg-sky-500/15 shadow-sm ring-2 ring-sky-500/20'
-                    : 'border-slate-200/80 dark:border-white/[0.08] bg-white/70 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:scale-[1.02]'
+                    ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/15 shadow-xs ring-1 ring-sky-500'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0e1628] hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-[#131d35]'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
                   <span
-                    className="w-3 h-3 rounded-full border border-black/15 shadow-xs shrink-0"
+                    className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0"
                     style={{ backgroundColor: tmpl.theme.headerBg }}
                   />
                   <span
-                    className="w-2.5 h-2.5 rounded-full border border-black/15 shadow-xs shrink-0"
+                    className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0"
                     style={{ backgroundColor: tmpl.theme.tagBg }}
                   />
                 </div>
                 <div>
-                  <span className={`text-[11px] font-bold block leading-tight ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                  <span className={`text-xs font-semibold block leading-tight ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-slate-800 dark:text-slate-200'}`}>
                     {tmpl.label}
                   </span>
-                  <span className="text-[9px] text-slate-400 font-mono mt-0.5 block truncate">
+                  <span className="text-[10px] text-slate-400 mt-0.5 block truncate font-normal">
                     {tmpl.badge}
                   </span>
                 </div>
