@@ -8,6 +8,7 @@ import { HistoryDrawer } from './components/HistoryDrawer';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { GlobalDropzone } from './components/GlobalDropzone';
 import { SidebarNav } from './components/SidebarNav';
+import { AuroraCockpitBar } from './components/common/AuroraCockpitBar';
 import { useRouter } from './utils/useRouter';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
@@ -165,11 +166,14 @@ function QuickFormatApp() {
   ].includes(currentPath);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#080c16] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
-      {/* Subtle Developer Grid Texture & Ambient Horizon Glow */}
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] dark:bg-[#030712] text-slate-900 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden">
+      {/* Developer Grid Texture & Direction 3 Aurora Borealis Sky Wave */}
       <div className="fixed inset-0 bg-grid-pattern bg-radial-vignette pointer-events-none z-0" aria-hidden="true" />
-      <div className="ambient-glow-cyan" aria-hidden="true" />
-      <div className="ambient-glow-purple" aria-hidden="true" />
+      <div className="aurora-sky-container" aria-hidden="true">
+        <div className="aurora-sky-curtain-1" />
+        <div className="aurora-sky-curtain-2" />
+        <div className="aurora-sky-beam" />
+      </div>
 
       {/* Universal Drag-and-Drop Auto-Routing */}
       <GlobalDropzone onNavigate={navigate} />
@@ -204,80 +208,81 @@ function QuickFormatApp() {
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
       />
 
-      {/* Top Banner Ad Container (728x90) */}
-      {!isLegalRoute && <AdSlot type="top-banner" />}
-
-      {/* Main Workspace Body with conditional Sidebar Studio */}
-      <div className={`flex-1 w-full relative z-10 flex ${navView === 'sidebar' && !isLegalRoute ? 'flex-row' : 'flex-col'}`}>
-        {navView === 'sidebar' && !isLegalRoute && (
+      {/* Main Workspace Body with Direction 3 Command Dock Rail */}
+      <div className="flex-1 w-full relative z-10 flex flex-row">
+        {!isLegalRoute && (
           <SidebarNav currentPath={currentPath} onNavigate={navigate} />
         )}
 
-        <main className={`flex-1 w-full py-3 sm:py-4 ${
-          navView === 'sidebar' && !isLegalRoute 
-            ? 'px-4 sm:px-6 lg:px-8 max-w-7xl' 
-            : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
-        }`}>
-          {isLegalRoute ? (
-            <Suspense fallback={<ToolSkeletonLoader />}>
-              {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}
-              {currentPath === '/terms-of-service' && <TermsOfServicePage />}
-              {currentPath === '/about' && <AboutUsPage onNavigate={navigate} />}
-              {currentPath === '/contact' && <ContactUsPage />}
-            </Suspense>
-          ) : (
-            <>
-              {/* Full-Width Tool Workspace */}
-              <div className="w-full">
-                <Suspense fallback={<ToolSkeletonLoader />}>
-                  {currentPath === '/json-to-csv' && <JsonToCsvTool />}
-                  {currentPath === '/csv-to-json' && <CsvToJsonTool />}
-                  {currentPath === '/json-viewer' && <JsonViewerTool />}
-                  {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
-                  {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
-                  {currentPath === '/text-diff' && <TextDiffTool />}
-                  {currentPath === '/base64-tool' && <Base64Tool />}
-                  {currentPath === '/security-headers' && <SecurityHeadersTool />}
-                  {currentPath === '/cert-inspector' && <CertInspectorTool />}
-                  {currentPath === '/cors-analyzer' && <CorsAnalyzerTool />}
-                  {currentPath === '/key-generator' && <KeyGeneratorTool />}
-                  {currentPath === '/sri-generator' && <SriGeneratorTool />}
-                  {currentPath === '/hash-generator' && <HashGeneratorTool />}
-                  {currentPath === '/url-parser' && <UrlParserTool />}
-                  {currentPath === '/pii-redactor' && <PiiRedactorTool />}
-                  {currentPath === '/curl-converter' && <CurlConverterTool />}
-                  {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
-                  {currentPath === '/json-to-types' && <JsonToTypesTool />}
-                  {currentPath === '/timestamp-converter' && <TimestampConverterTool />}
-                  {currentPath === '/sql-formatter' && <SqlFormatterTool />}
-                  {currentPath === '/uuid-generator' && <UuidGeneratorTool />}
-                  {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
-                  {currentPath === '/regex-tester' && <RegexTesterTool />}
-                  {currentPath === '/barcode-generator' && <BarcodeGeneratorTool />}
-                  {currentPath === '/price-tag-creator' && <PriceTagCreatorTool />}
-                  {currentPath === '/qr-code-generator' && <QrCodeGeneratorTool />}
-                  {currentPath === '/thank-you-card-maker' && <ThankYouCardMakerTool />}
-                </Suspense>
-              </div>
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Top Banner Ad Container (728x90) */}
+          {!isLegalRoute && <AdSlot type="top-banner" />}
 
-              {/* Architecture & Privacy Guarantee Ribbon */}
-              <TrustGuaranteeBar />
+          <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+            {isLegalRoute ? (
+              <Suspense fallback={<ToolSkeletonLoader />}>
+                {currentPath === '/privacy-policy' && <PrivacyPolicyPage />}
+                {currentPath === '/terms-of-service' && <TermsOfServicePage />}
+                {currentPath === '/about' && <AboutUsPage onNavigate={navigate} />}
+                {currentPath === '/contact' && <ContactUsPage />}
+              </Suspense>
+            ) : (
+              <>
+                {/* Aurora Cockpit Hero with [0ms Air-Gapped Sandbox] & Live Telemetry (Image 1) */}
+                <AuroraCockpitBar currentPath={currentPath} toolTitle={toolMeta?.title} />
 
-              {/* Optional Sidebar Ad Slot when active */}
-              <AdSlot type="sidebar" />
+                {/* Full-Width Tool Workspace */}
+                <div className="w-full">
+                  <Suspense fallback={<ToolSkeletonLoader />}>
+                    {currentPath === '/json-to-csv' && <JsonToCsvTool />}
+                    {currentPath === '/csv-to-json' && <CsvToJsonTool />}
+                    {currentPath === '/json-viewer' && <JsonViewerTool />}
+                    {currentPath === '/markdown-editor' && <MarkdownEditorTool />}
+                    {currentPath === '/pdf-to-markdown' && <PdfToMarkdownTool />}
+                    {currentPath === '/text-diff' && <TextDiffTool />}
+                    {currentPath === '/base64-tool' && <Base64Tool />}
+                    {currentPath === '/security-headers' && <SecurityHeadersTool />}
+                    {currentPath === '/cert-inspector' && <CertInspectorTool />}
+                    {currentPath === '/cors-analyzer' && <CorsAnalyzerTool />}
+                    {currentPath === '/key-generator' && <KeyGeneratorTool />}
+                    {currentPath === '/sri-generator' && <SriGeneratorTool />}
+                    {currentPath === '/hash-generator' && <HashGeneratorTool />}
+                    {currentPath === '/url-parser' && <UrlParserTool />}
+                    {currentPath === '/pii-redactor' && <PiiRedactorTool />}
+                    {currentPath === '/curl-converter' && <CurlConverterTool />}
+                    {currentPath === '/jwt-inspector' && <JwtInspectorTool />}
+                    {currentPath === '/json-to-types' && <JsonToTypesTool />}
+                    {currentPath === '/timestamp-converter' && <TimestampConverterTool />}
+                    {currentPath === '/sql-formatter' && <SqlFormatterTool />}
+                    {currentPath === '/uuid-generator' && <UuidGeneratorTool />}
+                    {currentPath === '/cron-scheduler' && <CronSchedulerTool />}
+                    {currentPath === '/regex-tester' && <RegexTesterTool />}
+                    {currentPath === '/barcode-generator' && <BarcodeGeneratorTool />}
+                    {currentPath === '/price-tag-creator' && <PriceTagCreatorTool />}
+                    {currentPath === '/qr-code-generator' && <QrCodeGeneratorTool />}
+                    {currentPath === '/thank-you-card-maker' && <ThankYouCardMakerTool />}
+                  </Suspense>
+                </div>
 
-              {/* In-Depth Interactive Tools Overview & SEO FAQ Section */}
-              <ToolsOverview toolMeta={toolMeta} />
-            </>
-          )}
-        </main>
+                {/* Architecture & Privacy Guarantee Ribbon */}
+                <TrustGuaranteeBar />
+
+                {/* Optional Sidebar Ad Slot when active */}
+                <AdSlot type="sidebar" />
+
+                {/* In-Depth Interactive Tools Overview & SEO FAQ Section */}
+                <ToolsOverview toolMeta={toolMeta} />
+              </>
+            )}
+          </main>
+
+          {/* Bottom Responsive Ad Unit */}
+          {!isLegalRoute && <AdSlot type="bottom-banner" />}
+
+          {/* SEO-friendly Footer */}
+          <Footer onNavigate={navigate} />
+        </div>
       </div>
-
-      {/* Bottom Responsive Ad Unit */}
-      {!isLegalRoute && <AdSlot type="bottom-banner" />}
-
-      {/* SEO-friendly Footer */}
-      <Footer onNavigate={navigate} />
     </div>
   );
 }

@@ -56,15 +56,19 @@
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
-/* Studio Executive Header System (Guarantees zero washout in light/dark mode) */
+/* Studio Executive Header System (Translucent glass lets Aurora Sky shine through) */
 .studio-header {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
 }
 
 .dark .studio-header {
-  background-color: rgba(7, 11, 20, 0.96) !important;
-  border-bottom: 1px solid #1e293b !important;
+  background-color: rgba(3, 7, 18, 0.72) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Studio Nav Button */
@@ -240,40 +244,73 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Aurora Luxe Cosmic Ambient Top Glow */
-.ambient-glow-cyan {
+/* Aurora Luxe Cosmic Northern Lights Sky Wave */
+.aurora-sky-container {
   position: fixed;
   top: 0;
-  left: 10%;
-  right: 10%;
-  height: 380px;
-  background: radial-gradient(ellipse at center top, rgba(14, 165, 233, 0.08) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 75%);
+  left: 0;
+  right: 0;
+  height: 560px;
+  overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  filter: blur(40px);
 }
 
-.dark .ambient-glow-cyan {
-  background: radial-gradient(ellipse at center top, rgba(14, 165, 233, 0.18) 0%, rgba(6, 182, 212, 0.07) 50%, transparent 75%);
+.aurora-sky-curtain-1 {
+  position: absolute;
+  top: -100px;
+  left: -10%;
+  width: 125%;
+  height: 520px;
+  background: radial-gradient(ellipse at 45% 25%, rgba(0, 245, 212, 0.38) 0%, rgba(6, 182, 212, 0.28) 30%, rgba(99, 102, 241, 0.18) 60%, transparent 80%);
+  filter: blur(50px);
+  transform: rotate(-3deg);
+  animation: aurora-drift 16s ease-in-out infinite alternate;
 }
 
-.ambient-glow-purple {
-  position: fixed;
-  top: 0;
-  right: 5%;
-  width: 580px;
-  height: 340px;
-  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.07) 0%, rgba(139, 92, 246, 0.03) 50%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(40px);
+.aurora-sky-curtain-2 {
+  position: absolute;
+  top: -120px;
+  right: -5%;
+  width: 95%;
+  height: 540px;
+  background: radial-gradient(ellipse at 65% 30%, rgba(168, 85, 247, 0.35) 0%, rgba(217, 70, 239, 0.22) 35%, rgba(14, 165, 233, 0.16) 65%, transparent 80%);
+  filter: blur(60px);
+  transform: rotate(5deg);
+  animation: aurora-drift-reverse 20s ease-in-out infinite alternate;
 }
 
-.dark .ambient-glow-purple {
-  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.18) 0%, rgba(139, 92, 246, 0.06) 50%, transparent 75%);
+.aurora-sky-beam {
+  position: absolute;
+  top: -50px;
+  left: 25%;
+  width: 52%;
+  height: 440px;
+  background: linear-gradient(180deg, rgba(0, 245, 212, 0.35) 0%, rgba(139, 92, 246, 0.22) 45%, transparent 95%);
+  filter: blur(42px);
+  opacity: 0.95;
+  animation: aurora-pulse 8s ease-in-out infinite alternate;
 }
 
-/* Aurora Luxe Signature Neon Pill */
+@keyframes aurora-drift {
+  0% { transform: translateY(0px) rotate(-3deg) scale(1); }
+  50% { transform: translateY(30px) rotate(-1deg) scale(1.08); }
+  100% { transform: translateY(-20px) rotate(-4deg) scale(1.02); }
+}
+
+@keyframes aurora-drift-reverse {
+  0% { transform: translateY(0px) rotate(5deg) scale(1); }
+  50% { transform: translateY(-25px) rotate(3deg) scale(1.05); }
+  100% { transform: translateY(25px) rotate(6deg) scale(0.98); }
+}
+
+@keyframes aurora-pulse {
+  0% { opacity: 0.6; transform: scaleY(0.95); }
+  50% { opacity: 0.95; transform: scaleY(1.05); }
+  100% { opacity: 0.7; transform: scaleY(1); }
+}
+
+/* Aurora Luxe Signature Neon Pill & Air-Gapped Card */
 .aurora-neon-pill {
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(52, 211, 153, 0.4);
@@ -285,6 +322,33 @@
   background: rgba(6, 78, 59, 0.35);
   border: 1px solid rgba(52, 211, 153, 0.5);
   box-shadow: 0 0 20px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Direction 3 Signature [ 0ms AIR-GAPPED SANDBOX ] Illuminated Cockpit Container */
+.aurora-cockpit-card {
+  background: rgba(6, 78, 59, 0.25);
+  border: 2px solid rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 28px -2px rgba(16, 185, 129, 0.45), inset 0 0 14px rgba(16, 185, 129, 0.2);
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aurora-cockpit-card:hover {
+  border-color: rgba(52, 211, 153, 1);
+  box-shadow: 0 0 38px 0 rgba(16, 185, 129, 0.6), inset 0 0 20px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Spatial Telemetry Glass Cards */
+.aurora-telemetry-panel {
+  background: rgba(13, 20, 36, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 /* Sidebar Dock Active Glow */

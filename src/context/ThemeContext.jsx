@@ -25,6 +25,13 @@ const ThemeContext = createContext({
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => {
+    // Migration: enforce Aurora Luxe (dark mode) as the signature default
+    const auroraMigrated = localStorage.getItem('qfh_aurora_luxe_v3');
+    if (!auroraMigrated) {
+      localStorage.setItem('qfh_aurora_luxe_v3', 'true');
+      localStorage.setItem('qfh_theme', 'dark');
+      return true;
+    }
     const saved = localStorage.getItem('qfh_theme');
     if (saved) {
       return saved === 'dark';
