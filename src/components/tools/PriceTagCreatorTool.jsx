@@ -24,7 +24,8 @@ import {
   AlertCircle,
   ZoomIn,
   ZoomOut,
-  Box
+  Box,
+  Package
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { playClickSound } from '../../utils/audioFeedback';
@@ -32,6 +33,8 @@ import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import BrandKitModal from '../common/BrandKitModal';
 import SavedDesignsModal from '../common/SavedDesignsModal';
 import ProductLabelStudioModal from '../common/ProductLabelStudioModal';
+import ProductCatalogModal from '../common/ProductCatalogModal';
+import AiDesignAssistantModal from '../common/AiDesignAssistantModal';
 import {
   CURRENCY_SYMBOLS,
   TAG_SHAPES,
@@ -63,6 +66,8 @@ export function PriceTagCreatorTool() {
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSavedDesignsOpen, setIsSavedDesignsOpen] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
 
   // Selected Category Template & Shape
@@ -506,6 +511,32 @@ export function PriceTagCreatorTool() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Product Studio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsAiModalOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300"
+              title="Generate design settings using natural language prompt"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI Prompt</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsCatalogOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-blue-400 hover:text-blue-300"
+              title="Select product from master catalog"
+            >
+              <Package className="w-3.5 h-3.5 text-blue-400" />
+              <span>Catalog SKU</span>
             </button>
 
             <button
@@ -1545,6 +1576,39 @@ export function PriceTagCreatorTool() {
       <ProductLabelStudioModal
         isOpen={isStudioOpen}
         onClose={() => setIsStudioOpen(false)}
+      />
+
+      {/* Product Catalog Modal */}
+      <ProductCatalogModal
+        isOpen={isCatalogOpen}
+        onClose={() => setIsCatalogOpen(false)}
+        onSelectProduct={(prod) => {
+          setName(prod.name);
+          setSellingPrice(prod.sellingPrice);
+          setMrp(prod.mrp);
+          setSku(prod.sku);
+          if (prod.description) setDescription(prod.description);
+          if (prod.currency) setCurrency(prod.currency);
+          toast.success(`Imported ${prod.name} (${prod.sku}) to Price Tag!`);
+        }}
+      />
+
+      {/* AI Prompt Assistant Modal */}
+      <AiDesignAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTool="price-tag"
+        onApplyDesign={(aiResult) => {
+          if (aiResult.productName) setName(aiResult.productName);
+          if (aiResult.sellingPrice) setSellingPrice(aiResult.sellingPrice);
+          if (aiResult.mrp) setMrp(aiResult.mrp);
+          if (aiResult.sku) setSku(aiResult.sku);
+          if (aiResult.badgeText) setBadgeText(aiResult.badgeText);
+          if (aiResult.currency) setCurrency(aiResult.currency);
+          if (aiResult.recommendedThemeId) handleSelectTemplate(aiResult.recommendedThemeId);
+          if (aiResult.recommendedShapeId) setSelectedShapeId(aiResult.recommendedShapeId);
+          toast.success('Applied AI design recommendations to Price Tag!');
+        }}
       />
     </div>
   );

@@ -25,7 +25,8 @@ import {
   Scan,
   ZoomIn,
   ZoomOut,
-  Zap
+  Zap,
+  Package
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { playClickSound } from '../../utils/audioFeedback';
@@ -33,6 +34,8 @@ import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import BrandKitModal from '../common/BrandKitModal';
 import SavedDesignsModal from '../common/SavedDesignsModal';
 import ProductLabelStudioModal from '../common/ProductLabelStudioModal';
+import ProductCatalogModal from '../common/ProductCatalogModal';
+import AiDesignAssistantModal from '../common/AiDesignAssistantModal';
 import {
   BARCODE_FORMATS,
   LABEL_DIMENSION_PRESETS,
@@ -65,6 +68,8 @@ export function BarcodeGeneratorTool() {
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSavedDesignsOpen, setIsSavedDesignsOpen] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // Single barcode states
   const [format, setFormat] = useState('CODE128');
@@ -419,6 +424,32 @@ export function BarcodeGeneratorTool() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Product Studio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsAiModalOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300"
+              title="Generate barcode settings using natural language prompt"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI Prompt</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsCatalogOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-blue-400 hover:text-blue-300"
+              title="Select product from master catalog"
+            >
+              <Package className="w-3.5 h-3.5 text-blue-400" />
+              <span>Catalog SKU</span>
             </button>
 
             <button
@@ -1403,6 +1434,46 @@ export function BarcodeGeneratorTool() {
       <ProductLabelStudioModal
         isOpen={isStudioOpen}
         onClose={() => setIsStudioOpen(false)}
+      />
+
+      {/* Product Catalog Modal */}
+      <ProductCatalogModal
+        isOpen={isCatalogOpen}
+        onClose={() => setIsCatalogOpen(false)}
+        onSelectProduct={(prod) => {
+          setProductName(prod.name);
+          setSku(prod.sku);
+          if (prod.gtin) {
+            setBarcodeValue(prod.gtin);
+            setFormat('EAN13');
+          } else {
+            setBarcodeValue(prod.sku);
+          }
+          if (prod.brand) setBrand(prod.brand);
+          if (prod.sellingPrice) {
+            setPrice(prod.currency === 'INR' ? `₹${prod.sellingPrice}` : `$${prod.sellingPrice}`);
+          }
+          toast.success(`Imported ${prod.name} (${prod.sku}) to Barcode Label!`);
+        }}
+      />
+
+      {/* AI Prompt Assistant Modal */}
+      <AiDesignAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTool="barcode"
+        onApplyDesign={(aiResult) => {
+          if (aiResult.productName) setProductName(aiResult.productName);
+          if (aiResult.sku) setSku(aiResult.sku);
+          if (aiResult.barcode) {
+            setBarcodeValue(aiResult.barcode);
+            if (aiResult.barcode.length === 13) setFormat('EAN13');
+          }
+          if (aiResult.sellingPrice) {
+            setPrice(aiResult.currency === 'INR' ? `₹${aiResult.sellingPrice}` : `$${aiResult.sellingPrice}`);
+          }
+          toast.success('Applied AI design recommendations to Barcode Label!');
+        }}
       />
     </div>
   );

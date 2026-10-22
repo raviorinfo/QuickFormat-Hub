@@ -26,7 +26,9 @@ import {
   FileSpreadsheet,
   ZoomIn,
   ZoomOut,
-  Box
+  Box,
+  Ticket,
+  Package
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { playClickSound } from '../../utils/audioFeedback';
@@ -34,6 +36,9 @@ import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import BrandKitModal from '../common/BrandKitModal';
 import SavedDesignsModal from '../common/SavedDesignsModal';
 import ProductLabelStudioModal from '../common/ProductLabelStudioModal';
+import CouponManagerModal from '../common/CouponManagerModal';
+import ProductCatalogModal from '../common/ProductCatalogModal';
+import AiDesignAssistantModal from '../common/AiDesignAssistantModal';
 import {
   CARD_SIZES,
   THANK_YOU_TEMPLATES,
@@ -66,6 +71,9 @@ export function ThankYouCardMakerTool() {
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSavedDesignsOpen, setIsSavedDesignsOpen] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // Print Bleed option
   const [usePrintBleed, setUsePrintBleed] = useState(true);
@@ -582,6 +590,45 @@ export function ThankYouCardMakerTool() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Product Studio</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsAiModalOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300"
+              title="Generate design settings using natural language prompt"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI Prompt</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsCouponModalOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-purple-400 hover:text-purple-300"
+              title="Select promotion voucher"
+            >
+              <Ticket className="w-3.5 h-3.5 text-purple-400" />
+              <span>Coupon Hub</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsCatalogOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-blue-400 hover:text-blue-300"
+              title="Select product from master catalog"
+            >
+              <Package className="w-3.5 h-3.5 text-blue-400" />
+              <span>Catalog SKU</span>
             </button>
 
             <button
@@ -1560,6 +1607,55 @@ export function ThankYouCardMakerTool() {
             setQrUrl(prod.website);
           }
           toast.success('Loaded Product Studio details into Thank You Card!');
+        }}
+      />
+
+      {/* Coupon Manager Modal */}
+      <CouponManagerModal
+        isOpen={isCouponModalOpen}
+        onClose={() => setIsCouponModalOpen(false)}
+        onSelectCoupon={(c) => {
+          setCouponCode(c.code);
+          setCouponText(
+            c.description ||
+              (c.discountType === 'percentage'
+                ? `Enjoy ${c.discountValue}% off your next order`
+                : `Get ₹${c.discountValue} flat off on orders above ₹${c.minPurchase || 0}`)
+          );
+          toast.success(`Inserted coupon code ${c.code}!`);
+        }}
+      />
+
+      {/* Product Catalog Modal */}
+      <ProductCatalogModal
+        isOpen={isCatalogOpen}
+        onClose={() => setIsCatalogOpen(false)}
+        onSelectProduct={(prod) => {
+          if (prod.brand) setBrandName(prod.brand.toUpperCase());
+          if (prod.url) {
+            setWebsite(prod.url);
+            setQrUrl(prod.url);
+          }
+          if (prod.name) {
+            setHeadline(`Thank You For Choosing ${prod.name}!`);
+          }
+          toast.success(`Loaded "${prod.name}" from catalog!`);
+        }}
+      />
+
+      {/* AI Prompt Assistant Modal */}
+      <AiDesignAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTool="thank-you-card"
+        onApplyDesign={(aiResult) => {
+          if (aiResult.productName) setHeadline(`Thank You For Choosing ${aiResult.productName}!`);
+          if (aiResult.couponCode) setCouponCode(aiResult.couponCode);
+          if (aiResult.url) {
+            setWebsite(aiResult.url);
+            setQrUrl(aiResult.url);
+          }
+          toast.success('Applied AI design recommendations to Thank You Card!');
         }}
       />
     </div>

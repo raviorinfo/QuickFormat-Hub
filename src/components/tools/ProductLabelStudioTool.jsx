@@ -62,6 +62,19 @@ import {
 } from '../../utils/exportUtils';
 import { getSavedBrandKit } from '../../utils/brandKitUtils';
 import { saveDesign } from '../../utils/savedDesignsUtils';
+import AiDesignAssistantModal from '../common/AiDesignAssistantModal';
+import ProductCatalogModal from '../common/ProductCatalogModal';
+import CouponManagerModal from '../common/CouponManagerModal';
+import { runLabelQualityCheck } from '../../utils/labelQualityChecker';
+import { calculateOptimalPrintLayout, COMMERCIAL_SHEET_PRESETS } from '../../utils/printLayoutOptimizer';
+import {
+  Package,
+  Ticket,
+  ShieldCheck,
+  Scale,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 
 export function ProductLabelStudioTool() {
   const toast = useToast();
@@ -69,6 +82,11 @@ export function ProductLabelStudioTool() {
   // Modals state
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSavedDesignsOpen, setIsSavedDesignsOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [selectedSheetPreset, setSelectedSheetPreset] = useState('a4-24up');
+  const [isQualityOpen, setIsQualityOpen] = useState(false);
 
   // Active Brand Kit
   const [brandKit, setBrandKit] = useState(getSavedBrandKit());
@@ -133,6 +151,33 @@ export function ProductLabelStudioTool() {
     productData.mrp,
     productData.sellingPrice
   );
+
+  // Pre-Flight Automated Quality Audit
+  const qualityReport = runLabelQualityCheck({
+    toolType: 'studio',
+    productName: productData.name,
+    sku: productData.sku,
+    barcodeValue: fullGtin || productData.sku,
+    barcodeFormat: fullGtin.length === 13 ? 'EAN13' : 'CODE128',
+    sellingPrice: productData.sellingPrice,
+    mrp: productData.mrp,
+    qrPayload: productData.url,
+    fontSize: 12,
+  });
+
+  // Print Layout Optimizer Calculation
+  const activePreset = COMMERCIAL_SHEET_PRESETS.find((p) => p.id === selectedSheetPreset) || COMMERCIAL_SHEET_PRESETS[2];
+  const printLayout = calculateOptimalPrintLayout({
+    paperWidthMm: activePreset.paperId === 'letter' ? 215.9 : 210,
+    paperHeightMm: activePreset.paperId === 'letter' ? 279.4 : 297,
+    labelWidthMm: activePreset.labelWidthMm,
+    labelHeightMm: activePreset.labelHeightMm,
+    marginTopMm: activePreset.marginTopMm,
+    marginLeftMm: activePreset.marginLeftMm,
+    gapXmm: activePreset.gapXmm,
+    gapYmm: activePreset.gapYmm,
+    printScaleMode: 'actual',
+  });
 
   // Render Barcode
   useEffect(() => {
@@ -439,6 +484,33 @@ export function ProductLabelStudioTool() {
 
           <div className="flex flex-wrap items-center gap-2.5">
             <button
+              onClick={() => setIsAiModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-indigo-600/30 to-purple-600/30 hover:from-indigo-600/50 hover:to-purple-600/50 text-indigo-200 border border-indigo-500/30 transition-all shadow-sm"
+              title="Describe packaging in plain English with AI"
+            >
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              AI Prompt Studio
+            </button>
+
+            <button
+              onClick={() => setIsCatalogModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+              title="Select from master product SKU catalog"
+            >
+              <Package className="w-4 h-4 text-blue-400" />
+              Product Catalog
+            </button>
+
+            <button
+              onClick={() => setIsCouponModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+              title="Manage promotion vouchers"
+            >
+              <Ticket className="w-4 h-4 text-purple-400" />
+              Coupon Hub
+            </button>
+
+            <button
               onClick={() => setIsBrandKitOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
             >
@@ -480,6 +552,103 @@ export function ProductLabelStudioTool() {
               {isExportingAll ? 'Compiling Dossier...' : 'Export Complete Packaging Kit (PDF)'}
             </button>
           </div>
+        </div>
+
+        {/* Automated Pre-Flight Quality Audit Status Bar */}
+        <div className={`p-4 rounded-2xl border transition-all ${
+          qualityReport.overallStatus === 'PASS'
+            ? 'bg-emerald-950/20 border-emerald-500/30'
+            : qualityReport.overallStatus === 'CRITICAL_FAIL'
+            ? 'bg-rose-950/20 border-rose-500/40'
+            : 'bg-amber-950/20 border-amber-500/30'
+        }`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${
+                qualityReport.overallStatus === 'PASS'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : qualityReport.overallStatus === 'CRITICAL_FAIL'
+                  ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                  : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              }`}>
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    Automated Pre-Flight Label Quality Audit:
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                    qualityReport.overallStatus === 'PASS'
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : qualityReport.overallStatus === 'CRITICAL_FAIL'
+                      ? 'bg-rose-500/20 text-rose-300'
+                      : 'bg-amber-500/20 text-amber-300'
+                  }`}>
+                    {qualityReport.score}/100 • {qualityReport.overallStatus}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">{qualityReport.summary}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsQualityOpen(!isQualityOpen)}
+                className="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 rounded-lg border border-slate-700 flex items-center gap-1 transition-colors"
+              >
+                {isQualityOpen ? 'Hide Audit Checklist' : `View ${qualityReport.issuesCount} Audit Check(s)`}
+                {isQualityOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Expandable Audit Details */}
+          {isQualityOpen && (
+            <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-2.5">
+              {qualityReport.issues.length === 0 ? (
+                <div className="text-xs text-emerald-400 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  All 12 optical contrast, GS1 check-digit, QR decodability, and pricing sanity checks passed!
+                </div>
+              ) : (
+                qualityReport.issues.map((issue) => (
+                  <div
+                    key={issue.id}
+                    className={`p-3 rounded-xl border flex items-start justify-between gap-3 text-xs ${
+                      issue.severity === 'critical'
+                        ? 'bg-rose-950/40 border-rose-500/30 text-rose-200'
+                        : 'bg-amber-950/40 border-amber-500/30 text-amber-200'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="font-semibold flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        [{issue.element}] {issue.explanation}
+                      </div>
+                      <div className="text-[11px] text-slate-400">
+                        Recommendation: {issue.recommendedCorrection}
+                      </div>
+                    </div>
+                    {issue.autoFixedValue && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (issue.element.includes('Barcode') || issue.element.includes('GTIN')) {
+                            setProductData({ ...productData, gtin: issue.autoFixedValue });
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shrink-0"
+                      >
+                        Auto-Fix Value
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Studio Grid: Left Form (Single Data Entry) + Right Live Previews */}
@@ -677,6 +846,51 @@ export function ProductLabelStudioTool() {
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
                 />
               </div>
+
+              {/* Smart Print Layout Optimizer Panel */}
+              <div className="pt-3 border-t border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-300 flex items-center gap-1.5">
+                    <Scale className="w-3.5 h-3.5 text-amber-400" />
+                    Commercial Sheet Preset & Yield Optimizer
+                  </label>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                    100% Actual Scale
+                  </span>
+                </div>
+                <select
+                  value={selectedSheetPreset}
+                  onChange={(e) => setSelectedSheetPreset(e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                >
+                  {COMMERCIAL_SHEET_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label} — {p.recommendedFor}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block">Sheet Yield</span>
+                    <strong className="text-amber-400 font-mono text-xs">{printLayout.totalYield} labels</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Grid Layout</span>
+                    <strong className="text-slate-200 font-mono text-xs">{printLayout.cols} × {printLayout.rows}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Paper Surface</span>
+                    <strong className="text-emerald-400 font-mono text-xs">{printLayout.utilizationPercent}% used</strong>
+                  </div>
+                </div>
+
+                {printLayout.warnings?.length > 0 && (
+                  <p className="text-[10px] text-amber-400/90 leading-tight">
+                    Notice: {printLayout.warnings[0]}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -859,6 +1073,61 @@ export function ProductLabelStudioTool() {
           }
           setIsSavedDesignsOpen(false);
           toast.success(`Loaded packaging project: ${design.name}`);
+        }}
+      />
+
+      {/* AI Design Assistant Modal */}
+      <AiDesignAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTool="studio"
+        onApplyDesign={(aiResult) => {
+          setProductData((prev) => ({
+            ...prev,
+            name: aiResult.productName || prev.name,
+            sku: aiResult.sku || prev.sku,
+            gtin: aiResult.barcode || prev.gtin,
+            sellingPrice: aiResult.sellingPrice || prev.sellingPrice,
+            mrp: aiResult.mrp || prev.mrp,
+            currency: aiResult.currency || prev.currency,
+            url: aiResult.url || prev.url,
+            couponCode: aiResult.couponCode || prev.couponCode,
+          }));
+          toast.success('Applied AI design settings to packaging suite!');
+        }}
+      />
+
+      {/* Master Product Catalog & SKU Hub Modal */}
+      <ProductCatalogModal
+        isOpen={isCatalogModalOpen}
+        onClose={() => setIsCatalogModalOpen(false)}
+        onSelectProduct={(prod) => {
+          setProductData((prev) => ({
+            ...prev,
+            name: prod.name || prev.name,
+            sku: prod.sku || prev.sku,
+            gtin: prod.gtin || prev.gtin,
+            sellingPrice: prod.sellingPrice || prev.sellingPrice,
+            mrp: prod.mrp || prev.mrp,
+            currency: prod.currency || prev.currency,
+            description: prod.description || prev.description,
+            url: prod.url || prev.url,
+          }));
+          toast.success(`Loaded "${prod.name}" (${prod.sku}) from catalog!`);
+        }}
+      />
+
+      {/* Promotions & Coupon Manager Modal */}
+      <CouponManagerModal
+        isOpen={isCouponModalOpen}
+        onClose={() => setIsCouponModalOpen(false)}
+        onSelectCoupon={(c) => {
+          setProductData((prev) => ({
+            ...prev,
+            couponCode: c.code,
+            couponDiscount: c.discountType === 'percentage' ? `${c.discountValue}% OFF next purchase` : `₹${c.discountValue} FLAT DISCOUNT`,
+          }));
+          toast.success(`Applied coupon code ${c.code}!`);
         }}
       />
     </div>

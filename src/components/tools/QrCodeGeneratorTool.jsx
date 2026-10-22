@@ -32,7 +32,8 @@ import {
   AlertCircle,
   ZoomIn,
   ZoomOut,
-  Box
+  Box,
+  Package
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { playClickSound } from '../../utils/audioFeedback';
@@ -40,6 +41,8 @@ import { ToolHeroHeader } from '../common/ToolHeroHeader';
 import BrandKitModal from '../common/BrandKitModal';
 import SavedDesignsModal from '../common/SavedDesignsModal';
 import ProductLabelStudioModal from '../common/ProductLabelStudioModal';
+import ProductCatalogModal from '../common/ProductCatalogModal';
+import AiDesignAssistantModal from '../common/AiDesignAssistantModal';
 import {
   QR_TYPES,
   COLOR_PRESETS,
@@ -76,6 +79,8 @@ export function QrCodeGeneratorTool() {
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
   const [isSavedDesignsOpen, setIsSavedDesignsOpen] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // Studio Interactive Viewport
   const [zoom, setZoom] = useState(1);
@@ -474,6 +479,32 @@ export function QrCodeGeneratorTool() {
             >
               <FolderOpen className="w-3.5 h-3.5" />
               <span>Projects</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsAiModalOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300"
+              title="Generate QR code payload using natural language prompt"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI Prompt</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound();
+                setIsCatalogOpen(true);
+              }}
+              className="btn-secondary py-1 px-2.5 text-xs font-semibold flex items-center gap-1.5 text-blue-400 hover:text-blue-300"
+              title="Select product from master catalog"
+            >
+              <Package className="w-3.5 h-3.5 text-blue-400" />
+              <span>Catalog SKU</span>
             </button>
 
             <button
@@ -1304,6 +1335,31 @@ export function QrCodeGeneratorTool() {
       <ProductLabelStudioModal
         isOpen={isStudioOpen}
         onClose={() => setIsStudioOpen(false)}
+      />
+
+      {/* Product Catalog Modal */}
+      <ProductCatalogModal
+        isOpen={isCatalogOpen}
+        onClose={() => setIsCatalogOpen(false)}
+        onSelectProduct={(prod) => {
+          setSelectedType('url');
+          setUrlData({ url: prod.url || `https://quickformat.com/item/${prod.sku.toLowerCase()}` });
+          toast.success(`Loaded "${prod.name}" link into QR Generator!`);
+        }}
+      />
+
+      {/* AI Prompt Assistant Modal */}
+      <AiDesignAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        currentTool="qr-code"
+        onApplyDesign={(aiResult) => {
+          if (aiResult.url) {
+            setSelectedType('url');
+            setUrlData({ url: aiResult.url });
+          }
+          toast.success('Applied AI design link to QR Code!');
+        }}
       />
     </div>
   );

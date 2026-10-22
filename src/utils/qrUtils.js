@@ -771,3 +771,83 @@ export function decodeQrPayload(rawPayload) {
   };
 }
 
+/**
+ * Validates a web destination URL for security and protocol safety.
+ * Protects against open redirects, script injection, and invalid schemes.
+ */
+export function validateQrDestinationUrl(url) {
+  if (!url || !url.trim()) {
+    return { isValid: false, error: 'Destination URL is required.' };
+  }
+
+  const clean = url.trim();
+
+  // Block dangerous schemes
+  const dangerousSchemes = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:'];
+  if (dangerousSchemes.some((s) => clean.toLowerCase().startsWith(s))) {
+    return {
+      isValid: false,
+      error: 'Security Error: Script execution or local file protocols are not allowed in QR destinations.',
+    };
+  }
+
+  try {
+    const parsed = new URL(clean.includes('://') ? clean : `https://${clean}`);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return {
+        isValid: false,
+        error: `Protocol '${parsed.protocol}' is unsupported. Only HTTPS and HTTP web links are permitted.`,
+      };
+    }
+
+    if (!parsed.hostname || !parsed.hostname.includes('.')) {
+      return {
+        isValid: false,
+        error: 'Invalid domain name. Please enter a valid fully qualified domain (e.g. example.com).',
+      };
+    }
+
+    return {
+      isValid: true,
+      cleanUrl: parsed.toString(),
+      hostname: parsed.hostname,
+      isHttps: parsed.protocol === 'https:',
+    };
+  } catch {
+    return {
+      isValid: false,
+      error: 'Malformed URL format. Please verify the web address syntax.',
+    };
+  }
+}
+
+/**
+ * Builds a UTM campaign-tagged URL without leaking tracking data to external third parties.
+ */
+export function buildCampaignUrl(baseUrl, utm = {}) {
+  const val = validateQrDestinationUrl(baseUrl);
+  if (!val.isValid) return baseUrl;
+
+  try {
+    const url = new URL(val.cleanUrl);
+    if (utm.utmSource) url.searchParams.set('utm_source', utm.utmSource.trim());
+    if (utm.utmMedium) url.searchParams.set('utm_medium', utm.utmMedium.trim());
+    if (utm.utmCampaign) url.searchParams.set('utm_campaign', utm.utmCampaign.trim());
+    if (utm.utmContent) url.searchParams.set('utm_content', utm.utmContent.trim());
+    if (utm.utmTerm) url.searchParams.set('utm_term', utm.utmTerm.trim());
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
+}
+
+/**
+ * Architectural Disclosure for Static vs Dynamic QR Codes:
+ * QuickFormat Hub encodes data directly into the QR matrix (Static QR).
+ * Printed Static QRs cannot change destinations once printed on packaging.
+ */
+export const DYNAMIC_QR_DISCLOSURE = {
+  isStaticOnly: true,
+  notice: 'QuickFormat Hub generates 100% Client-Side Static QR codes directly embedding your payload. Static QR codes cannot be modified after printing. To achieve dynamic rerouting without proprietary third-party tracking, point your QR code to a URL on your own domain (e.g. https://yourbrand.com/qr/spring) and configure a server-side 301/302 redirect.',
+};
+

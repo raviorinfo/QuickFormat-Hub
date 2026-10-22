@@ -229,6 +229,223 @@ assert(parsedDelimited[1][1] === 'Coffee, Dark Roast', 'parseDelimitedText prese
 // Test 26: Shared Brand Kit Defaults
 assert(DEFAULT_BRAND_KIT.brandName && DEFAULT_BRAND_KIT.primaryColor, 'Shared Brand Kit contains required default fields');
 
+console.log('\n======================================================');
+console.log('--- 6. AI-ASSISTED DESIGN NLP PARSER VERIFICATION ---');
+console.log('======================================================');
+
+import { parseAiDesignPrompt } from '../src/utils/aiDesignParser.js';
+
+// Test 27: NLP prompt parser extracts toy category, MRP, Selling Price, and discount
+const promptToy = "Create a compact retail price tag for a children's robotic toy. Display ₹1,999 MRP, ₹1,299 selling price, a HOT DEAL badge, product barcode and a QR code linking to specs.";
+const parsedToy = parseAiDesignPrompt(promptToy);
+assert(parsedToy.isValid, 'NLP parser successfully parses natural language design request');
+assert(parsedToy.category === 'toys', `NLP parser accurately detects category: ${parsedToy.category}`);
+assert(parsedToy.sellingPrice === 1299 && parsedToy.mrp === 1999, 'NLP parser extracts selling price 1299 and MRP 1999');
+assert(parsedToy.discountPercent === 35, `Deterministic discount math correctly calculated: ${parsedToy.discountPercent}% OFF`);
+assert(parsedToy.barcode && parsedToy.barcode.length === 13, `Valid GS1 India barcode assigned: ${parsedToy.barcode}`);
+
+// Test 28: Apparel Tag intent
+const promptApparel = "Design a luxury hanging apparel tag for an oversized organic cotton hoodie. Set MRP ₹2,499, offer price ₹1,499.";
+const parsedApparel = parseAiDesignPrompt(promptApparel);
+assert(parsedApparel.category === 'clothing', 'NLP parser detects clothing category');
+assert(parsedApparel.recommendedShapeId === 'hanging-apparel', 'NLP parser recommends hanging-apparel shape');
+
+console.log('\n========================================================');
+console.log('--- 7. PRODUCT CATALOG & SKU INTEGRITY VERIFICATION ---');
+console.log('========================================================');
+
+import {
+  INITIAL_CATALOG_SEEDS,
+  checkSkuDuplicate,
+  exportProductsToCsv,
+  generateCatalogSampleCsv,
+} from '../src/utils/productCatalogUtils.js';
+
+// Test 29: Master catalog seeds
+assert(INITIAL_CATALOG_SEEDS.length >= 5, `Initial product catalog seeds loaded: ${INITIAL_CATALOG_SEEDS.length} items`);
+assert(INITIAL_CATALOG_SEEDS.every((p) => p.sku && p.name && p.sellingPrice), 'All seed catalog products contain SKU, name, and price');
+
+// Test 30: Duplicate SKU detection
+const isDup = checkSkuDuplicate('SKU-ELC-8921');
+assert(isDup, 'checkSkuDuplicate flags existing SKU in catalog as duplicate');
+const isUnique = !checkSkuDuplicate('SKU-BRAND-NEW-999');
+assert(isUnique, 'checkSkuDuplicate recognizes new unused SKU as unique');
+
+// Test 31: Catalog CSV export & sample generation
+const catalogCsv = exportProductsToCsv(INITIAL_CATALOG_SEEDS);
+assert(catalogCsv.includes('Product Title') && catalogCsv.includes('SKU-ELC-8921'), 'exportProductsToCsv includes required headers and SKU rows');
+const sampleTemplateCsv = generateCatalogSampleCsv();
+assert(sampleTemplateCsv.startsWith('Product Title,Internal SKU'), 'generateCatalogSampleCsv produces valid header structure');
+
+console.log('\n======================================================');
+console.log('--- 8. SMART PRINT LAYOUT OPTIMIZER VERIFICATION ---');
+console.log('======================================================');
+
+import {
+  calculateOptimalPrintLayout,
+  COMMERCIAL_SHEET_PRESETS,
+} from '../src/utils/printLayoutOptimizer.js';
+
+// Test 32: Standard A4 24-Up sticker grid calculation
+// Test 32: Standard A4 24-Up sticker grid calculation
+const a4Layout = calculateOptimalPrintLayout({
+  paperWidthMm: 210,
+  paperHeightMm: 297,
+  labelWidthMm: 70,
+  labelHeightMm: 36,
+  marginTopMm: 4.5,
+  marginLeftMm: 0,
+  gapXmm: 0,
+  gapYmm: 0,
+  unprintableHardwareEdgeMm: 0,
+  printScaleMode: 'actual',
+});
+assert(a4Layout.isValid, 'Print layout calculates valid geometry');
+assert(a4Layout.totalYield === 24 && a4Layout.cols === 3, `A4 24-up grid calculates 3 columns and 24 labels yield: ${a4Layout.totalYield} labels`);
+assert(a4Layout.printScaleMode === 'actual', 'Actual 100% scale explicitly enforced (no silent scaling of barcodes)');
+
+// Test 32b: Hardware unprintable edge warning
+const a4WithHardwareEdge = calculateOptimalPrintLayout({
+  paperWidthMm: 210,
+  paperHeightMm: 297,
+  labelWidthMm: 70,
+  labelHeightMm: 36,
+  marginTopMm: 0,
+  marginLeftMm: 0,
+  unprintableHardwareEdgeMm: 4,
+});
+assert(a4WithHardwareEdge.warnings?.length > 0, 'Optimizer alerts user when label margins intersect hardware unprintable edge');
+
+// Test 33: Commercial Avery Preset
+const averyPreset = COMMERCIAL_SHEET_PRESETS.find((p) => p.id === 'avery-5160');
+assert(averyPreset && averyPreset.cols === 3 && averyPreset.rows === 10, 'Avery 5160 preset defines 3x10 grid (30 labels/sheet)');
+
+// Test 34: Clipping boundary detection when label is oversized
+const clippedLayout = calculateOptimalPrintLayout({
+  paperWidthMm: 210,
+  paperHeightMm: 297,
+  labelWidthMm: 220, // Exceeds 210mm paper width
+  labelHeightMm: 300,
+});
+assert(clippedLayout.isClipping, 'Print layout optimizer flags oversized dimensions with clipping warning');
+
+console.log('\n======================================================');
+console.log('--- 9. AUTOMATED PRE-FLIGHT LABEL QUALITY CHECKER ---');
+console.log('======================================================');
+
+import { runLabelQualityCheck } from '../src/utils/labelQualityChecker.js';
+
+// Test 35: Valid commercial label passes pre-flight
+const validAudit = runLabelQualityCheck({
+  toolType: 'studio',
+  productName: 'Organic Roasted Arabica Beans',
+  sku: 'SKU-COF-01',
+  barcodeValue: '8901030365737', // Valid GS1 India EAN-13
+  barcodeFormat: 'EAN13',
+  sellingPrice: 499,
+  mrp: 699,
+  qrPayload: 'https://quickformat.com/item/cof-01',
+  lineColor: '#000000',
+  bgColor: '#ffffff',
+  widthMm: 70,
+  heightMm: 36,
+  fontSize: 12,
+});
+assert(validAudit.overallStatus === 'PASS' && validAudit.score === 100, `Valid retail label achieves PASS with score ${validAudit.score}/100`);
+
+// Test 36: Price inversion check (Selling > MRP)
+const invertedPriceAudit = runLabelQualityCheck({
+  toolType: 'price-tag',
+  productName: 'Toy Car',
+  sku: 'SKU-01',
+  sellingPrice: 999,
+  mrp: 499, // Selling > MRP is illegal in retail
+  barcodeValue: '8901030365737',
+  barcodeFormat: 'EAN13',
+});
+assert(invertedPriceAudit.overallStatus === 'CRITICAL_FAIL', 'Price inversion (Selling > MRP) triggers CRITICAL_FAIL');
+assert(invertedPriceAudit.issues.some((i) => i.id === 'price-inversion'), 'Price inversion issue specifically identified');
+
+// Test 37: Optical Contrast failure
+const lowContrastAudit = runLabelQualityCheck({
+  toolType: 'barcode',
+  productName: 'Test Item',
+  sku: 'SKU-02',
+  barcodeValue: '8901030365737',
+  barcodeFormat: 'EAN13',
+  lineColor: '#888888',
+  bgColor: '#999999',
+});
+assert(lowContrastAudit.issues.some((i) => i.id === 'contrast-poor'), 'Low optical contrast flagged as critical scanner failure');
+
+console.log('\n======================================================');
+console.log('--- 10. PROMOTION & COUPON MANAGEMENT VERIFICATION ---');
+console.log('======================================================');
+
+import {
+  generateBulkUniqueCoupons,
+  validateCouponCode,
+  exportCouponsToCsv,
+} from '../src/utils/couponManagerUtils.js';
+
+// Test 38: Bulk Unique Coupon Generation
+const bulkCoupons = generateBulkUniqueCoupons({
+  prefix: 'GIFT',
+  count: 15,
+  codeLength: 6,
+  discountType: 'percentage',
+  discountValue: 20,
+  minPurchase: 999,
+  validUntil: '2026-12-31',
+});
+assert(bulkCoupons.length === 15, `Bulk generator produces exact requested count: ${bulkCoupons.length}`);
+const uniqueSet = new Set(bulkCoupons.map((c) => c.code));
+assert(uniqueSet.size === 15, 'All bulk generated coupon codes are 100% unique with zero collisions');
+assert(bulkCoupons[0].code.startsWith('GIFT-'), `Coupons correctly formatted with prefix: ${bulkCoupons[0].code}`);
+
+// Test 39: Coupon Validation Logic
+const validCouponRes = validateCouponCode('WELCOME15', 600);
+assert(validCouponRes.isValid && validCouponRes.calculatedDiscount === 90, 'Valid coupon calculates 15% discount on ₹600 order (= ₹90 savings)');
+
+const minOrderFail = validateCouponCode('WELCOME15', 200);
+assert(!minOrderFail.isValid && minOrderFail.error?.includes('Minimum order'), 'Coupon rejected when order is below minPurchase threshold');
+
+// Test 40: Coupon CSV Export
+const couponCsv = exportCouponsToCsv(bulkCoupons);
+assert(couponCsv.includes('Coupon Code,Discount Type') && couponCsv.includes(bulkCoupons[0].code), 'exportCouponsToCsv formats headers and records properly');
+
+console.log('\n========================================================');
+console.log('--- 11. SECURE QR DESTINATION MANAGEMENT VERIFICATION ---');
+console.log('========================================================');
+
+import {
+  validateQrDestinationUrl,
+  buildCampaignUrl,
+  DYNAMIC_QR_DISCLOSURE,
+} from '../src/utils/qrUtils.js';
+
+// Test 41: Valid HTTPS Web Destination
+const validDest = validateQrDestinationUrl('https://mybrand.com/products/headset');
+assert(validDest.isValid && validDest.isHttps, 'validateQrDestinationUrl accepts valid HTTPS URL');
+
+// Test 42: Protocol Injection Prevention
+const dangerousDest = validateQrDestinationUrl('javascript:alert(document.cookie)');
+assert(!dangerousDest.isValid && dangerousDest.error?.includes('Security Error'), 'validateQrDestinationUrl blocks javascript: execution protocols');
+
+const fileDest = validateQrDestinationUrl('file:///etc/passwd');
+assert(!fileDest.isValid && fileDest.error?.includes('Security Error'), 'validateQrDestinationUrl blocks local file:// protocols');
+
+// Test 43: Campaign UTM Builder
+const campaignUrl = buildCampaignUrl('https://mybrand.com/deals', {
+  utmSource: 'package_insert',
+  utmMedium: 'qr_scan',
+  utmCampaign: 'winter_sale',
+});
+assert(campaignUrl.includes('utm_source=package_insert') && campaignUrl.includes('utm_campaign=winter_sale'), `buildCampaignUrl appends clean UTM tags: ${campaignUrl}`);
+
+// Test 44: Static vs Dynamic QR Architectural Disclosure
+assert(DYNAMIC_QR_DISCLOSURE.isStaticOnly, 'Architectural disclosure explicitly documents client-side Static QR generation');
+
 console.log('\n========================================');
 console.log(`TOTAL TESTS: ${passedTests + failedTests}`);
 console.log(`PASSED: ${passedTests}`);
@@ -238,6 +455,6 @@ console.log('========================================\n');
 if (failedTests > 0) {
   process.exit(1);
 } else {
-  console.log('ALL 39 ADVANCED COMMERCE SUITE VERIFICATION TESTS PASSED!\n');
+  console.log(`ALL ${passedTests} ADVANCED COMMERCE & PACKAGING STUDIO VERIFICATION TESTS PASSED!\n`);
   process.exit(0);
 }
