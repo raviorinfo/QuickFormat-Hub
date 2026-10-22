@@ -32,18 +32,19 @@ import { useToast } from '../../../context/ToastContext';
 /**
  * Compact SVG Barcode renderer for individual sheet slots
  */
-function SlotBarcode({ value, height = 18 }) {
+function SlotBarcode({ value, height = 16, compact = false }) {
   const svgRef = useRef(null);
 
   useEffect(() => {
     if (svgRef.current && value) {
       try {
+        const showText = height >= 14 && !compact;
         JsBarcode(svgRef.current, String(value), {
           format: 'CODE128',
-          width: 0.95,
-          height: height,
-          displayValue: true,
-          fontSize: 7,
+          width: compact ? 0.8 : 0.9,
+          height: Math.max(6, height),
+          displayValue: showText,
+          fontSize: Math.max(5, Math.min(7.5, height * 0.45)),
           font: 'monospace',
           margin: 0,
           background: 'transparent',
@@ -53,26 +54,52 @@ function SlotBarcode({ value, height = 18 }) {
         // Fallback silently if invalid characters
       }
     }
-  }, [value, height]);
+  }, [value, height, compact]);
 
   if (!value) return null;
-  return <svg ref={svgRef} className="max-w-full h-auto mx-auto my-0.5 block" />;
+  return <svg ref={svgRef} className="max-w-full h-auto mx-auto block" />;
 }
 
 /**
  * Rich WYSIWYG Slot Card rendered inside the sheet layout
+ * Adapts typography, line wrapping, and vertical hierarchy dynamically as length & breadth decrease.
  */
-function SheetLabelCard({ slot, scale, showCutGuides }) {
+function SheetLabelCard({ slot, scale, showCutGuides, textScale = 'standard' }) {
   const item = slot.item || {};
   const leftPx = slot.xMm * 3.78 * scale;
   const topPx = slot.yMm * 3.78 * scale;
   const widthPx = slot.widthMm * 3.78 * scale;
   const heightPx = slot.heightMm * 3.78 * scale;
 
+  const w = slot.widthMm;
+  const h = slot.heightMm;
+
+  const userScaleMul = textScale === 'compact' ? 0.85 : textScale === 'large' ? 1.15 : 1.0;
+
+  // Responsive proportional font size calculation based on physical millimeter dimensions
+  const titleSizePx = Math.max(
+    6.5,
+    Math.min(12, (w * 0.11 + h * 0.08) * scale * userScaleMul)
+  );
+
+  const brandSizePx = Math.max(5.5, titleSizePx * 0.72);
+  const variantSizePx = Math.max(5.5, titleSizePx * 0.72);
+  const priceSizePx = Math.max(6.5, titleSizePx * 0.85);
+  const bannerSizePx = Math.max(5.5, titleSizePx * 0.72);
+
+  const isCompactH = h < 35;
+  const isUltraCompact = h < 26 || w < 44;
+  const barcodeHeight = isUltraCompact
+    ? 7
+    : isCompactH
+    ? 10
+    : Math.max(12, Math.min(22, Math.round(h * 0.26 * scale)));
+
   const barcodeVal = item.barcodeValue || item.barcode || item.sku || '';
   const numMrp = parseFloat(item.mrp) || 0;
   const numSelling = parseFloat(item.sellingPrice) || 0;
   const hasSelling = numSelling > 0 && numSelling < numMrp;
+  const productName = item.name || item.productName || 'Product Label';
 
   return (
     <div
@@ -88,7 +115,9 @@ function SheetLabelCard({ slot, scale, showCutGuides }) {
         borderRadius: `${Math.max(2, (item.cornerRadius || 4) * (scale * 0.5))}px`,
         fontFamily: item.fontFamily || 'system-ui, -apple-system, sans-serif',
       }}
-      className="absolute p-1.5 flex flex-col justify-between text-left overflow-hidden select-none box-border shadow-2xs"
+      className={`absolute flex flex-col justify-between text-left overflow-hidden select-none box-border shadow-2xs ${
+        isUltraCompact ? 'p-1' : 'p-1.5'
+      }`}
     >
       {/* Top Banner if configured */}
       {(item.headerBg || item.badgeText || item.headerTitle) && (
@@ -96,25 +125,41 @@ function SheetLabelCard({ slot, scale, showCutGuides }) {
           style={{
             backgroundColor: item.headerBg || '#0f172a',
             color: item.headerTextColor || (item.headerText?.startsWith('#') ? item.headerText : '#ffffff'),
+            fontSize: `${bannerSizePx}px`,
+            lineHeight: 1,
           }}
-          className="text-[7.5px] font-bold text-center py-0.5 px-1 uppercase tracking-wider font-mono truncate rounded-xs -mx-0.5 -mt-0.5 mb-1"
+          className="font-bold text-center py-0.5 px-1 uppercase tracking-wider font-mono truncate rounded-xs -mx-0.5 -mt-0.5 mb-0.5"
         >
           {item.headerTitle || item.badgeText || 'MAXIMUM RETAIL PRICE'}
         </div>
       )}
 
-      {/* Product Details */}
-      <div className="leading-tight overflow-hidden">
-        {item.brand && (
-          <div className="text-[7px] font-bold uppercase tracking-wider text-slate-500 truncate">
+      {/* Product Details - Auto-allocated with multi-line wrap (NO truncation ellipsis) */}
+      <div className="flex-1 min-h-0 flex flex-col justify-center overflow-hidden my-0.5 leading-tight">
+        {item.brand && !isUltraCompact && (
+          <div
+            style={{ fontSize: `${brandSizePx}px`, lineHeight: 1.1 }}
+            className="font-bold uppercase tracking-wider text-slate-500 truncate mb-0.5"
+          >
             {item.brand}
           </div>
         )}
-        <div className="text-[9.5px] font-bold text-slate-900 truncate leading-tight">
-          {item.name || item.productName || 'Product Label'}
+        <div
+          style={{
+            fontSize: `${titleSizePx}px`,
+            lineHeight: 1.15,
+            wordBreak: 'break-word',
+          }}
+          className="font-bold text-slate-900 break-words line-clamp-2 overflow-hidden"
+          title={productName}
+        >
+          {productName}
         </div>
-        {(item.variant || item.packSize) && (
-          <div className="text-[7.5px] text-slate-500 truncate mt-0.5 font-medium">
+        {(item.variant || item.packSize) && !isCompactH && (
+          <div
+            style={{ fontSize: `${variantSizePx}px`, lineHeight: 1.1 }}
+            className="text-slate-500 truncate mt-0.5 font-medium"
+          >
             {[item.variant, item.packSize].filter(Boolean).join(' • ')}
           </div>
         )}
@@ -122,13 +167,16 @@ function SheetLabelCard({ slot, scale, showCutGuides }) {
 
       {/* Barcode SVG */}
       {barcodeVal && (
-        <div className="overflow-hidden flex justify-center py-0.5">
-          <SlotBarcode value={barcodeVal} height={Math.max(12, Math.min(22, heightPx * 0.25))} />
+        <div className="overflow-hidden flex justify-center py-0.5 shrink-0">
+          <SlotBarcode value={barcodeVal} height={barcodeHeight} compact={isUltraCompact} />
         </div>
       )}
 
       {/* Pricing Footer */}
-      <div className="flex items-baseline justify-between text-[8px] font-mono font-bold pt-1 border-t border-slate-100">
+      <div
+        style={{ fontSize: `${priceSizePx}px`, lineHeight: 1 }}
+        className="flex items-baseline justify-between font-mono font-bold pt-0.5 border-t border-slate-100 shrink-0"
+      >
         <span className="text-slate-900 font-black">
           MRP: {formatIndianCurrency(numMrp)}
         </span>
@@ -151,6 +199,7 @@ export function SheetLayoutModule({
   const toast = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(80); // percentage
+  const [textScale, setTextScale] = useState('standard'); // 'compact' | 'standard' | 'large'
   const [isCalibrationOpen, setIsCalibrationOpen] = useState(false);
   const printableSheetRef = useRef(null);
 
@@ -325,24 +374,33 @@ export function SheetLayoutModule({
         page.labels.forEach((slot) => {
           const item = slot.item || {};
           const bValue = item.barcodeValue || item.barcode || item.sku || '';
+          const w = slot.widthMm;
+          const h = slot.heightMm;
+          const userScaleMul = textScale === 'compact' ? 0.85 : textScale === 'large' ? 1.15 : 1.0;
+          const titlePt = Math.max(5.5, Math.min(9.5, (w * 0.08 + h * 0.06) * userScaleMul));
+          const subPt = Math.max(4.5, titlePt * 0.72);
+          const pricePt = Math.max(5.5, titlePt * 0.85);
+          const isCompact = h < 34 || w < 44;
+          const isUltraCompact = h < 26 || w < 38;
+
           labelsHtml += `
-            <div style="position: absolute; left: ${slot.xMm}mm; top: ${slot.yMm}mm; width: ${slot.widthMm}mm; height: ${slot.heightMm}mm; box-sizing: border-box; overflow: hidden; background: ${item.bg || '#ffffff'}; border: ${showCutGuides ? '0.25mm dashed #94a3b8' : '0.25mm solid #cbd5e1'}; border-radius: 1mm; padding: 1.5mm; display: flex; flex-direction: column; justify-content: space-between; font-family: ${item.fontFamily || 'system-ui, -apple-system, sans-serif'};">
+            <div style="position: absolute; left: ${slot.xMm}mm; top: ${slot.yMm}mm; width: ${slot.widthMm}mm; height: ${slot.heightMm}mm; box-sizing: border-box; overflow: hidden; background: ${item.bg || '#ffffff'}; border: ${showCutGuides ? '0.25mm dashed #94a3b8' : '0.25mm solid #cbd5e1'}; border-radius: 1mm; padding: ${isUltraCompact ? '1mm' : '1.5mm'}; display: flex; flex-direction: column; justify-content: space-between; font-family: ${item.fontFamily || 'system-ui, -apple-system, sans-serif'};">
               ${(item.headerBg || item.badgeText || item.headerTitle) ? `
-                <div style="background: ${item.headerBg || '#0f172a'}; color: ${item.headerTextColor || (item.headerText?.startsWith('#') ? item.headerText : '#ffffff')}; font-size: 6.5pt; font-weight: bold; text-align: center; padding: 0.6mm; text-transform: uppercase; border-radius: 0.5mm; margin-bottom: 0.8mm; line-height: 1;">
+                <div style="background: ${item.headerBg || '#0f172a'}; color: ${item.headerTextColor || (item.headerText?.startsWith('#') ? item.headerText : '#ffffff')}; font-size: ${subPt}pt; font-weight: bold; text-align: center; padding: 0.4mm 0.6mm; text-transform: uppercase; border-radius: 0.5mm; margin-bottom: 0.5mm; line-height: 1;">
                   ${item.headerTitle || item.badgeText || 'MAXIMUM RETAIL PRICE'}
                 </div>
               ` : ''}
-              <div>
-                ${item.brand ? `<div style="font-size: 5.5pt; color: #64748b; font-weight: bold; text-transform: uppercase; line-height: 1;">${item.brand}</div>` : ''}
-                <div style="font-size: 7.5pt; font-weight: bold; color: #0f172a; line-height: 1.1; max-height: 6mm; overflow: hidden;">${item.name || item.productName || 'Product Name'}</div>
-                ${(item.variant || item.packSize) ? `<div style="font-size: 5.5pt; color: #64748b; line-height: 1;">${[item.variant, item.packSize].filter(Boolean).join(' • ')}</div>` : ''}
+              <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                ${(item.brand && !isUltraCompact) ? `<div style="font-size: ${subPt}pt; color: #64748b; font-weight: bold; text-transform: uppercase; line-height: 1; margin-bottom: 0.3mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.brand}</div>` : ''}
+                <div style="font-size: ${titlePt}pt; font-weight: bold; color: #0f172a; line-height: 1.15; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.name || item.productName || 'Product Name'}</div>
+                ${((item.variant || item.packSize) && !isCompact) ? `<div style="font-size: ${subPt}pt; color: #64748b; line-height: 1; margin-top: 0.3mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${[item.variant, item.packSize].filter(Boolean).join(' • ')}</div>` : ''}
               </div>
-              <div style="text-align: center; margin: 0.5mm 0;">
-                ${bValue ? `<div style="font-family: monospace; font-size: 6.5pt; font-weight: bold; letter-spacing: 0.5px;">${bValue}</div>` : ''}
+              <div style="text-align: center; margin: 0.3mm 0;">
+                ${bValue ? `<div style="font-family: monospace; font-size: ${Math.max(5, subPt)}pt; font-weight: bold; letter-spacing: 0.5px;">${bValue}</div>` : ''}
               </div>
-              <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 0.25mm solid #e2e8f0; padding-top: 0.5mm;">
-                <span style="font-size: 7.5pt; font-weight: 900; color: #0f172a;">MRP: ₹${item.mrp || 0}</span>
-                ${item.sellingPrice ? `<span style="font-size: 7pt; font-weight: bold; color: #059669;">Offer: ₹${item.sellingPrice}</span>` : ''}
+              <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 0.25mm solid #e2e8f0; padding-top: 0.4mm;">
+                <span style="font-size: ${pricePt}pt; font-weight: 900; color: #0f172a;">MRP: ₹${item.mrp || 0}</span>
+                ${item.sellingPrice ? `<span style="font-size: ${pricePt * 0.9}pt; font-weight: bold; color: #059669;">Offer: ₹${item.sellingPrice}</span>` : ''}
               </div>
             </div>
           `;
@@ -666,6 +724,49 @@ export function SheetLayoutModule({
                   onChange={(e) => handleLabelDimensionChange('height', e.target.value)}
                   className="w-full text-xs p-1.5 rounded-lg border font-mono border-slate-200 dark:border-slate-700 bg-white dark:bg-black/20"
                 />
+              </div>
+            </div>
+
+            {/* Text Fit & Density Selector */}
+            <div className="pt-0.5">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-500 block">Text Fit & Density</label>
+                <span className="text-[9px] text-slate-400 font-mono">Auto-wraps names</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-black/30 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setTextScale('compact')}
+                  className={`text-[10px] py-1 font-semibold rounded transition-all cursor-pointer ${
+                    textScale === 'compact'
+                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs font-bold'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Compact
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTextScale('standard')}
+                  className={`text-[10px] py-1 font-semibold rounded transition-all cursor-pointer ${
+                    textScale === 'standard'
+                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs font-bold'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTextScale('large')}
+                  className={`text-[10px] py-1 font-semibold rounded transition-all cursor-pointer ${
+                    textScale === 'large'
+                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs font-bold'
+                      : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Large
+                </button>
               </div>
             </div>
 
@@ -1001,6 +1102,7 @@ export function SheetLayoutModule({
                   slot={slot}
                   scale={zoomLevel / 100}
                   showCutGuides={showCutGuides}
+                  textScale={textScale}
                 />
               ))}
 

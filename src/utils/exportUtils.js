@@ -468,61 +468,91 @@ export function exportMultiPageSheetPdf({
             console.warn('PDF image rendering skipped for slot', err);
           }
         } else {
-          // Render crisp vector card for each label
+          // Render crisp vector card for each label with responsive typography & 2-line name wrapping
           const item = label.item || {};
+          const w = label.widthMm;
+          const h = label.heightMm;
+          const isCompact = h < 34 || w < 44;
+          const isUltraCompact = h < 26 || w < 38;
+          const bannerHeight = isUltraCompact ? 2.8 : 3.5;
+          const titleSizePt = Math.max(5.5, Math.min(8.5, w * 0.08 + h * 0.055));
+          const subSizePt = Math.max(4.5, titleSizePt * 0.72);
+          const priceSizePt = Math.max(5.5, titleSizePt * 0.85);
+
           pdf.setFillColor(255, 255, 255);
-          pdf.rect(label.xMm, label.yMm, label.widthMm, label.heightMm, 'F');
+          pdf.rect(label.xMm, label.yMm, w, h, 'F');
 
           // Optional header banner
           if (item.headerBg || item.badgeText || item.headerTitle) {
             pdf.setFillColor(15, 23, 42);
-            pdf.rect(label.xMm, label.yMm, label.widthMm, 4, 'F');
+            pdf.rect(label.xMm, label.yMm, w, bannerHeight, 'F');
             pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6);
+            pdf.setFontSize(subSizePt);
             pdf.setTextColor(255, 255, 255);
             const title = item.headerTitle || item.badgeText || 'MAXIMUM RETAIL PRICE';
-            pdf.text(String(title).slice(0, 26).toUpperCase(), label.xMm + label.widthMm / 2, label.yMm + 3, { align: 'center' });
+            pdf.text(String(title).toUpperCase(), label.xMm + w / 2, label.yMm + bannerHeight * 0.75, { align: 'center' });
           }
 
-          const contentStartY = (item.headerBg || item.badgeText || item.headerTitle) ? label.yMm + 7 : label.yMm + 4;
+          const hasBanner = !!(item.headerBg || item.badgeText || item.headerTitle);
+          let currentY = label.yMm + (hasBanner ? bannerHeight + 2.2 : 2.8);
 
-          // Brand
-          if (item.brand) {
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(5);
+          // Brand (only if not ultra compact)
+          if (item.brand && !isUltraCompact) {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(subSizePt);
             pdf.setTextColor(100, 116, 139);
-            pdf.text(String(item.brand).slice(0, 24).toUpperCase(), label.xMm + 2, contentStartY);
+            pdf.text(String(item.brand).toUpperCase(), label.xMm + 1.8, currentY);
+            currentY += subSizePt * 0.45 + 0.6;
           }
 
-          // Product Name
+          // Product Name with multi-line auto-wrap using splitTextToSize (prevents truncation)
+          const rawName = String(item.name || item.productName || 'Product Label');
+          const maxNameWidth = Math.max(8, w - 3.6);
           pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(7.5);
+          pdf.setFontSize(titleSizePt);
           pdf.setTextColor(15, 23, 42);
-          const nameY = item.brand ? contentStartY + 3.5 : contentStartY;
-          pdf.text(String(item.name || item.productName || 'Product Label').slice(0, 26), label.xMm + 2, nameY);
+          const splitLines = pdf.splitTextToSize(rawName, maxNameWidth);
+          const linesToRender = splitLines.slice(0, 2);
+          linesToRender.forEach((lText) => {
+            pdf.text(lText, label.xMm + 1.8, currentY);
+            currentY += titleSizePt * 0.45 + 0.5;
+          });
+
+          // Variant / Pack size (if not compact)
+          if ((item.variant || item.packSize) && !isCompact) {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(subSizePt);
+            pdf.setTextColor(100, 116, 139);
+            const varText = [item.variant, item.packSize].filter(Boolean).join(' • ');
+            pdf.text(varText, label.xMm + 1.8, currentY);
+          }
+
+          const footerY = label.yMm + h - 1.5;
+          const dividerY = footerY - priceSizePt * 0.45 - 0.8;
+          const barcodeY = dividerY - 1.2;
 
           // Barcode / SKU text
           const bVal = item.barcodeValue || item.barcode || item.sku || '';
-          if (bVal) {
+          if (bVal && !isUltraCompact) {
             pdf.setFont('courier', 'bold');
-            pdf.setFontSize(6);
+            pdf.setFontSize(Math.max(5, subSizePt));
             pdf.setTextColor(71, 85, 105);
-            pdf.text(String(bVal).slice(0, 20), label.xMm + label.widthMm / 2, label.yMm + label.heightMm - 6, { align: 'center' });
+            pdf.text(String(bVal), label.xMm + w / 2, barcodeY, { align: 'center' });
           }
 
-          // Price line
+          // Price line divider
           pdf.setDrawColor(226, 232, 240);
-          pdf.setLineWidth(0.2);
-          pdf.line(label.xMm + 1.5, label.yMm + label.heightMm - 4.5, label.xMm + label.widthMm - 1.5, label.yMm + label.heightMm - 4.5);
+          pdf.setLineWidth(0.18);
+          pdf.line(label.xMm + 1.2, dividerY, label.xMm + w - 1.2, dividerY);
 
           pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(7);
+          pdf.setFontSize(priceSizePt);
           pdf.setTextColor(15, 23, 42);
-          pdf.text(`MRP: Rs.${item.mrp || 0}`, label.xMm + 2, label.yMm + label.heightMm - 1.5);
+          pdf.text(`MRP: Rs.${item.mrp || 0}`, label.xMm + 1.8, footerY);
 
           if (item.sellingPrice) {
             pdf.setTextColor(5, 150, 105);
-            pdf.text(`Offer: Rs.${item.sellingPrice}`, label.xMm + label.widthMm - 2, label.yMm + label.heightMm - 1.5, { align: 'right' });
+            pdf.text(`Offer: Rs.${item.sellingPrice}`, label.xMm + w - 1.8, footerY, { align: 'right' });
           }
         }
 
