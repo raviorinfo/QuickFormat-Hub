@@ -31,6 +31,24 @@ import {
   parseCardPersonalizationCsv,
 } from '../src/utils/thankYouCardUtils.js';
 
+import {
+  MRP_TAG_TEMPLATES,
+  validateMrpTagInput,
+  formatIndianCurrency,
+} from '../src/utils/mrpTagUtils.js';
+
+import {
+  ECOMMERCE_LABEL_TYPES,
+  guessColumnMapping,
+  transformMappedRows,
+  calculateTotalExpandedLabels,
+} from '../src/utils/ecommerceLabelUtils.js';
+
+import {
+  SHEET_PRESETS,
+  calculateSheetArrangement,
+} from '../src/utils/sheetLayoutEngine.js';
+
 let passedTests = 0;
 let failedTests = 0;
 
@@ -445,6 +463,48 @@ assert(campaignUrl.includes('utm_source=package_insert') && campaignUrl.includes
 
 // Test 44: Static vs Dynamic QR Architectural Disclosure
 assert(DYNAMIC_QR_DISCLOSURE.isStaticOnly, 'Architectural disclosure explicitly documents client-side Static QR generation');
+
+console.log('\n======================================================');
+console.log('--- 12. PRICE TAG CREATOR ENHANCEMENTS VERIFICATION ---');
+console.log('======================================================');
+
+// Module 1: MRP Price Tag Verification
+assert(MRP_TAG_TEMPLATES.length === 6, '6 ready-made MRP retail templates defined');
+const validMrp = validateMrpTagInput({ mrp: 799, sellingPrice: '' });
+assert(validMrp.isValid, 'Regular MRP tag validates independently without requiring promotional price');
+const invalidMrpZero = validateMrpTagInput({ mrp: 0 });
+assert(!invalidMrpZero.isValid, 'MRP <= 0 correctly triggers validation error');
+const mrpInverted = validateMrpTagInput({ mrp: 500, sellingPrice: 650 });
+assert(!mrpInverted.isValid, 'Selling price exceeding MRP is rejected by default');
+
+// Module 2: E-Commerce Label Verification
+assert(ECOMMERCE_LABEL_TYPES.length === 8, '8 dedicated e-commerce label types defined');
+const sampleLabelHeaders = ['Product Name', 'SKU', 'Barcode', 'MRP', 'Quantity'];
+const autoMapped = guessColumnMapping(sampleLabelHeaders);
+assert(autoMapped.productName === 'Product Name' && autoMapped.quantity === 'Quantity', 'Spreadsheet column mapping auto-detected correctly');
+
+const testRows = [
+  ['Toy Car', 'TOY001', '8901234567890', '299', '5'],
+  ['Building Blocks', 'TOY002', '8901234567891', '499', '3'],
+  ['Toy Robot', 'TOY003', '8901234567892', '799', '2'],
+];
+const mappedItems = transformMappedRows(sampleLabelHeaders, testRows, autoMapped);
+const totalExpandedCopies = calculateTotalExpandedLabels(mappedItems);
+assert(totalExpandedCopies === 10, `Copy multiplier generates exact total: 5 + 3 + 2 = ${totalExpandedCopies} labels (expected 10)`);
+
+// Module 3: Automatic Sheet Layout & Multi-Page Pagination
+const testSheetLayout = calculateSheetArrangement({
+  paperFormatId: 'a4',
+  cols: 2,
+  rows: 3, // capacity = 6
+  labelWidthMm: 70,
+  labelHeightMm: 45,
+  items: mappedItems,
+});
+assert(testSheetLayout.totalPages === 2, 'Layout engine paginates 10 labels across 2 sheets (capacity 6)');
+assert(testSheetLayout.pages[0].labels.length === 6, 'Sheet 1 contains 6 labels');
+assert(testSheetLayout.pages[1].labels.length === 4, 'Sheet 2 contains remaining 4 labels');
+assert(testSheetLayout.pages[1].emptySlots === 2, 'Sheet 2 reports 2 empty slots on final sheet');
 
 console.log('\n========================================');
 console.log(`TOTAL TESTS: ${passedTests + failedTests}`);

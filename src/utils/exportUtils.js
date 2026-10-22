@@ -430,3 +430,67 @@ export function exportCompletePackagingKitPdf({
   pdf.save(filename);
 }
 
+/**
+ * Exports multi-page print-ready label sheets with exact physical sheet dimensions,
+ * coordinates, cut lines, and pagination.
+ */
+export function exportMultiPageSheetPdf({
+  pages = [],
+  paperWidthMm = 210,
+  paperHeightMm = 297,
+  orientation = 'portrait',
+  showCutGuides = true,
+  filename = 'label-sheet-print.pdf',
+  fallbackDataUrl = null,
+}) {
+  if (!pages || pages.length === 0) {
+    throw new Error('No pages to export.');
+  }
+
+  const pdf = new jsPDF({
+    orientation,
+    unit: 'mm',
+    format: [paperWidthMm, paperHeightMm],
+  });
+
+  pages.forEach((page, pageIdx) => {
+    if (pageIdx > 0) {
+      pdf.addPage([paperWidthMm, paperHeightMm], orientation);
+    }
+
+    if (page.labels && page.labels.length > 0) {
+      page.labels.forEach((label) => {
+        const img = label.dataUrl || label.item?.dataUrl || fallbackDataUrl;
+        if (img) {
+          try {
+            pdf.addImage(img, 'PNG', label.xMm, label.yMm, label.widthMm, label.heightMm);
+          } catch (err) {
+            console.warn('PDF image rendering skipped for slot', err);
+          }
+        }
+
+        if (showCutGuides) {
+          pdf.setDrawColor(210, 210, 210);
+          pdf.setLineWidth(0.1);
+          pdf.setLineDashPattern([1, 1], 0);
+          pdf.rect(label.xMm, label.yMm, label.widthMm, label.heightMm, 'S');
+        }
+      });
+    }
+
+    // Optional subtle page number watermark in bottom margin
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(180, 180, 180);
+    pdf.text(
+      `Page ${page.pageNumber || pageIdx + 1} of ${pages.length} — QuickFormat Hub Label Sheet`,
+      paperWidthMm / 2,
+      paperHeightMm - 3,
+      { align: 'center' }
+    );
+  });
+
+  pdf.save(filename);
+}
+
+

@@ -57,10 +57,172 @@ import { getSavedBrandKit } from '../../utils/brandKitUtils';
 import { saveDesign } from '../../utils/savedDesignsUtils';
 import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';
+import html2canvas from 'html2canvas';
+
+// Enhanced Modules for MRP Tags, E-Commerce Labels, and Automatic Sheet Printing
+import { RegularMrpTagDesigner } from './price-tag/RegularMrpTagDesigner';
+import { EcommerceLabelsModule } from './price-tag/EcommerceLabelsModule';
+import { SheetLayoutModule } from './price-tag/SheetLayoutModule';
+import { SavedTemplatesManager } from './price-tag/SavedTemplatesManager';
+import { MRP_TAG_TEMPLATES } from '../../utils/mrpTagUtils';
+import { ECOMMERCE_LABEL_TYPES } from '../../utils/ecommerceLabelUtils';
 
 export function PriceTagCreatorTool() {
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState('single'); // 'single' | 'bulk' | 'sheet'
+
+  // Multi-Module navigation state
+  const [mainModule, setMainModule] = useState('price-tags'); // 'price-tags' | 'ecommerce-labels' | 'sheet-arrangement' | 'saved-templates'
+  const [priceTagMode, setPriceTagMode] = useState('promotional'); // 'promotional' | 'regular-mrp'
+  const [activeTab, setActiveTab] = useState('single'); // 'single' | 'bulk' | 'sheet' (for promotional tag)
+
+  // Module 1: Regular MRP Tag state
+  const [mrpState, setMrpState] = useState(() => ({
+    name: 'Organic Bamboo Coffee Tumbler',
+    sku: 'BAM-TMB-450',
+    mrp: 699,
+    sellingPrice: '',
+    brand: 'EcoVibe Essentials',
+    variant: 'Matte Olive / 450ml',
+    packSize: '1 Unit',
+    customText: '100% Biodegradable & BPA Free',
+    showDiscount: false,
+    codeType: 'barcode',
+    barcodeValue: '8901234567890',
+    qrValue: 'https://ecovibe.com/p/BAM-TMB-450',
+    widthMm: 60,
+    heightMm: 40,
+    orientation: 'landscape',
+    fontFamily: 'sans-serif',
+    headerBg: '#0f172a',
+    headerText: '#ffffff',
+    bg: '#ffffff',
+    borderColor: '#e2e8f0',
+    borderStyle: 'solid',
+    priceColor: '#0f172a',
+    cornerRadius: 8,
+    textAlign: 'center',
+    barcodePlacement: 'bottom',
+    logoUrl: null,
+    hasHole: false,
+    showFields: {
+      brand: true,
+      sku: true,
+      variant: true,
+      packSize: true,
+      customText: true,
+      sellingPrice: true,
+    },
+  }));
+
+  // Module 2: E-Commerce Product Label state (single)
+  const [ecommerceLabelState, setEcommerceLabelState] = useState(() => ({
+    productName: 'Toy Car Diecast Racing',
+    sku: 'TOY-CAR-01',
+    barcode: '8901234567890',
+    mrp: 299,
+    sellingPrice: 249,
+    quantity: 1,
+    variant: 'Red / 1:64 Scale',
+    brand: 'Speedster Toys',
+    weight: '120g',
+    origin: 'India',
+    customText: 'Non-toxic paint • Ages 3+',
+    orderId: 'ORD-2026-9812',
+    awbNumber: 'AWB-789012345',
+    recipientName: 'Rahul Sharma',
+    recipientAddress: 'Flat 402, Lotus Tower, MG Road',
+    recipientCity: 'Bengaluru',
+    recipientState: 'Karnataka',
+    recipientPincode: '560001',
+    recipientPhone: '+91 98765 43210',
+    senderName: 'QuickFormat Hub Fulfillment',
+    senderAddress: 'Plot 18, Electronic City Phase 1',
+    senderPhone: '+91 80 4123 4567',
+    widthMm: 50,
+    heightMm: 30,
+    fontFamily: 'sans-serif',
+    showBorders: true,
+  }));
+
+  // Module 2: Bulk Products Table state
+  const [bulkProducts, setBulkProducts] = useState(() => [
+    {
+      id: 'lbl-1',
+      rowNumber: 1,
+      productName: 'Toy Car Diecast Racing',
+      sku: 'TOY-CAR-01',
+      barcode: '8901234567890',
+      mrp: 299,
+      sellingPrice: 249,
+      quantity: 5,
+      variant: 'Red / 1:64 Scale',
+      brand: 'Speedster Toys',
+      weight: '120g',
+      origin: 'India',
+      selected: true,
+      isValid: true,
+      errors: [],
+    },
+    {
+      id: 'lbl-2',
+      rowNumber: 2,
+      productName: 'Magnetic Building Blocks',
+      sku: 'TOY-BLK-02',
+      barcode: '8901234567891',
+      mrp: 499,
+      sellingPrice: 399,
+      quantity: 3,
+      variant: '64 Pieces Multi-Color',
+      brand: 'SparkCraft',
+      weight: '450g',
+      origin: 'India',
+      selected: true,
+      isValid: true,
+      errors: [],
+    },
+    {
+      id: 'lbl-3',
+      rowNumber: 3,
+      productName: 'Programmable Toy Robot',
+      sku: 'TOY-ROB-03',
+      barcode: '8901234567892',
+      mrp: 799,
+      sellingPrice: 699,
+      quantity: 2,
+      variant: 'Blue / USB Rechargeable',
+      brand: 'RoboKits',
+      weight: '380g',
+      origin: 'India',
+      selected: true,
+      isValid: true,
+      errors: [],
+    },
+  ]);
+
+  // Module 3: Automatic Sheet Layout state
+  const [sheetConfig, setSheetConfig] = useState(() => ({
+    paperFormatId: 'a4',
+    customPaperWidthMm: 210,
+    customPaperHeightMm: 297,
+    orientation: 'portrait',
+    selectedPresetId: 'a4-24up',
+    labelWidthMm: 70,
+    labelHeightMm: 36,
+    cols: 3,
+    rows: 8,
+    marginTopMm: 4.5,
+    marginBottomMm: 4.5,
+    marginLeftMm: 0,
+    marginRightMm: 0,
+    gapXmm: 0,
+    gapYmm: 0,
+    showCutGuides: true,
+    readingOrder: 'row-first',
+    alignment: 'center',
+  }));
+
+  // Items sent to automatic sheet arrangement
+  const [itemsToPrint, setItemsToPrint] = useState([]);
 
   // Modals state
   const [isBrandKitOpen, setIsBrandKitOpen] = useState(false);
@@ -472,6 +634,52 @@ export function PriceTagCreatorTool() {
     toast.success('Reset to default design');
   };
 
+  // Helper to render and download PNG from DOM element
+  const handleDownloadElementPng = async (element, filename = 'label.png') => {
+    if (!element) return;
+    playClickSound();
+    try {
+      const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+      downloadCanvasAsPng(canvas, filename);
+      toast.success('Downloaded high-resolution PNG!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export PNG');
+    }
+  };
+
+  // Helper to render and download single PDF from DOM element
+  const handleDownloadElementPdf = async (element, filename = 'label.pdf', widthMm = 60, heightMm = 40) => {
+    if (!element) return;
+    playClickSound();
+    try {
+      const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+      const dataUrl = canvas.toDataURL('image/png');
+      exportSinglePdf({
+        dataUrl,
+        widthMm,
+        heightMm,
+        filename,
+      });
+      toast.success('Downloaded print-ready PDF!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to export PDF');
+    }
+  };
+
+  // Route items to Module 3 Sheet Layout Engine
+  const handleSendToSheet = (items) => {
+    playClickSound();
+    if (Array.isArray(items)) {
+      setItemsToPrint(items);
+    } else if (items) {
+      setItemsToPrint([items]);
+    }
+    setMainModule('sheet-arrangement');
+    toast.success('Sent to Automatic Sheet Layout Engine!');
+  };
+
   return (
     <div className="space-y-4">
       {/* Tool Hero Header */}
@@ -583,71 +791,230 @@ export function PriceTagCreatorTool() {
         }
       />
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/[0.08] pb-1 text-xs font-bold">
+      {/* 4 Main Module Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-white/[0.08] pb-1 text-xs font-bold">
         <button
           type="button"
           onClick={() => {
             playClickSound();
-            setActiveTab('single');
+            setMainModule('price-tags');
           }}
-          className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-            activeTab === 'single'
-              ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+          className={`py-2 px-3.5 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+            mainModule === 'price-tags'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Tag className="w-3.5 h-3.5" />
-          <span>Price Tag Designer</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            playClickSound();
-            setActiveTab('bulk');
-          }}
-          className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-            activeTab === 'bulk'
-              ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>Bulk Price Tags (CSV)</span>
+          <Tag className="w-4 h-4" />
+          <span>Price Tag Creator</span>
           <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 text-sky-500">
-            {bulkItems.length}
+            2 Modes
           </span>
         </button>
+
         <button
           type="button"
           onClick={() => {
             playClickSound();
-            setActiveTab('sheet');
+            setMainModule('ecommerce-labels');
           }}
-          className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
-            activeTab === 'sheet'
-              ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+          className={`py-2 px-3.5 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+            mainModule === 'ecommerce-labels'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Grid className="w-3.5 h-3.5" />
-          <span>A4 Sheet Print Preview</span>
+          <Package className="w-4 h-4 text-emerald-500" />
+          <span>E-Commerce Product Labels</span>
+          <span className="text-[9px] font-mono px-1 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            8 Types
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            playClickSound();
+            setMainModule('sheet-arrangement');
+          }}
+          className={`py-2 px-3.5 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+            mainModule === 'sheet-arrangement'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Grid className="w-4 h-4 text-indigo-500" />
+          <span>Automatic Sheet Layout & Print</span>
+          <span className="text-[9px] font-mono px-1 rounded bg-indigo-500/10 text-indigo-500">
+            Multi-Page
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            playClickSound();
+            setMainModule('saved-templates');
+          }}
+          className={`py-2 px-3.5 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+            mainModule === 'saved-templates'
+              ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Save className="w-4 h-4 text-amber-500" />
+          <span>Saved Presets & Templates</span>
         </button>
       </div>
 
-      {/* Category Templates Bar */}
-      <div className="bg-white dark:bg-[#0c1220] p-3 sm:p-3.5 rounded-xl space-y-2 border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
-              Retail Category Templates ({CATEGORY_TEMPLATES.length})
-            </span>
+      {/* MODULE 1: PRICE TAG CREATOR */}
+      {mainModule === 'price-tags' && (
+        <div className="space-y-4">
+          {/* Tag Type Selection (Module 1.A) */}
+          <div className="bg-white dark:bg-[#0c1220] p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider font-mono">
+                Tag Type Selection:
+              </span>
+              <div className="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setPriceTagMode('promotional');
+                  }}
+                  className={`px-3.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    priceTagMode === 'promotional'
+                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  🏷️ Promotional Price Tag
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setPriceTagMode('regular-mrp');
+                  }}
+                  className={`px-3.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    priceTagMode === 'regular-mrp'
+                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  🇮🇳 Regular MRP Price Tag
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+              {priceTagMode === 'promotional'
+                ? 'Promotional tags with discount math, MRP strike-through & savings badge'
+                : 'Independent statutory MRP tags without requiring discounts'}
+            </div>
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">1-Click Industry Styles</span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {CATEGORY_TEMPLATES.map((tmpl) => {
+
+          {/* If Regular MRP Tag Selected */}
+          {priceTagMode === 'regular-mrp' && (
+            <RegularMrpTagDesigner
+              mrpState={mrpState}
+              setMrpState={setMrpState}
+              onApplyTemplate={(tmpl) => {
+                setMrpState((prev) => ({
+                  ...prev,
+                  ...tmpl.defaults,
+                  widthMm: tmpl.widthMm,
+                  heightMm: tmpl.heightMm,
+                  orientation: tmpl.orientation,
+                  fontFamily: tmpl.fontFamily,
+                  headerBg: tmpl.headerBg,
+                  headerText: tmpl.headerText,
+                  bg: tmpl.bg,
+                  borderColor: tmpl.borderColor,
+                  borderStyle: tmpl.borderStyle,
+                  priceColor: tmpl.priceColor,
+                  cornerRadius: tmpl.cornerRadius,
+                  textAlign: tmpl.textAlign,
+                  barcodePlacement: tmpl.barcodePlacement,
+                  hasHole: tmpl.hasHole || false,
+                }));
+                toast.success(`Loaded ${tmpl.name} Template`);
+              }}
+              onPrintSingle={(el) => printHtmlElement(el, mrpState.name)}
+              onDownloadPng={(el) => handleDownloadElementPng(el, `mrp-tag-${mrpState.sku || 'item'}.png`)}
+              onDownloadPdf={(el) => handleDownloadElementPdf(el, `mrp-tag-${mrpState.sku || 'item'}.pdf`, mrpState.widthMm, mrpState.heightMm)}
+              onSendToSheet={() => handleSendToSheet(mrpState)}
+            />
+          )}
+
+          {/* If Promotional Tag Selected: Sub-Tabs & Category Bar */}
+          {priceTagMode === 'promotional' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/[0.08] pb-1 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setActiveTab('single');
+                  }}
+                  className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'single'
+                      ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>Price Tag Designer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setActiveTab('bulk');
+                  }}
+                  className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'bulk'
+                      ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Bulk Price Tags (CSV)</span>
+                  <span className="text-[9px] font-mono px-1 rounded bg-sky-500/10 text-sky-500">
+                    {bulkItems.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound();
+                    setActiveTab('sheet');
+                  }}
+                  className={`py-2 px-3 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+                    activeTab === 'sheet'
+                      ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                      : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Grid className="w-3.5 h-3.5" />
+                  <span>A4 Sheet Print Preview</span>
+                </button>
+              </div>
+
+              {/* Category Templates Bar */}
+              <div className="bg-white dark:bg-[#0c1220] p-3 sm:p-3.5 rounded-xl space-y-2 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                      Retail Category Templates ({CATEGORY_TEMPLATES.length})
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">1-Click Industry Styles</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                  {CATEGORY_TEMPLATES.map((tmpl) => {
             const isSelected = selectedTemplateId === tmpl.id;
             return (
               <button
@@ -1559,6 +1926,79 @@ export function PriceTagCreatorTool() {
           </div>
         </div>
       )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODULE 2: E-COMMERCE LABELS */}
+      {mainModule === 'ecommerce-labels' && (
+        <EcommerceLabelsModule
+          labelState={ecommerceLabelState}
+          setLabelState={setEcommerceLabelState}
+          bulkProducts={bulkProducts}
+          setBulkProducts={setBulkProducts}
+          onPrintSingle={(el) => printHtmlElement(el, ecommerceLabelState.productName)}
+          onDownloadPng={(el) =>
+            handleDownloadElementPng(el, `ecommerce-label-${ecommerceLabelState.sku || 'item'}.png`)
+          }
+          onDownloadPdf={(el) =>
+            handleDownloadElementPdf(
+              el,
+              `ecommerce-label-${ecommerceLabelState.sku || 'item'}.pdf`,
+              ecommerceLabelState.widthMm,
+              ecommerceLabelState.heightMm
+            )
+          }
+          onSendBulkToSheet={(items) => handleSendToSheet(items)}
+        />
+      )}
+
+      {/* MODULE 3 & 4: AUTOMATIC SHEET ARRANGEMENT & PRINT */}
+      {mainModule === 'sheet-arrangement' && (
+        <SheetLayoutModule
+          sheetConfig={sheetConfig}
+          setSheetConfig={setSheetConfig}
+          itemsToPrint={itemsToPrint.length > 0 ? itemsToPrint : bulkProducts}
+          fallbackItem={{
+            name: mrpState.name || name,
+            sku: mrpState.sku || sku,
+            mrp: mrpState.mrp || mrp,
+            sellingPrice: mrpState.sellingPrice || sellingPrice,
+          }}
+        />
+      )}
+
+      {/* MODULE 4.C: SAVED TEMPLATES & PRESETS */}
+      {mainModule === 'saved-templates' && (
+        <SavedTemplatesManager
+          currentDesign={{
+            mrpState,
+            ecommerceLabelState,
+            promotional: {
+              name,
+              sellingPrice,
+              mrp,
+              sku,
+              selectedTemplateId,
+              selectedShapeId,
+            },
+          }}
+          currentSheetConfig={sheetConfig}
+          onLoadTemplate={(data) => {
+            if (data.mrpState) setMrpState(data.mrpState);
+            if (data.ecommerceLabelState) setEcommerceLabelState(data.ecommerceLabelState);
+            if (data.promotional) {
+              setName(data.promotional.name);
+              setSellingPrice(data.promotional.sellingPrice);
+              setMrp(data.promotional.mrp);
+              setSku(data.promotional.sku);
+            }
+          }}
+          onLoadSheetConfig={(cfg) => setSheetConfig(cfg)}
+        />
+      )}
+
       {/* Shared Modals */}
       <BrandKitModal
         isOpen={isBrandKitOpen}
