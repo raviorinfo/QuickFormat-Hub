@@ -31,9 +31,10 @@ export function ToolHeroHeader({
                 {badge}
               </span>
             )}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>100% Client-Side Engine</span>
+            <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-lg text-[10px] font-bold aurora-neon-pill text-emerald-800 dark:text-emerald-300">
+              <span className="font-mono text-[11px] font-black text-emerald-600 dark:text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">0ms</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="uppercase tracking-wider font-mono text-[9px]">Air-Gapped Sandbox</span>
             </div>
           </div>
 

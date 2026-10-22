@@ -174,6 +174,16 @@ export function SidebarNav({ currentPath, onNavigate }) {
                   const Icon = tool.icon;
                   const isSelected = tool.path === currentPath;
 
+                  const activeClass = cat.id === 'Data'
+                    ? 'dock-item-active-data'
+                    : cat.id === 'Security'
+                    ? 'dock-item-active-security'
+                    : cat.id === 'Commerce'
+                    ? 'dock-item-active-commerce'
+                    : cat.id === 'Docs'
+                    ? 'dock-item-active-docs'
+                    : 'dock-item-active-dev';
+
                   return (
                     <button
                       key={tool.path}
@@ -182,14 +192,14 @@ export function SidebarNav({ currentPath, onNavigate }) {
                         playClickSound();
                         onNavigate(tool.path);
                       }}
-                      className={`w-full flex items-center gap-2.5 p-1.5 rounded-xl text-xs transition-all cursor-pointer ${
+                      className={`w-full flex items-center gap-2.5 p-1.5 rounded-xl text-xs transition-all cursor-pointer relative ${
                         isSelected
-                          ? 'bg-sky-500 text-white font-bold shadow-xs'
+                          ? `${activeClass} font-bold shadow-xs`
                           : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                       title={`${tool.label} — ${tool.desc}`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-sky-500'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? '' : 'text-slate-400 group-hover:text-slate-200'}`} />
                       {!isCollapsed && (
                         <div className="flex items-center justify-between flex-1 min-w-0">
                           <span className="truncate text-left">{tool.label}</span>
@@ -215,11 +225,19 @@ export function SidebarNav({ currentPath, onNavigate }) {
 
       {/* Footer info inside sidebar */}
       {!isCollapsed && (
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-600 dark:text-slate-400 flex items-center justify-between font-mono font-semibold">
-          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-            <ShieldCheck className="w-3.5 h-3.5" /> Air-Gapped
-          </span>
-          <span>v2.8</span>
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+          <div className="flex items-center justify-between p-2 rounded-xl aurora-neon-pill text-[10px]">
+            <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+              <span className="font-mono text-[11px] font-black text-emerald-600 dark:text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">0ms</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="uppercase tracking-wider font-mono text-[9px]">Air-Gapped</span>
+            </div>
+            <span className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">100% Private</span>
+          </div>
+          <div className="text-[10px] text-slate-500 flex items-center justify-between font-mono font-medium px-1">
+            <span>Command Center</span>
+            <span>v2.8</span>
+          </div>
         </div>
       )}
     </aside>

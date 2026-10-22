@@ -12,8 +12,8 @@
   }
 
   .dark {
-    --color-bg-primary: #080c16;
-    --color-bg-secondary: #0d1322;
+    --color-bg-primary: #040711;
+    --color-bg-secondary: #090e1c;
     --color-border: #1e293b;
     --color-text-primary: #f8fafc;
     --color-text-secondary: #94a3b8;
@@ -240,35 +240,87 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Ambient Clean Horizon Top Glow (Replaces muddy center blobs) */
+/* Aurora Luxe Cosmic Ambient Top Glow */
 .ambient-glow-cyan {
   position: fixed;
   top: 0;
-  left: 20%;
-  right: 20%;
-  height: 120px;
-  background: radial-gradient(ellipse at center top, rgba(56, 189, 248, 0.04) 0%, transparent 70%);
+  left: 10%;
+  right: 10%;
+  height: 380px;
+  background: radial-gradient(ellipse at center top, rgba(14, 165, 233, 0.08) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 75%);
   pointer-events: none;
   z-index: 0;
+  filter: blur(40px);
 }
 
 .dark .ambient-glow-cyan {
-  background: radial-gradient(ellipse at center top, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center top, rgba(14, 165, 233, 0.18) 0%, rgba(6, 182, 212, 0.07) 50%, transparent 75%);
 }
 
 .ambient-glow-purple {
   position: fixed;
   top: 0;
-  right: 10%;
-  width: 400px;
-  height: 100px;
-  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.03) 0%, transparent 70%);
+  right: 5%;
+  width: 580px;
+  height: 340px;
+  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.07) 0%, rgba(139, 92, 246, 0.03) 50%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+  filter: blur(40px);
 }
 
 .dark .ambient-glow-purple {
-  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center top, rgba(168, 85, 247, 0.18) 0%, rgba(139, 92, 246, 0.06) 50%, transparent 75%);
+}
+
+/* Aurora Luxe Signature Neon Pill */
+.aurora-neon-pill {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 0 0 16px -2px rgba(16, 185, 129, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.dark .aurora-neon-pill {
+  background: rgba(6, 78, 59, 0.35);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  box-shadow: 0 0 20px -2px rgba(16, 185, 129, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Sidebar Dock Active Glow */
+.dock-item-active-data {
+  background: linear-gradient(90deg, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0.04) 100%) !important;
+  border-left: 3px solid #38bdf8 !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 0 16px -4px rgba(56, 189, 248, 0.4);
+}
+
+.dock-item-active-security {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
+  border-left: 3px solid #34d399 !important;
+  color: #34d399 !important;
+  box-shadow: 0 0 16px -4px rgba(52, 211, 153, 0.4);
+}
+
+.dock-item-active-commerce {
+  background: linear-gradient(90deg, rgba(244, 63, 94, 0.18) 0%, rgba(244, 63, 94, 0.04) 100%) !important;
+  border-left: 3px solid #fb7185 !important;
+  color: #fb7185 !important;
+  box-shadow: 0 0 16px -4px rgba(251, 113, 133, 0.4);
+}
+
+.dock-item-active-docs {
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0.04) 100%) !important;
+  border-left: 3px solid #c084fc !important;
+  color: #c084fc !important;
+  box-shadow: 0 0 16px -4px rgba(192, 132, 252, 0.4);
+}
+
+.dock-item-active-dev {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.04) 100%) !important;
+  border-left: 3px solid #fbbf24 !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 16px -4px rgba(251, 191, 36, 0.4);
 }
 
 /* Custom Scrollbars */

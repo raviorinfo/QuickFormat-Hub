@@ -39,7 +39,7 @@ export function ThemeProvider({ children }) {
 
   const [navView, setNavViewState] = useState(() => {
     const saved = localStorage.getItem('qfh_nav_view');
-    return saved && ['streamlined', 'sidebar', 'ribbon'].includes(saved) ? saved : 'streamlined';
+    return saved && ['streamlined', 'sidebar', 'ribbon'].includes(saved) ? saved : 'sidebar';
   });
 
   const setNavView = (view) => {
