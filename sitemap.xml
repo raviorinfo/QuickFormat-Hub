@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage & Unified Suite Portal -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Price Tag & Shelf Talker Creator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/price-tag-creator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <!-- Barcode Generator & GS1 Validator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/barcode-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <!-- Dynamic/Static QR Code Generator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/qr-code-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <!-- Product Label & Packaging Insert Studio -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/product-label-studio</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <!-- Ecommerce Thank You Card & Voucher Maker -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/thank-you-card-maker</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- JSON to CSV / Excel Converter -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/json-to-csv</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- CSV to JSON Converter & Unflattener -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/csv-to-json</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- JSON Interactive Tree Viewer & Query -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/json-viewer</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- JSON to TypeScript & Schema Generator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/json-to-types</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- SQL Query Formatter & Beautifier -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/sql-formatter</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- HTTP Security Headers & CSP Evaluator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/security-headers</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- SSL / TLS Certificate Inspector & PEM Decoder -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/cert-inspector</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- CORS Configuration & Preflight Tester -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/cors-analyzer</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- Cryptographic API Key & Secret Generator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/key-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- Subresource Integrity (SRI) Hash Generator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/sri-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- SHA-256, SHA-512 & MD5 Hash Generator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/hash-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- JWT Token Decoder & Security Inspector -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/jwt-inspector</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- PII Sensitive Data Sanitizer & Redactor -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/pii-redactor</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- URL Query String Parser & Builder -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/url-parser</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- cURL Command to Multi-Language Code Converter -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/curl-converter</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- Base64 Text & File Encoder/Decoder -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/base64-tool</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- Unix Epoch & UTC Timestamp Converter -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/timestamp-converter</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- UUID (v4, v7, Nil) Generator & Validator -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/uuid-generator</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- Cron Schedule Expression Builder & Humanizer -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/cron-scheduler</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <!-- Regular Expression Tester & Visualizer -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/regex-tester</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- Interactive Markdown Editor with Live Preview -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/markdown-editor</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- PDF to Markdown Document Converter -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/pdf-to-markdown</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- Side-by-Side Text & Code Difference Checker -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/text-diff</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <!-- About Us & Company Mission -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/about</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <!-- Developer Support & Contact -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/contact</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <!-- Privacy Policy & Zero-Telemetry Guarantee -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/privacy-policy</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+  <!-- Terms of Service & Usage Guidelines -->
+  <url>
+    <loc>https://quickformat.arvaancorelogic.com/terms-of-service</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+</urlset>

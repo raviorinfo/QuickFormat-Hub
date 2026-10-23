@@ -1,0 +1,7 @@
+# QuickFormat Hub Robots.txt
+User-agent: *
+Allow: /
+
+# Host & Sitemap
+Host: quickformat.arvaancorelogic.com
+Sitemap: https://quickformat.arvaancorelogic.com/sitemap.xml
