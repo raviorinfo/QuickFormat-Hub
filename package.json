@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy404.js",
+    "build": "vite build && node scripts/generateSitemap.js && node scripts/copy404.js",
+    "sitemap": "node scripts/generateSitemap.js",
     "deploy": "node scripts/deploy.js",
     "lint": "oxlint",
     "preview": "vite preview"

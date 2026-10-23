@@ -30,6 +30,7 @@ export function Footer({ onNavigate }) {
     { path: '/terms-of-service', label: 'Terms of Service' },
     { path: '/about', label: 'About Us & Mission' },
     { path: '/contact', label: 'Contact Support' },
+    { path: '/sitemap.xml', label: 'XML Sitemap', isDirect: true },
   ];
 
   return (
@@ -263,13 +264,18 @@ export function Footer({ onNavigate }) {
                       <a
                         href={item.path}
                         onClick={(e) => {
+                          if (item.isDirect) return;
                           e.preventDefault();
                           onNavigate(item.path);
                         }}
+                        target={item.isDirect ? '_blank' : undefined}
+                        rel={item.isDirect ? 'noopener noreferrer' : undefined}
                         className="flex items-center justify-between py-1 px-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/60 transition-colors font-medium group"
                       >
                         <span className="truncate">{item.label}</span>
-                        <span className="text-[10px] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-sky-500">→</span>
+                        <span className="text-[10px] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-sky-500">
+                          {item.isDirect ? '↗' : '→'}
+                        </span>
                       </a>
                     </li>
                   ))}

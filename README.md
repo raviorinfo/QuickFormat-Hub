@@ -54,7 +54,7 @@
 ├── public/
 │   ├── manifest.json       # PWA manifest
 │   ├── robots.txt          # Search engine crawler directives
-│   ├── sitemap.xml         # XML sitemap covering all 13 tools & legal pages
+│   ├── sitemap.xml         # XML sitemap covering all 28 tools & legal pages (33 indexable routes)
 │   └── sw.js               # Offline service worker cache
 ├── src/
 │   ├── components/
